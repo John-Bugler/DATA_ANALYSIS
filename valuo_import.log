@@ -1,0 +1,10 @@
+2025-02-02 17:40:40,647 - INFO - Zaèátek zpracování dat
+2025-02-02 17:40:40,699 - INFO - Zpracovávám soubor: C:\Users\ijttr\OneDrive\Dokumenty\PROG\PYTHON\DATA_ANALYSIS\VALUO\data\cadastre_report_4_2024 (11).xlsx
+2025-02-02 17:40:40,916 - INFO - Soubor C:\Users\ijttr\OneDrive\Dokumenty\PROG\PYTHON\DATA_ANALYSIS\VALUO\data\cadastre_report_4_2024 (11).xlsx: 5 nových záznamù z 5 celkem
+2025-02-02 17:47:09,513 - INFO - Zaèátek zpracování dat
+2025-02-02 17:47:09,565 - INFO - Zpracovávám soubor: C:\Users\ijttr\OneDrive\Dokumenty\PROG\PYTHON\DATA_ANALYSIS\VALUO\data\cadastre_report_4_2024 (11).xlsx
+2025-02-02 17:47:09,777 - WARNING - Soubor C:\Users\ijttr\OneDrive\Dokumenty\PROG\PYTHON\DATA_ANALYSIS\VALUO\data\cadastre_report_4_2024 (11).xlsx neobsahuje sloupce: {'datum_zplatneni', 'mena', 'kat_uzemi', 'adresa', 'mesic', 'rok', 'listina', 'cislo_vkladu', 'nemovitost', 'cenovy_udaj', 'typ', 'popis', 'plocha', 'typ_plochy', 'okres', 'datum_podani'}
+2025-02-02 17:47:09,783 - INFO - Soubor C:\Users\ijttr\OneDrive\Dokumenty\PROG\PYTHON\DATA_ANALYSIS\VALUO\data\cadastre_report_4_2024 (11).xlsx: 1 nových záznamù z 5 celkem
+2025-02-02 17:47:10,424 - INFO - Získány souøadnice pro adresu 'None': 44.933143, 7.540121
+2025-02-02 17:47:10,427 - ERROR - Chyba pøi vkládání záznamu: ('42000', '[42000] [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]The incoming tabular data stream (TDS) remote procedure call (RPC) protocol stream is incorrect. Parameter 11 (""): The supplied value is not a valid instance of data type float. Check the source data for invalid values. An example of an invalid value is data of numeric type with scale greater than precision. (8023) (SQLExecDirectW)')
+2025-02-02 17:47:10,427 - ERROR - Problematický záznam: {'cislo_vkladu': 'None', 'datum_podani': NaT, 'datum_zplatneni': NaT, 'listina': 'None', 'nemovitost': 'None', 'typ': 'None', 'adresa': 'None', 'cenovy_udaj': nan, 'mena': 'None', 'plocha': nan, 'typ_plochy': 'None', 'popis': 'None', 'okres': 'None', 'kat_uzemi': 'None', 'rok': nan, 'mesic': nan}
