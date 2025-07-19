@@ -1,0 +1,22 @@
+2025-02-02 17:36:26,264 - INFO - Zaèátek zpracování dat
+2025-02-02 17:39:02,646 - INFO - Zaèátek zpracování dat
+2025-02-02 17:39:02,654 - INFO - Zpracovávám soubor: C:\Users\ijttr\OneDrive\Dokumenty\PROG\PYTHON\DATA_ANALYSIS\VALUO\data\cadastre_report_4_2024 (11).xlsx
+2025-02-02 17:39:02,656 - ERROR - Chyba pøi zpracování souboru C:\Users\ijttr\OneDrive\Dokumenty\PROG\PYTHON\DATA_ANALYSIS\VALUO\data\cadastre_report_4_2024 (11).xlsx: [Errno 13] Permission denied: 'C:\\Users\\ijttr\\OneDrive\\Dokumenty\\PROG\\PYTHON\\DATA_ANALYSIS\\VALUO\\data\\cadastre_report_4_2024 (11).xlsx'
+2025-02-02 17:39:02,658 - INFO - 
+        ============ SOUHRN ZPRACOVÁNÍ ============
+        Zpracované soubory: 0
+        Celkem záznamù ve zpracovaných souborech: 0
+        Novì vložené záznamy: 0
+        
+        GPS STATISTIKY:
+        Pùvodní záznamy bez GPS: 0
+        Novì stažené GPS pro pùvodní záznamy: 0
+        Novì stažené GPS pro nové záznamy: 0
+        GPS doplnìné z existujících záznamù: 0
+        Celkem API dotazù: 0
+        Zbývající záznamy bez GPS: 0
+        ========================================
+        
+2025-02-02 17:39:35,873 - INFO - Zaèátek zpracování dat
+2025-02-02 17:39:35,874 - INFO - Zpracovávám soubor: C:\Users\ijttr\OneDrive\Dokumenty\PROG\PYTHON\DATA_ANALYSIS\VALUO\data\cadastre_report_4_2024 (11).xlsx
+2025-02-02 17:39:35,888 - INFO - Soubor C:\Users\ijttr\OneDrive\Dokumenty\PROG\PYTHON\DATA_ANALYSIS\VALUO\data\cadastre_report_4_2024 (11).xlsx: 5 nových záznamù z 5 celkem

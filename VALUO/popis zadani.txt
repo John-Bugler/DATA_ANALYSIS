@@ -1,0 +1,117 @@
+potrebuji udelat v pythonu + sql skript ktery bude z daneho adresare a cele jeho podadresarove struktury nacitat postupne vsechny excelovske soubory a vkladat je do MS SQL databaze,
+struktura vsech souboru je vzdy stejna, prvni radek je vzdy zahlavi a dale nasleduji jednotlive zaznamy jejichz pocet se samozrejme lisi,
+nazvy zahlavi v souboru vypadají takto :
+
+Èíslo vkladu
+Datum podání
+Datum zplatnìní
+Listina	Nemovitost
+Typ	Adresa
+Cenový údaj
+Mìna
+Plocha (v m2)
+Typ plochy
+Popis
+Okres
+Kat. území
+Rok
+Mìsíc
+
+
+
+nazvy sloupcu v tabulce v DB tabulka ta vypada takto :   
+
+
+USE VALUO
+Create table Valuo_data
+	(
+    id INT IDENTITY(1,1) PRIMARY KEY,
+	timestamp datetime2(0) default (sysdatetime()), 
+    cislo_vkladu VARCHAR(50) NOT NULL,
+    datum_podani DATETIME NOT NULL,
+    datum_zplatneni DATETIME NOT NULL,
+    listina TEXT NOT NULL,
+    nemovitost VARCHAR(50) NOT NULL,
+    typ VARCHAR(100) NOT NULL,
+    adresa VARCHAR(200) NOT NULL,
+    cenovy_udaj DECIMAL(18,2) NOT NULL,
+    mena VARCHAR(10) NOT NULL,
+    plocha DECIMAL(10,2),
+    typ_plochy VARCHAR(100),
+    popis VARCHAR(400),
+    okres VARCHAR(100) NOT NULL,
+    kat_uzemi VARCHAR(100) NOT NULL,
+    rok INT NOT NULL,
+    mesic INT NOT NULL,
+	LAT DECIMAL(9,7),
+    LON DECIMAL(9,7)
+ 
+	);
+
+jediny rozdil mezi soubory a DB tabulkou je ze v DB tabulce jsou navic 3 sloupce 
+- timestamp ktery chci kvuli prehledu kdy byly data do DB vkladany
+- a sloupce LAT, LON,  kde se budou vkladat gps souradnice, 
+
+souradnice chci tahat pomoci knihovny 
+opencage.geocoder import OpenCageGeocode,
+muj API klic = 85af71fbd7334627a5b84894066a8a18
+
+
+ted popis logiky fungovani algoritmu :
+- chci aby byl chybo-vzdorny tedy pokud ve zdrojove slozce bude mnoho ruznych souboru 
+    ktere budou treba co do obsahu totozne, nebo jen jejich cast zaznamu bude totozna s tim co uz v DB je tak aby bylo ohlidano ze se nebudou vkladat duplicity do DB
+- overeni chci aby bylo na urovni kazdeho zaznamu / radku mezi zaznamy souboru a DB bych videl jako jedinecnost kombinace hodnot vsech sloupcu krome timestampu a LAT, LON
+- po overeni potencialne duplicitniho zaznamu chci budto zaznam vlozit pokud v DB jeste neni nebo nevlozit aby nevznikaly duplicity
+
+
+
+Dalsi dulezita cast kodu je stahovani onech gps souradnic :
+- chci aby se ke vsem zaznamum vkladanym do DB tahaly souradnice a vkladali se do sloupcu LAT, LON na zaklade APIcka modulu viz. nahore,
+- API zjistuje souradnice na zaklade sloupce-adresa, takze zaznamy ktere adresy nemaji tak logicky nebudeme stahovat 
+- aby se predeslo nejakym problemum myslim ze je vhodny postup takovy za jakmile probehne hlavni cast kodu 
+   ktera overi pripadne duplicity zaznamu mezi soubory a DB a vlozi nove zaznamy do DB, tak az pote na konci proveri vsechny zaznamy ktere jiz v DB jsou (tedy jak puvodni tak nove vlozene)
+   a u tech kde nejsou vlozeny GPS souradnice a je uvedena adresa je stahne a vlozi, takze se takto budou vkladat gps souradnice u nove vkladanych zaznamu ale i u zaznamu historickych kde z jakeho koliv duvodu nejsou uvedeny,
+   takze vlastne kazdy prubeh kodu bude kontrolovat gps souradnice v cele DB a pripadne doplnovat i tam kde hostoricky nejsou
+- takze krome pripadu kdy API nebude schopne dodat GPS soradnice se numuze stat ze u zaznamu nebude souradnice ulozena
+
+
+vzhledem k faktu ze vyuzivani API je omezene na 2500 dotazu za den, je potrteba s nimi setrit :
+- to si predstavuju tak ze kdyz se na konec pusti cast kodu starajici se o gps souradnice nejprve se proveri data v DB s nove vkladanymi daty a pokud se zjisti ze u nove vkladanych dat 
+  je nejaka adresa kde jiz mame gps souradnice historicky ulozene v DB tak se pripradi k nove vkladanemu zaznamu z DB a nemusi se tak zadat API o nove hledani
+- dale je potreba vyresit jak toto checkovat protoze s kazdou nove stazenou souradnici z API ktera do te doby nebyla v DB se muze stat ze ji vyuziju pro dalsi zaznam, takze ta kontrola souradnic co uz mam je potreba nejak cyklicky v prubehu vkladani jednotlivych souradnic
+  ale soucasne to udelat tak aby se nestalo ze v budoucnu kdy bude v DB treba nekolik desitek tisic nebo vic zaznamu to nespomalovalo cely prubeh kodu
+
+
+chci mit kod opatreny kontrolnimy vystupy v jeho prubehu abych videl co dela a mohl kontrolovat funkcnost, na konci celeho behu kodu chci vypis :
+- kolik bylo zpracovano celkem souboru
+- kolik bylo v souborech celkem zaznamu/radku (mimo zahlavi)  a kolik z nich bylo vyhodnoceno jako tech ktere v DB jeste nejsou a byly tak nove do dB vlozeny
+- kolik zaznamu pred spustenim kodu bylo bez gps souradnic,
+- ke kolika zaznamum byla nove stazena gps souradnice (jen pro uplnost dodavam ze pojmem jedne gps souradnice rozumim kombinaci (LAT,LON) chci rozlisit kolik tech nove stazenych souradnic bylo pro puvodni data (tedy dodatecne doplnena) a kolik pro nove vkladana
+- kolik souradnic bylo doplneno z jis existujicich souradnic v DB a kolik jich bylo celkem dotazovano na API
+- kolik zaznamu v DB na konci po celem prubehu kodu je stale bez souradnic,
+- chci v prubehu kodu i videt jak se k jakym adresam stahuji jake souradnice
+
+Tyto vystupy at jsou strukturovany a at jsou maximalne prehledne
+
+
+Kod udelej co nejsofistikovaneji, at je kvalitni, rychly, usporny a logicky, pokud uznas za vhodne pouzij objektovy pristup, urcite pouzij strukturovani do funkci, a chci aby byl kod poradne okomentovany aby bylo i neskusenemu programatorovi naprosto jasne co kod ve kterou chvili dela.
+
+Tady jeste prikladam parametry na pripojeni k DB :
+
+params = urllib.parse.quote_plus(
+    "Driver={ODBC Driver 17 for SQL Server};"
+    "Server=localhost;"
+    "Database=VALUO;"
+    "Trusted_Connection=yes"
+)
+
+
+a zde zdrojovou slozku pro nacitani excelovskych souboru : directory = r"C:\\Users\\ijttr\\OneDrive\\Dokumenty\\PROG\\PYTHON\\DATA_ANALYSIS\\VALUO\\data"
+
+
+jo a vsechny vystupy, popisy a komunikaci chci v cestine
+
+
+
+
+
