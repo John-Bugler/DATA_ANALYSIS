@@ -1,0 +1,2441 @@
+<!DOCTYPE html>
+<html>
+<head>
+    
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+    
+        <script>
+            L_NO_TOUCH = false;
+            L_DISABLE_3D = false;
+        </script>
+    
+    <style>html, body {width: 100%;height: 100%;margin: 0;padding: 0;}</style>
+    <style>#map {position:absolute;top:0;bottom:0;right:0;left:0;}</style>
+    <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.3/dist/leaflet.js"></script>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Leaflet.awesome-markers/2.0.2/leaflet.awesome-markers.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.3/dist/leaflet.css"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/css/bootstrap.min.css"/>
+    <link rel="stylesheet" href="https://netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap-glyphicons.css"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.2.0/css/all.min.css"/>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/Leaflet.awesome-markers/2.0.2/leaflet.awesome-markers.css"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/python-visualization/folium/folium/templates/leaflet.awesome.rotate.min.css"/>
+    
+            <meta name="viewport" content="width=device-width,
+                initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+            <style>
+                #map_72ebb29c7ea77bff49d9494562cfaae4 {
+                    position: relative;
+                    width: 100.0%;
+                    height: 1920.0px;
+                    left: 0.0%;
+                    top: 0.0%;
+                }
+                .leaflet-container { font-size: 1rem; }
+            </style>
+        
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet-dvf/0.3.0/leaflet-dvf.markers.min.js"></script>
+    
+                    <style>
+                        .foliumpopup {
+                            margin: auto;
+                        }
+                       .foliumpopup table{
+                            margin: auto;
+                        }
+                        .foliumpopup tr{
+                            text-align: left;
+                        }
+                        .foliumpopup th{
+                            padding: 2px; padding-right: 8px;
+                        }
+                    </style>
+            
+    
+                    <style>
+                        .foliumpopup {
+                            margin: auto;
+                        }
+                       .foliumpopup table{
+                            margin: auto;
+                        }
+                        .foliumpopup tr{
+                            text-align: left;
+                        }
+                        .foliumpopup th{
+                            padding: 2px; padding-right: 8px;
+                        }
+                    </style>
+            
+    
+                    <style>
+                        .foliumpopup {
+                            margin: auto;
+                        }
+                       .foliumpopup table{
+                            margin: auto;
+                        }
+                        .foliumpopup tr{
+                            text-align: left;
+                        }
+                        .foliumpopup th{
+                            padding: 2px; padding-right: 8px;
+                        }
+                    </style>
+            
+    
+                    <style>
+                        .foliumpopup {
+                            margin: auto;
+                        }
+                       .foliumpopup table{
+                            margin: auto;
+                        }
+                        .foliumpopup tr{
+                            text-align: left;
+                        }
+                        .foliumpopup th{
+                            padding: 2px; padding-right: 8px;
+                        }
+                    </style>
+            
+    
+                    <style>
+                        .foliumpopup {
+                            margin: auto;
+                        }
+                       .foliumpopup table{
+                            margin: auto;
+                        }
+                        .foliumpopup tr{
+                            text-align: left;
+                        }
+                        .foliumpopup th{
+                            padding: 2px; padding-right: 8px;
+                        }
+                    </style>
+            
+    
+                    <style>
+                        .foliumpopup {
+                            margin: auto;
+                        }
+                       .foliumpopup table{
+                            margin: auto;
+                        }
+                        .foliumpopup tr{
+                            text-align: left;
+                        }
+                        .foliumpopup th{
+                            padding: 2px; padding-right: 8px;
+                        }
+                    </style>
+            
+    
+                    <style>
+                        .foliumpopup {
+                            margin: auto;
+                        }
+                       .foliumpopup table{
+                            margin: auto;
+                        }
+                        .foliumpopup tr{
+                            text-align: left;
+                        }
+                        .foliumpopup th{
+                            padding: 2px; padding-right: 8px;
+                        }
+                    </style>
+            
+    
+                    <style>
+                        .foliumpopup {
+                            margin: auto;
+                        }
+                       .foliumpopup table{
+                            margin: auto;
+                        }
+                        .foliumpopup tr{
+                            text-align: left;
+                        }
+                        .foliumpopup th{
+                            padding: 2px; padding-right: 8px;
+                        }
+                    </style>
+            
+    
+                    <style>
+                        .foliumpopup {
+                            margin: auto;
+                        }
+                       .foliumpopup table{
+                            margin: auto;
+                        }
+                        .foliumpopup tr{
+                            text-align: left;
+                        }
+                        .foliumpopup th{
+                            padding: 2px; padding-right: 8px;
+                        }
+                    </style>
+            
+    
+                    <style>
+                        .foliumpopup {
+                            margin: auto;
+                        }
+                       .foliumpopup table{
+                            margin: auto;
+                        }
+                        .foliumpopup tr{
+                            text-align: left;
+                        }
+                        .foliumpopup th{
+                            padding: 2px; padding-right: 8px;
+                        }
+                    </style>
+            
+    
+                    <style>
+                        .foliumpopup {
+                            margin: auto;
+                        }
+                       .foliumpopup table{
+                            margin: auto;
+                        }
+                        .foliumpopup tr{
+                            text-align: left;
+                        }
+                        .foliumpopup th{
+                            padding: 2px; padding-right: 8px;
+                        }
+                    </style>
+            
+    
+                    <style>
+                        .foliumpopup {
+                            margin: auto;
+                        }
+                       .foliumpopup table{
+                            margin: auto;
+                        }
+                        .foliumpopup tr{
+                            text-align: left;
+                        }
+                        .foliumpopup th{
+                            padding: 2px; padding-right: 8px;
+                        }
+                    </style>
+            
+    
+                    <style>
+                        .foliumpopup {
+                            margin: auto;
+                        }
+                       .foliumpopup table{
+                            margin: auto;
+                        }
+                        .foliumpopup tr{
+                            text-align: left;
+                        }
+                        .foliumpopup th{
+                            padding: 2px; padding-right: 8px;
+                        }
+                    </style>
+            
+    
+                    <style>
+                        .foliumpopup {
+                            margin: auto;
+                        }
+                       .foliumpopup table{
+                            margin: auto;
+                        }
+                        .foliumpopup tr{
+                            text-align: left;
+                        }
+                        .foliumpopup th{
+                            padding: 2px; padding-right: 8px;
+                        }
+                    </style>
+            
+</head>
+<body>
+    
+    
+    <style>
+      .leaflet-div-icon {
+        width: auto !important;
+        height: auto !important;
+        background: transparent !important;
+        border: none !important;
+        overflow: visible !important;
+      }
+      .parcel-label {
+        display:inline-block;
+        padding:4px 8px;
+        border:1.5px solid #111;
+        border-radius:10px;
+        background:rgba(255,255,255,0.98);
+        font-size:14px;
+        line-height:1.25;
+        font-weight:700;
+        color:#111;
+        box-shadow:0 1px 6px rgba(0,0,0,0.35);
+        white-space:nowrap;
+        pointer-events:none;
+        user-select:none;
+        transform-origin:left center;
+      }
+    </style>
+    
+    
+    <script>
+    window.addEventListener('load', function() {
+      var map = map_72ebb29c7ea77bff49d9494562cfaae4;
+      var CLS = 'parcel-label';
+      var MINZ = 16;
+      var BASE_Z = 18;
+      var STEP   = 0.3;
+      var MAXM   = 5.0;
+
+      function clamp(v,a,b) { return Math.max(a, Math.min(b, v)); }
+      function multForZoom(z) { return clamp(1 + (BASE_Z - z) * STEP, 1, MAXM); }
+
+      function parseOffsets(s) {
+        if (!s) return [];
+        return s.split(';').map(function(p){
+          var xy = p.split(',');
+          return [parseFloat(xy[0])||0, parseFloat(xy[1])||0];
+        });
+      }
+
+      function rectsOverlap(a,b){
+        return !(a.right < b.left || a.left > b.right || a.bottom < b.top || a.top > b.bottom);
+      }
+
+      function layoutLabels() {
+        var z = map.getZoom();
+        var show = (z >= MINZ);
+        var nodes = Array.prototype.slice.call(document.getElementsByClassName(CLS));
+        if (!show) {
+          nodes.forEach(function(n){ n.style.display='none'; });
+          return;
+        }
+
+        nodes.sort(function(a,b){
+          return (parseFloat(b.dataset.area||'0') - parseFloat(a.dataset.area||'0'));
+        });
+
+        var mult = multForZoom(z);
+        var placed = [];
+        nodes.forEach(function(node){
+          node.style.display = '';
+          var base = parseOffsets(node.dataset.offsets);
+          if (base.length === 0) {
+            base = [[18,-12],[-18,-12],[18,12],[-18,12],[26,0],[-26,0],[0,-20],[0,20]];
+          }
+          var candidates = base.map(function(ox){
+            return [ Math.round(ox[0]*mult), Math.round(ox[1]*mult) ];
+          });
+
+          var ok = false;
+          for (var i=0; i<candidates.length; i++) {
+            var off = candidates[i];
+            node.style.transform = "translate(" + off[0] + "px," + off[1] + "px)";
+            var r = node.getBoundingClientRect();
+            var collide = false;
+            for (var j=0; j<placed.length; j++) {
+              if (rectsOverlap(r, placed[j])) { collide = true; break; }
+            }
+            if (!collide) {
+              placed.push(r);
+              ok = true;
+              break;
+            }
+          }
+          if (!ok) node.style.display = 'none';
+        });
+      }
+
+      map.on('zoomend',  layoutLabels);
+      map.on('moveend',  layoutLabels);
+      map.on('layeradd', layoutLabels);
+      map.on('layerremove', layoutLabels);
+      layoutLabels();
+    });
+    </script>
+    
+    
+            <div class="folium-map" id="map_72ebb29c7ea77bff49d9494562cfaae4" ></div>
+        
+</body>
+<script>
+    
+    
+            var map_72ebb29c7ea77bff49d9494562cfaae4 = L.map(
+                "map_72ebb29c7ea77bff49d9494562cfaae4",
+                {
+                    center: [50.21602360204672, 15.822991032897022],
+                    crs: L.CRS.EPSG3857,
+                    ...{
+  "zoom": 15,
+  "zoomControl": true,
+  "preferCanvas": false,
+}
+
+                }
+            );
+            L.control.scale().addTo(map_72ebb29c7ea77bff49d9494562cfaae4);
+
+            
+
+        
+    
+            var tile_layer_44bb9fdba8fcacc83ccc0d53ac33e693 = L.tileLayer(
+                "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+                {
+  "minZoom": 0,
+  "maxZoom": 19,
+  "maxNativeZoom": 19,
+  "noWrap": false,
+  "attribution": "\u0026copy; \u003ca href=\"https://www.openstreetmap.org/copyright\"\u003eOpenStreetMap\u003c/a\u003e contributors",
+  "subdomains": "abc",
+  "detectRetina": false,
+  "tms": false,
+  "opacity": 1,
+}
+
+            );
+        
+    
+            tile_layer_44bb9fdba8fcacc83ccc0d53ac33e693.addTo(map_72ebb29c7ea77bff49d9494562cfaae4);
+        
+    
+            var tile_layer_746f9ad511002635eefd5f637a72f95c = L.tileLayer(
+                "https://ags.cuzk.gov.cz/arcgis1/rest/services/ORTOFOTO_WM/MapServer/tile/{z}/{y}/{x}",
+                {
+  "minZoom": 6,
+  "maxZoom": 20,
+  "maxNativeZoom": 20,
+  "noWrap": false,
+  "attribution": "\u00a9 \u010c\u00daZK",
+  "subdomains": "abc",
+  "detectRetina": false,
+  "tms": false,
+  "opacity": 1,
+}
+
+            );
+        
+    
+            var feature_group_f48758a406127686326a22866ad1e6bf = L.featureGroup(
+                {
+}
+            );
+        
+    
+                    var DynamicLayer = L.TileLayer.extend({
+                        getTileUrl: function(coords) {
+                            var tileSize = 256;
+                            var initialResolution = 2 * Math.PI * 6378137 / tileSize;
+                            var originShift = 2 * Math.PI * 6378137 / 2.0;
+                            var resolution = initialResolution / Math.pow(2, coords.z);
+                            var minx = coords.x * tileSize * resolution - originShift;
+                            var maxx = (coords.x + 1) * tileSize * resolution - originShift;
+                            var miny = originShift - (coords.y + 1) * tileSize * resolution;
+                            var maxy = originShift - coords.y * tileSize * resolution;
+                            var bbox = [minx, miny, maxx, maxy].join(",");
+                            return "https://gs-pub.praha.eu/arcgis/rest/services/pup/uzemni_plan_platny/MapServer/export?bbox=" + bbox +
+                                   "&bboxSR=102100&imageSR=102100&size=256,256" +
+                                   "&format=png32&transparent=true&layers=show:0&f=image";
+                        }
+                    });
+                    var dynamicLayer = new DynamicLayer({
+                        opacity: 0.5,
+                        minZoom: 0,
+                        maxZoom: 30
+                    });
+                    dynamicLayer.addTo(feature_group_f48758a406127686326a22866ad1e6bf);
+                
+    
+            var feature_group_0c1365c72fb14ac7aed3f2ab8d621714 = L.featureGroup(
+                {
+}
+            );
+        
+    
+            var regular_polygon_marker_cc5179be914333a5fb85b42740c8d4c1 = new L.RegularPolygonMarker(
+                [50.218965685033204, 15.818439756918988],
+                {
+  "stroke": true,
+  "color": "#111",
+  "weight": 1,
+  "opacity": 1.0,
+  "lineCap": "round",
+  "lineJoin": "round",
+  "dashArray": null,
+  "dashOffset": null,
+  "fill": true,
+  "fillColor": "#ff2d55",
+  "fillOpacity": 0.95,
+  "fillRule": "evenodd",
+  "bubblingMouseEvents": true,
+  "radius": 14,
+  "numberOfSides": 3,
+  "rotation": 0,
+}
+            ).addTo(feature_group_0c1365c72fb14ac7aed3f2ab8d621714);
+        
+    
+            regular_polygon_marker_cc5179be914333a5fb85b42740c8d4c1.bindTooltip(
+                `<div>
+                     parc.č.722/231
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var marker_790079704df44e91b0cd6f24b08d678f = L.marker(
+                [50.218965685033204, 15.818439756918988],
+                {
+}
+            ).addTo(feature_group_0c1365c72fb14ac7aed3f2ab8d621714);
+        
+    
+            var div_icon_bce5c73ec3fe319ec87f9c45fff8ccda = L.divIcon({
+  "html": "\u003cdiv class=\"parcel-label\" data-area=\"12.0\" data-offsets=\"18,-12;-18,-12;18,12;-18,12;32,0;-32,0;0,4;0,-4;40,-4;-40,-4;40,4;-40,4\" style=\"transform:translate(18px,-12px);\"\u003eparc.\u010d.722/231\u003c/div\u003e",
+  "className": "empty",
+});
+            marker_790079704df44e91b0cd6f24b08d678f.setIcon(div_icon_bce5c73ec3fe319ec87f9c45fff8ccda);
+        
+    
+            var regular_polygon_marker_66f5aaafa0741943711e377b4450706c = new L.RegularPolygonMarker(
+                [50.21896680110795, 15.818116354188698],
+                {
+  "stroke": true,
+  "color": "#111",
+  "weight": 1,
+  "opacity": 1.0,
+  "lineCap": "round",
+  "lineJoin": "round",
+  "dashArray": null,
+  "dashOffset": null,
+  "fill": true,
+  "fillColor": "#ff2d55",
+  "fillOpacity": 0.95,
+  "fillRule": "evenodd",
+  "bubblingMouseEvents": true,
+  "radius": 14,
+  "numberOfSides": 3,
+  "rotation": 0,
+}
+            ).addTo(feature_group_0c1365c72fb14ac7aed3f2ab8d621714);
+        
+    
+            regular_polygon_marker_66f5aaafa0741943711e377b4450706c.bindTooltip(
+                `<div>
+                     parc.č.st. 4509
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var marker_902dafd06b5dfe6056da034a73070b94 = L.marker(
+                [50.21896680110795, 15.818116354188698],
+                {
+}
+            ).addTo(feature_group_0c1365c72fb14ac7aed3f2ab8d621714);
+        
+    
+            var div_icon_aab1c96cb65cf48a2c97d9e87e75038f = L.divIcon({
+  "html": "\u003cdiv class=\"parcel-label\" data-area=\"351.0\" data-offsets=\"18,-12;-18,-12;18,12;-18,12;32,0;-32,0;0,4;0,-4;40,-4;-40,-4;40,4;-40,4\" style=\"transform:translate(18px,-12px);\"\u003eparc.\u010d.st. 4509\u003c/div\u003e",
+  "className": "empty",
+});
+            marker_902dafd06b5dfe6056da034a73070b94.setIcon(div_icon_aab1c96cb65cf48a2c97d9e87e75038f);
+        
+    
+            var regular_polygon_marker_386743c0be8daf2cf7c810b030a82830 = new L.RegularPolygonMarker(
+                [50.21890181834102, 15.818415973059338],
+                {
+  "stroke": true,
+  "color": "#111",
+  "weight": 1,
+  "opacity": 1.0,
+  "lineCap": "round",
+  "lineJoin": "round",
+  "dashArray": null,
+  "dashOffset": null,
+  "fill": true,
+  "fillColor": "#ff2d55",
+  "fillOpacity": 0.95,
+  "fillRule": "evenodd",
+  "bubblingMouseEvents": true,
+  "radius": 14,
+  "numberOfSides": 3,
+  "rotation": 0,
+}
+            ).addTo(feature_group_0c1365c72fb14ac7aed3f2ab8d621714);
+        
+    
+            regular_polygon_marker_386743c0be8daf2cf7c810b030a82830.bindTooltip(
+                `<div>
+                     parc.č.722/230
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var marker_cd3f5653e0f9bf5bc00855d04318511c = L.marker(
+                [50.21890181834102, 15.818415973059338],
+                {
+}
+            ).addTo(feature_group_0c1365c72fb14ac7aed3f2ab8d621714);
+        
+    
+            var div_icon_cd272e467d8d440e4c4bb310ba4d7c4a = L.divIcon({
+  "html": "\u003cdiv class=\"parcel-label\" data-area=\"1.0\" data-offsets=\"18,-12;-18,-12;18,12;-18,12;32,0;-32,0;0,4;0,-4;40,-4;-40,-4;40,4;-40,4\" style=\"transform:translate(18px,-12px);\"\u003eparc.\u010d.722/230\u003c/div\u003e",
+  "className": "empty",
+});
+            marker_cd3f5653e0f9bf5bc00855d04318511c.setIcon(div_icon_cd272e467d8d440e4c4bb310ba4d7c4a);
+        
+    
+            var regular_polygon_marker_d01810dc26926b9ae889ff6a4834fc69 = new L.RegularPolygonMarker(
+                [50.2189420458518, 15.81796980594583],
+                {
+  "stroke": true,
+  "color": "#111",
+  "weight": 1,
+  "opacity": 1.0,
+  "lineCap": "round",
+  "lineJoin": "round",
+  "dashArray": null,
+  "dashOffset": null,
+  "fill": true,
+  "fillColor": "#ff2d55",
+  "fillOpacity": 0.95,
+  "fillRule": "evenodd",
+  "bubblingMouseEvents": true,
+  "radius": 14,
+  "numberOfSides": 3,
+  "rotation": 0,
+}
+            ).addTo(feature_group_0c1365c72fb14ac7aed3f2ab8d621714);
+        
+    
+            regular_polygon_marker_d01810dc26926b9ae889ff6a4834fc69.bindTooltip(
+                `<div>
+                     parc.č.722/61
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var marker_a29d5f1116d145cc572fc16f8ac6924c = L.marker(
+                [50.2189420458518, 15.81796980594583],
+                {
+}
+            ).addTo(feature_group_0c1365c72fb14ac7aed3f2ab8d621714);
+        
+    
+            var div_icon_9ca6de58b20b576dad27d4331c057bd6 = L.divIcon({
+  "html": "\u003cdiv class=\"parcel-label\" data-area=\"129.0\" data-offsets=\"18,-12;-18,-12;18,12;-18,12;32,0;-32,0;0,4;0,-4;40,-4;-40,-4;40,4;-40,4\" style=\"transform:translate(18px,-12px);\"\u003eparc.\u010d.722/61\u003c/div\u003e",
+  "className": "empty",
+});
+            marker_a29d5f1116d145cc572fc16f8ac6924c.setIcon(div_icon_9ca6de58b20b576dad27d4331c057bd6);
+        
+    
+            var regular_polygon_marker_a07a6663e54b72291f8e8079b2d1d920 = new L.RegularPolygonMarker(
+                [50.218870350160365, 15.818306123091341],
+                {
+  "stroke": true,
+  "color": "#111",
+  "weight": 1,
+  "opacity": 1.0,
+  "lineCap": "round",
+  "lineJoin": "round",
+  "dashArray": null,
+  "dashOffset": null,
+  "fill": true,
+  "fillColor": "#ff2d55",
+  "fillOpacity": 0.95,
+  "fillRule": "evenodd",
+  "bubblingMouseEvents": true,
+  "radius": 14,
+  "numberOfSides": 3,
+  "rotation": 0,
+}
+            ).addTo(feature_group_0c1365c72fb14ac7aed3f2ab8d621714);
+        
+    
+            regular_polygon_marker_a07a6663e54b72291f8e8079b2d1d920.bindTooltip(
+                `<div>
+                     parc.č.st. 2753/1
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var marker_488c00a911c857eb08cf3917f7b05a91 = L.marker(
+                [50.218870350160365, 15.818306123091341],
+                {
+}
+            ).addTo(feature_group_0c1365c72fb14ac7aed3f2ab8d621714);
+        
+    
+            var div_icon_673d740b988e3a740a9490dae207effb = L.divIcon({
+  "html": "\u003cdiv class=\"parcel-label\" data-area=\"6.0\" data-offsets=\"18,-12;-18,-12;18,12;-18,12;32,0;-32,0;0,4;0,-4;40,-4;-40,-4;40,4;-40,4\" style=\"transform:translate(18px,-12px);\"\u003eparc.\u010d.st. 2753/1\u003c/div\u003e",
+  "className": "empty",
+});
+            marker_488c00a911c857eb08cf3917f7b05a91.setIcon(div_icon_673d740b988e3a740a9490dae207effb);
+        
+    
+            var regular_polygon_marker_07a8a0469e1f5b84dc731a4ef67e2390 = new L.RegularPolygonMarker(
+                [50.218943635018206, 15.818365311319868],
+                {
+  "stroke": true,
+  "color": "#111",
+  "weight": 1,
+  "opacity": 1.0,
+  "lineCap": "round",
+  "lineJoin": "round",
+  "dashArray": null,
+  "dashOffset": null,
+  "fill": true,
+  "fillColor": "#ff2d55",
+  "fillOpacity": 0.95,
+  "fillRule": "evenodd",
+  "bubblingMouseEvents": true,
+  "radius": 14,
+  "numberOfSides": 3,
+  "rotation": 0,
+}
+            ).addTo(feature_group_0c1365c72fb14ac7aed3f2ab8d621714);
+        
+    
+            regular_polygon_marker_07a8a0469e1f5b84dc731a4ef67e2390.bindTooltip(
+                `<div>
+                     parc.č.722/175
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var marker_d63f5a4872b83902852708acb3b08f58 = L.marker(
+                [50.218943635018206, 15.818365311319868],
+                {
+}
+            ).addTo(feature_group_0c1365c72fb14ac7aed3f2ab8d621714);
+        
+    
+            var div_icon_dd16a174763d20b5ccf742b297bcb54b = L.divIcon({
+  "html": "\u003cdiv class=\"parcel-label\" data-area=\"25.0\" data-offsets=\"18,-12;-18,-12;18,12;-18,12;32,0;-32,0;0,4;0,-4;40,-4;-40,-4;40,4;-40,4\" style=\"transform:translate(18px,-12px);\"\u003eparc.\u010d.722/175\u003c/div\u003e",
+  "className": "empty",
+});
+            marker_d63f5a4872b83902852708acb3b08f58.setIcon(div_icon_dd16a174763d20b5ccf742b297bcb54b);
+        
+    
+            var regular_polygon_marker_8e04479d5f32720b8dfd31425c5c9ff6 = new L.RegularPolygonMarker(
+                [50.21889383811863, 15.818352772514201],
+                {
+  "stroke": true,
+  "color": "#111",
+  "weight": 1,
+  "opacity": 1.0,
+  "lineCap": "round",
+  "lineJoin": "round",
+  "dashArray": null,
+  "dashOffset": null,
+  "fill": true,
+  "fillColor": "#ff2d55",
+  "fillOpacity": 0.95,
+  "fillRule": "evenodd",
+  "bubblingMouseEvents": true,
+  "radius": 14,
+  "numberOfSides": 3,
+  "rotation": 0,
+}
+            ).addTo(feature_group_0c1365c72fb14ac7aed3f2ab8d621714);
+        
+    
+            regular_polygon_marker_8e04479d5f32720b8dfd31425c5c9ff6.bindTooltip(
+                `<div>
+                     parc.č.722/228
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var marker_f3c55d344f9c0541267010bef047e0e8 = L.marker(
+                [50.21889383811863, 15.818352772514201],
+                {
+}
+            ).addTo(feature_group_0c1365c72fb14ac7aed3f2ab8d621714);
+        
+    
+            var div_icon_5ab5154d2962d21ee2a73869869f3e65 = L.divIcon({
+  "html": "\u003cdiv class=\"parcel-label\" data-area=\"17.0\" data-offsets=\"18,-12;-18,-12;18,12;-18,12;32,0;-32,0;0,4;0,-4;40,-4;-40,-4;40,4;-40,4\" style=\"transform:translate(18px,-12px);\"\u003eparc.\u010d.722/228\u003c/div\u003e",
+  "className": "empty",
+});
+            marker_f3c55d344f9c0541267010bef047e0e8.setIcon(div_icon_5ab5154d2962d21ee2a73869869f3e65);
+        
+    
+            var regular_polygon_marker_33a0572f92dc28edca438f2019bec07e = new L.RegularPolygonMarker(
+                [50.21906978135409, 15.81817737680918],
+                {
+  "stroke": true,
+  "color": "#111",
+  "weight": 1,
+  "opacity": 1.0,
+  "lineCap": "round",
+  "lineJoin": "round",
+  "dashArray": null,
+  "dashOffset": null,
+  "fill": true,
+  "fillColor": "#ff2d55",
+  "fillOpacity": 0.95,
+  "fillRule": "evenodd",
+  "bubblingMouseEvents": true,
+  "radius": 14,
+  "numberOfSides": 3,
+  "rotation": 0,
+}
+            ).addTo(feature_group_0c1365c72fb14ac7aed3f2ab8d621714);
+        
+    
+            regular_polygon_marker_33a0572f92dc28edca438f2019bec07e.bindTooltip(
+                `<div>
+                     parc.č.722/62
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var marker_a47de3ea498a2b2628f01cf5df76d55e = L.marker(
+                [50.21906978135409, 15.81817737680918],
+                {
+}
+            ).addTo(feature_group_0c1365c72fb14ac7aed3f2ab8d621714);
+        
+    
+            var div_icon_cb2d632e755bdf9c3bd387863698a0c5 = L.divIcon({
+  "html": "\u003cdiv class=\"parcel-label\" data-area=\"414.0\" data-offsets=\"18,-12;-18,-12;18,12;-18,12;32,0;-32,0;0,4;0,-4;40,-4;-40,-4;40,4;-40,4\" style=\"transform:translate(18px,-12px);\"\u003eparc.\u010d.722/62\u003c/div\u003e",
+  "className": "empty",
+});
+            marker_a47de3ea498a2b2628f01cf5df76d55e.setIcon(div_icon_cb2d632e755bdf9c3bd387863698a0c5);
+        
+    
+            var regular_polygon_marker_00b95392afa950226e77daa818fe0c3d = new L.RegularPolygonMarker(
+                [50.21898773605356, 15.81844422592912],
+                {
+  "stroke": true,
+  "color": "#111",
+  "weight": 1,
+  "opacity": 1.0,
+  "lineCap": "round",
+  "lineJoin": "round",
+  "dashArray": null,
+  "dashOffset": null,
+  "fill": true,
+  "fillColor": "#ff2d55",
+  "fillOpacity": 0.95,
+  "fillRule": "evenodd",
+  "bubblingMouseEvents": true,
+  "radius": 14,
+  "numberOfSides": 3,
+  "rotation": 0,
+}
+            ).addTo(feature_group_0c1365c72fb14ac7aed3f2ab8d621714);
+        
+    
+            regular_polygon_marker_00b95392afa950226e77daa818fe0c3d.bindTooltip(
+                `<div>
+                     parc.č.722/233
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var marker_9092a6e71dbd0c89b7c6b8a89d769760 = L.marker(
+                [50.21898773605356, 15.81844422592912],
+                {
+}
+            ).addTo(feature_group_0c1365c72fb14ac7aed3f2ab8d621714);
+        
+    
+            var div_icon_02862a5281b66d69c96794eae993dfb6 = L.divIcon({
+  "html": "\u003cdiv class=\"parcel-label\" data-area=\"46.0\" data-offsets=\"18,-12;-18,-12;18,12;-18,12;32,0;-32,0;0,4;0,-4;40,-4;-40,-4;40,4;-40,4\" style=\"transform:translate(18px,-12px);\"\u003eparc.\u010d.722/233\u003c/div\u003e",
+  "className": "empty",
+});
+            marker_9092a6e71dbd0c89b7c6b8a89d769760.setIcon(div_icon_02862a5281b66d69c96794eae993dfb6);
+        
+    
+            var regular_polygon_marker_be12d081a2e15d1da26dc47df94eae3d = new L.RegularPolygonMarker(
+                [50.20821648013983, 15.833202496807898],
+                {
+  "stroke": true,
+  "color": "#111",
+  "weight": 1,
+  "opacity": 1.0,
+  "lineCap": "round",
+  "lineJoin": "round",
+  "dashArray": null,
+  "dashOffset": null,
+  "fill": true,
+  "fillColor": "#ff2d55",
+  "fillOpacity": 0.95,
+  "fillRule": "evenodd",
+  "bubblingMouseEvents": true,
+  "radius": 14,
+  "numberOfSides": 3,
+  "rotation": 0,
+}
+            ).addTo(feature_group_0c1365c72fb14ac7aed3f2ab8d621714);
+        
+    
+            regular_polygon_marker_be12d081a2e15d1da26dc47df94eae3d.bindTooltip(
+                `<div>
+                     parc.č.st. 332/1
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var marker_040eb352035bcc62026fcc5881c215c8 = L.marker(
+                [50.20821648013983, 15.833202496807898],
+                {
+}
+            ).addTo(feature_group_0c1365c72fb14ac7aed3f2ab8d621714);
+        
+    
+            var div_icon_a25dbab7ac80161b1ffbbeb5971d1bf1 = L.divIcon({
+  "html": "\u003cdiv class=\"parcel-label\" data-area=\"478.0\" data-offsets=\"18,-12;-18,-12;18,12;-18,12;32,0;-32,0;0,4;0,-4;40,-4;-40,-4;40,4;-40,4\" style=\"transform:translate(18px,-12px);\"\u003eparc.\u010d.st. 332/1\u003c/div\u003e",
+  "className": "empty",
+});
+            marker_040eb352035bcc62026fcc5881c215c8.setIcon(div_icon_a25dbab7ac80161b1ffbbeb5971d1bf1);
+        
+    
+            var regular_polygon_marker_723e85417dea686aee0e9761a379c737 = new L.RegularPolygonMarker(
+                [50.20116144453621, 15.818018538757961],
+                {
+  "stroke": true,
+  "color": "#111",
+  "weight": 1,
+  "opacity": 1.0,
+  "lineCap": "round",
+  "lineJoin": "round",
+  "dashArray": null,
+  "dashOffset": null,
+  "fill": true,
+  "fillColor": "#ff2d55",
+  "fillOpacity": 0.95,
+  "fillRule": "evenodd",
+  "bubblingMouseEvents": true,
+  "radius": 14,
+  "numberOfSides": 3,
+  "rotation": 0,
+}
+            ).addTo(feature_group_0c1365c72fb14ac7aed3f2ab8d621714);
+        
+    
+            regular_polygon_marker_723e85417dea686aee0e9761a379c737.bindTooltip(
+                `<div>
+                     parc.č.st. 3372
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var marker_8a225c26573265b53efa85ff908a26b4 = L.marker(
+                [50.20116144453621, 15.818018538757961],
+                {
+}
+            ).addTo(feature_group_0c1365c72fb14ac7aed3f2ab8d621714);
+        
+    
+            var div_icon_e6dd69c7935e7d893b57759c3199a81b = L.divIcon({
+  "html": "\u003cdiv class=\"parcel-label\" data-area=\"417.0\" data-offsets=\"18,-12;-18,-12;18,12;-18,12;32,0;-32,0;0,4;0,-4;40,-4;-40,-4;40,4;-40,4\" style=\"transform:translate(18px,-12px);\"\u003eparc.\u010d.st. 3372\u003c/div\u003e",
+  "className": "empty",
+});
+            marker_8a225c26573265b53efa85ff908a26b4.setIcon(div_icon_e6dd69c7935e7d893b57759c3199a81b);
+        
+    
+            var regular_polygon_marker_31280d41326e41a95a6e4d0481a7d5a7 = new L.RegularPolygonMarker(
+                [50.21462966781409, 15.842528449715084],
+                {
+  "stroke": true,
+  "color": "#111",
+  "weight": 1,
+  "opacity": 1.0,
+  "lineCap": "round",
+  "lineJoin": "round",
+  "dashArray": null,
+  "dashOffset": null,
+  "fill": true,
+  "fillColor": "#ff2d55",
+  "fillOpacity": 0.95,
+  "fillRule": "evenodd",
+  "bubblingMouseEvents": true,
+  "radius": 14,
+  "numberOfSides": 3,
+  "rotation": 0,
+}
+            ).addTo(feature_group_0c1365c72fb14ac7aed3f2ab8d621714);
+        
+    
+            regular_polygon_marker_31280d41326e41a95a6e4d0481a7d5a7.bindTooltip(
+                `<div>
+                     parc.č.st. 975
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var marker_f2224993d45cbd64ef60dea3314fab43 = L.marker(
+                [50.21462966781409, 15.842528449715084],
+                {
+}
+            ).addTo(feature_group_0c1365c72fb14ac7aed3f2ab8d621714);
+        
+    
+            var div_icon_82e1c91d37fd770b2e2550994ea34998 = L.divIcon({
+  "html": "\u003cdiv class=\"parcel-label\" data-area=\"389.0\" data-offsets=\"18,-12;-18,-12;18,12;-18,12;32,0;-32,0;0,4;0,-4;40,-4;-40,-4;40,4;-40,4\" style=\"transform:translate(18px,-12px);\"\u003eparc.\u010d.st. 975\u003c/div\u003e",
+  "className": "empty",
+});
+            marker_f2224993d45cbd64ef60dea3314fab43.setIcon(div_icon_82e1c91d37fd770b2e2550994ea34998);
+        
+    
+            var regular_polygon_marker_d059e0d00a937814f267803580176ec5 = new L.RegularPolygonMarker(
+                [50.21123196661734, 15.844782503561804],
+                {
+  "stroke": true,
+  "color": "#111",
+  "weight": 1,
+  "opacity": 1.0,
+  "lineCap": "round",
+  "lineJoin": "round",
+  "dashArray": null,
+  "dashOffset": null,
+  "fill": true,
+  "fillColor": "#ff2d55",
+  "fillOpacity": 0.95,
+  "fillRule": "evenodd",
+  "bubblingMouseEvents": true,
+  "radius": 14,
+  "numberOfSides": 3,
+  "rotation": 0,
+}
+            ).addTo(feature_group_0c1365c72fb14ac7aed3f2ab8d621714);
+        
+    
+            regular_polygon_marker_d059e0d00a937814f267803580176ec5.bindTooltip(
+                `<div>
+                     parc.č.st. 1207
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var marker_a1dad12de63f678d5e383ff8540ecfbf = L.marker(
+                [50.21123196661734, 15.844782503561804],
+                {
+}
+            ).addTo(feature_group_0c1365c72fb14ac7aed3f2ab8d621714);
+        
+    
+            var div_icon_53a7634173de1b9e5ffb6676f9d213da = L.divIcon({
+  "html": "\u003cdiv class=\"parcel-label\" data-area=\"459.0\" data-offsets=\"18,-12;-18,-12;18,12;-18,12;32,0;-32,0;0,4;0,-4;40,-4;-40,-4;40,4;-40,4\" style=\"transform:translate(18px,-12px);\"\u003eparc.\u010d.st. 1207\u003c/div\u003e",
+  "className": "empty",
+});
+            marker_a1dad12de63f678d5e383ff8540ecfbf.setIcon(div_icon_53a7634173de1b9e5ffb6676f9d213da);
+        
+    
+            var regular_polygon_marker_d152c73c656dc5a9ea3d2d102f24a084 = new L.RegularPolygonMarker(
+                [50.218549178507736, 15.818754771939007],
+                {
+  "stroke": true,
+  "color": "#111",
+  "weight": 1,
+  "opacity": 1.0,
+  "lineCap": "round",
+  "lineJoin": "round",
+  "dashArray": null,
+  "dashOffset": null,
+  "fill": true,
+  "fillColor": "#ff2d55",
+  "fillOpacity": 0.95,
+  "fillRule": "evenodd",
+  "bubblingMouseEvents": true,
+  "radius": 14,
+  "numberOfSides": 3,
+  "rotation": 0,
+}
+            ).addTo(feature_group_0c1365c72fb14ac7aed3f2ab8d621714);
+        
+    
+            regular_polygon_marker_d152c73c656dc5a9ea3d2d102f24a084.bindTooltip(
+                `<div>
+                     parc.č.st. 4684
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var marker_0cb6de7dc5721041d72b012af00134c7 = L.marker(
+                [50.218549178507736, 15.818754771939007],
+                {
+}
+            ).addTo(feature_group_0c1365c72fb14ac7aed3f2ab8d621714);
+        
+    
+            var div_icon_41b11a315c55436ef488f0d283ceb632 = L.divIcon({
+  "html": "\u003cdiv class=\"parcel-label\" data-area=\"425.0\" data-offsets=\"18,-12;-18,-12;18,12;-18,12;32,0;-32,0;0,4;0,-4;40,-4;-40,-4;40,4;-40,4\" style=\"transform:translate(18px,-12px);\"\u003eparc.\u010d.st. 4684\u003c/div\u003e",
+  "className": "empty",
+});
+            marker_0cb6de7dc5721041d72b012af00134c7.setIcon(div_icon_41b11a315c55436ef488f0d283ceb632);
+        
+    
+            feature_group_0c1365c72fb14ac7aed3f2ab8d621714.addTo(map_72ebb29c7ea77bff49d9494562cfaae4);
+        
+    
+            var feature_group_3d6f0fc34ce96983420637451cfd8da9 = L.featureGroup(
+                {
+}
+            );
+        
+    
+        function geo_json_932fa656000b8d120cb7cbe3cc98ee77_styler(feature) {
+            switch(feature.properties.cislo_vkladu) {
+                default:
+                    return {"color": "#333333", "fillColor": "#2ca3d2", "fillOpacity": 0.4, "weight": 2};
+            }
+        }
+        function geo_json_932fa656000b8d120cb7cbe3cc98ee77_highlighter(feature) {
+            switch(feature.properties.cislo_vkladu) {
+                default:
+                    return {"color": "#000000", "fillColor": "#74c3e2", "fillOpacity": 0.6, "weight": 3};
+            }
+        }
+
+        function geo_json_932fa656000b8d120cb7cbe3cc98ee77_onEachFeature(feature, layer) {
+            layer.on({
+                mouseout: function(e) {
+                    if(typeof e.target.setStyle === "function"){
+                            geo_json_932fa656000b8d120cb7cbe3cc98ee77.resetStyle(e.target);
+                    }
+                },
+                mouseover: function(e) {
+                    if(typeof e.target.setStyle === "function"){
+                        const highlightStyle = geo_json_932fa656000b8d120cb7cbe3cc98ee77_highlighter(e.target.feature)
+                        e.target.setStyle(highlightStyle);
+                    }
+                },
+            });
+        };
+        var geo_json_932fa656000b8d120cb7cbe3cc98ee77 = L.geoJson(null, {
+                onEachFeature: geo_json_932fa656000b8d120cb7cbe3cc98ee77_onEachFeature,
+            
+                style: geo_json_932fa656000b8d120cb7cbe3cc98ee77_styler,
+            ...{
+}
+        });
+
+        function geo_json_932fa656000b8d120cb7cbe3cc98ee77_add (data) {
+            geo_json_932fa656000b8d120cb7cbe3cc98ee77
+                .addData(data);
+        }
+            geo_json_932fa656000b8d120cb7cbe3cc98ee77_add({"features": [{"geometry": {"coordinates": [[[15.81834537583798, 50.218988885130486], [15.818343494183326, 50.21898303817697], [15.81835795342302, 50.21898115157275], [15.818368696273312, 50.21901537682187], [15.818530646394958, 50.21899421100694], [15.818544787278014, 50.219038291623946], [15.818382263928786, 50.21905950435414], [15.818385350492774, 50.21906951710624], [15.81839628910222, 50.21910420992728], [15.818388772921505, 50.219105176679875], [15.817941959310573, 50.21916358810623], [15.817891897066866, 50.219069603451516], [15.817869992223644, 50.21907436332097], [15.817859011137154, 50.219046004601864], [15.817922489505289, 50.21903771105193], [15.817925014827491, 50.219045417721965], [15.817976163570458, 50.21903817699008], [15.81834537583798, 50.218988885130486]]], "type": "Polygon"}, "properties": {"#CELKOVA_VYMERA": "58.0", "#JC": "94827.5", "#PARCEL": "8", "UP": "", "cenovy_udaj": "5500000.0", "cislo_vkladu": "V-9488/2024-602", "datum_podani": "2024-10-15 11:55:42", "gml_id": "1842843602", "ku": "Pra\u017esk\u00e9 P\u0159edm\u011bst\u00ed", "ku_kod": "647101", "multi_vklad": "0", "obec_nazev": "Hradec Kr\u00e1lov\u00e9", "okres_nazev": "Hradec Kr\u00e1lov\u00e9", "parcela": "722/62", "popup_html": "\u003cdiv style=\u0027font-size:13px;\u0027\u003e\u003cdiv\u003e\u003cb\u003eParcela:\u003c/b\u003e \u003cspan style=\u0027font-weight:700;\u0027\u003e722/62\u003c/span\u003e \u003cspan style=\u0027color:#666;\u0027\u003e(gml_id 1842843602)\u003c/span\u003e\u003c/div\u003e\u003cdiv\u003e\u003cb\u003eV\u00fdm\u011bra parcely:\u003c/b\u003e \u003cspan style=\u0027font-weight:700;color:#004a99;\u0027\u003e414 m\u00b2\u003c/span\u003e\u003c/div\u003e\u003cdiv\u003e\u003cb\u003eNahl\u00ed\u017een\u00ed KN:\u003c/b\u003e \u003ca href=\"https://nahlizenidokn.cuzk.gov.cz/ZobrazObjekt.aspx?\u0026typ=parcela\u0026id=1842843602\" target=\"_blank\"\u003eOtev\u0159\u00edt v Nahl\u00ed\u017een\u00ed KN\u003c/a\u003e\u003c/div\u003e\u003cdiv\u003e\u003cb\u003eMapy.cz:\u003c/b\u003e \u003ca href=\"https://mapy.cz/zakladni?x=15.81818453871893\u0026y=50.219092521818204\u0026z=19\u0026source=coor\u0026id=15.81818453871893,50.219092521818204\" target=\"_blank\"\u003eOtev\u0159\u00edt v Mapy.cz\u003c/a\u003e\u003c/div\u003e\u003chr style=\"margin:4px 0;\"\u003e\u003cdiv\u003e\u003cb\u003eKraj:\u003c/b\u003e Kr\u00e1lov\u00e9hradeck\u00fd kraj\u003c/div\u003e\u003cdiv\u003e\u003cb\u003eOkres:\u003c/b\u003e Hradec Kr\u00e1lov\u00e9\u003c/div\u003e\u003cdiv\u003e\u003cb\u003eObec:\u003c/b\u003e Hradec Kr\u00e1lov\u00e9\u003c/div\u003e\u003cdiv\u003e\u003cb\u003eKatastr\u00e1ln\u00ed \u00fazem\u00ed:\u003c/b\u003e Pra\u017esk\u00e9 P\u0159edm\u011bst\u00ed (k\u00f3d 647101)\u003c/div\u003e\u003chr style=\"margin:4px 0;\"\u003e\n        \u003cdiv style=\"margin:3px 0 8px 0; padding:5px; border:1px solid #ccc; border-radius:4px;\"\u003e\n          \u003cdiv\u003e\u003cb\u003e\u010c\u00edslo vkladu:\u003c/b\u003e V-9488/2024-602\u003c/div\u003e\n          \u003cdiv\u003e\u003cb\u003edatum_podani:\u003c/b\u003e 2024/10/15\u003c/div\u003e\n          \n          \u003cdiv\u003e\u003cb\u003eNemovitost:\u003c/b\u003e parcela\u003c/div\u003e\n          \u003cdiv\u003e\u003cb\u003eTyp:\u003c/b\u003e jin\u00e1 plocha\u003c/div\u003e\n          \u003cdiv\u003e\u003cb\u003eAdresa:\u003c/b\u003e Pra\u017esk\u00e9 P\u0159edm\u011bst\u00ed 722/62\u003c/div\u003e\n          \u003cdiv\u003e\u003cb\u003ePopis:\u003c/b\u003e \u010d. 722/62 Pra\u017esk\u00e9 P\u0159edm\u011bst\u00ed\u003c/div\u003e\n          \u003cdiv\u003e\u003cb\u003ePo\u010det parcel/budov v r\u00e1mci vkladu:\u003c/b\u003e 8\u003c/div\u003e\n          \u003cdiv\u003e\u003cb\u003eCelkov\u00e1 v\u00fdm\u011bra v r\u00e1mci vkladu:\u003c/b\u003e 58 m\u00b2\u003c/div\u003e\n          \n          \u003cdiv\u003e\u003cb\u003eCenov\u00fd \u00fadaj (za vklad):\u003c/b\u003e \u003cspan style=\"font-weight:700;color:#b30000;\"\u003e5 500 000 K\u010d\u003c/span\u003e\u003c/div\u003e\n          \u003cdiv\u003e\u003cb\u003eJC:\u003c/b\u003e \u003cspan style=\"font-weight:700;color:#004a99;\"\u003e94 828 K\u010d/m\u00b2 (JC p\u0159evzata ze sloupce #JC za vklad)\u003c/span\u003e\u003c/div\u003e\n        \u003c/div\u003e\n        \u003c/div\u003e", "typ": "jin\u00e1 plocha", "vusc_nazev": "Kr\u00e1lov\u00e9hradeck\u00fd kraj", "vymera_m2": "414.0"}, "type": "Feature"}], "type": "FeatureCollection"});
+
+        
+    
+    geo_json_932fa656000b8d120cb7cbe3cc98ee77.bindPopup(
+    function(layer){
+    let div = L.DomUtil.create('div');
+    
+    let handleObject = feature=>typeof(feature)=='object' ? JSON.stringify(feature) : feature;
+    let fields = ["popup_html"];
+    let aliases = [""];
+    let table = '<table>' +
+        String(
+        fields.map(
+        (v,i)=>
+        `<tr>
+            <td>${handleObject(layer.feature.properties[v])}</td>
+        </tr>`).join(''))
+    +'</table>';
+    div.innerHTML=table;
+    
+    return div
+    }
+    ,{
+  "parseHtml": true,
+  "sticky": false,
+  "maxWidth": 520,
+  "className": "foliumpopup",
+});
+                     
+    
+            geo_json_932fa656000b8d120cb7cbe3cc98ee77.addTo(feature_group_3d6f0fc34ce96983420637451cfd8da9);
+        
+    
+        function geo_json_700d3c08984506d12e860ca30a8ca843_styler(feature) {
+            switch(feature.properties.cislo_vkladu) {
+                default:
+                    return {"color": "#333333", "fillColor": "#2ca3d2", "fillOpacity": 0.4, "weight": 2};
+            }
+        }
+        function geo_json_700d3c08984506d12e860ca30a8ca843_highlighter(feature) {
+            switch(feature.properties.cislo_vkladu) {
+                default:
+                    return {"color": "#000000", "fillColor": "#74c3e2", "fillOpacity": 0.6, "weight": 3};
+            }
+        }
+
+        function geo_json_700d3c08984506d12e860ca30a8ca843_onEachFeature(feature, layer) {
+            layer.on({
+                mouseout: function(e) {
+                    if(typeof e.target.setStyle === "function"){
+                            geo_json_700d3c08984506d12e860ca30a8ca843.resetStyle(e.target);
+                    }
+                },
+                mouseover: function(e) {
+                    if(typeof e.target.setStyle === "function"){
+                        const highlightStyle = geo_json_700d3c08984506d12e860ca30a8ca843_highlighter(e.target.feature)
+                        e.target.setStyle(highlightStyle);
+                    }
+                },
+            });
+        };
+        var geo_json_700d3c08984506d12e860ca30a8ca843 = L.geoJson(null, {
+                onEachFeature: geo_json_700d3c08984506d12e860ca30a8ca843_onEachFeature,
+            
+                style: geo_json_700d3c08984506d12e860ca30a8ca843_styler,
+            ...{
+}
+        });
+
+        function geo_json_700d3c08984506d12e860ca30a8ca843_add (data) {
+            geo_json_700d3c08984506d12e860ca30a8ca843
+                .addData(data);
+        }
+            geo_json_700d3c08984506d12e860ca30a8ca843_add({"features": [{"geometry": {"coordinates": [[[15.817976163570458, 50.21903817699008], [15.817925014827491, 50.219045417721965], [15.817922489505289, 50.21903771105193], [15.817892987530525, 50.218945473134404], [15.817890042676684, 50.21893393206478], [15.817940927080087, 50.21892811977927], [15.817944381429749, 50.21893843216212], [15.818013673061937, 50.2189292232426], [15.818061545846925, 50.21892290996696], [15.81812245339356, 50.218914782694], [15.818135315996495, 50.218913136673045], [15.818195355634478, 50.2189051243424], [15.818243089228663, 50.21889880039721], [15.81831338777162, 50.218889486915316], [15.818320930876988, 50.21891278545476], [15.818343494183326, 50.21898303817697], [15.81834537583798, 50.218988885130486], [15.817976163570458, 50.21903817699008]]], "type": "Polygon"}, "properties": {"#CELKOVA_VYMERA": "58.0", "#JC": "94827.5", "#PARCEL": "8", "UP": "", "cenovy_udaj": "5500000.0", "cislo_vkladu": "V-9488/2024-602", "datum_podani": "2024-10-15 11:55:42", "gml_id": "41039362010", "ku": "Pra\u017esk\u00e9 P\u0159edm\u011bst\u00ed", "ku_kod": "647101", "multi_vklad": "0", "obec_nazev": "Hradec Kr\u00e1lov\u00e9", "okres_nazev": "Hradec Kr\u00e1lov\u00e9", "parcela": "st. 4509", "popup_html": "\u003cdiv style=\u0027font-size:13px;\u0027\u003e\u003cdiv\u003e\u003cb\u003eParcela:\u003c/b\u003e \u003cspan style=\u0027font-weight:700;\u0027\u003est. 4509\u003c/span\u003e \u003cspan style=\u0027color:#666;\u0027\u003e(gml_id 41039362010)\u003c/span\u003e\u003c/div\u003e\u003cdiv\u003e\u003cb\u003eV\u00fdm\u011bra parcely:\u003c/b\u003e \u003cspan style=\u0027font-weight:700;color:#004a99;\u0027\u003e351 m\u00b2\u003c/span\u003e\u003c/div\u003e\u003cdiv\u003e\u003cb\u003eNahl\u00ed\u017een\u00ed KN:\u003c/b\u003e \u003ca href=\"https://nahlizenidokn.cuzk.gov.cz/ZobrazObjekt.aspx?\u0026typ=parcela\u0026id=41039362010\" target=\"_blank\"\u003eOtev\u0159\u00edt v Nahl\u00ed\u017een\u00ed KN\u003c/a\u003e\u003c/div\u003e\u003cdiv\u003e\u003cb\u003eMapy.cz:\u003c/b\u003e \u003ca href=\"https://mapy.cz/zakladni?x=15.81815030786555\u0026y=50.21895719163669\u0026z=19\u0026source=coor\u0026id=15.81815030786555,50.21895719163669\" target=\"_blank\"\u003eOtev\u0159\u00edt v Mapy.cz\u003c/a\u003e\u003c/div\u003e\u003chr style=\"margin:4px 0;\"\u003e\u003cdiv\u003e\u003cb\u003eKraj:\u003c/b\u003e Kr\u00e1lov\u00e9hradeck\u00fd kraj\u003c/div\u003e\u003cdiv\u003e\u003cb\u003eOkres:\u003c/b\u003e Hradec Kr\u00e1lov\u00e9\u003c/div\u003e\u003cdiv\u003e\u003cb\u003eObec:\u003c/b\u003e Hradec Kr\u00e1lov\u00e9\u003c/div\u003e\u003cdiv\u003e\u003cb\u003eKatastr\u00e1ln\u00ed \u00fazem\u00ed:\u003c/b\u003e Pra\u017esk\u00e9 P\u0159edm\u011bst\u00ed (k\u00f3d 647101)\u003c/div\u003e\u003chr style=\"margin:4px 0;\"\u003e\n        \u003cdiv style=\"margin:3px 0 8px 0; padding:5px; border:1px solid #ccc; border-radius:4px;\"\u003e\n          \u003cdiv\u003e\u003cb\u003e\u010c\u00edslo vkladu:\u003c/b\u003e V-9488/2024-602\u003c/div\u003e\n          \u003cdiv\u003e\u003cb\u003edatum_podani:\u003c/b\u003e 2024/10/15\u003c/div\u003e\n          \n          \u003cdiv\u003e\u003cb\u003eNemovitost:\u003c/b\u003e jednotka (SO: 78954860)\u003c/div\u003e\n          \u003cdiv\u003e\u003cb\u003eTyp:\u003c/b\u003e budova s \u010d\u00edslem popisn\u00fdm | byt\u003c/div\u003e\n          \u003cdiv\u003e\u003cb\u003eAdresa:\u003c/b\u003e Bohuslava Martin\u016f 1739/6a, Pra\u017esk\u00e9 P\u0159edm\u011bst\u00ed, 50002 Hradec Kr\u00e1lov\u00e9\u003c/div\u003e\n          \u003cdiv\u003e\u003cb\u003ePopis:\u003c/b\u003e jednotka \u010d. 17390011, byt v budov\u011b \u010d.p. 1739, \u010d\u00e1st obce Pra\u017esk\u00e9 P\u0159edm\u011bst\u00ed, na parcele st. 4509 Pra\u017esk\u00e9 P\u0159edm\u011bst\u00ed, pod\u00edl na spole\u010dn\u00fdch \u010d\u00e1stech domu a pozemku 580/6960\u003c/div\u003e\n          \u003cdiv\u003e\u003cb\u003ePo\u010det parcel/budov v r\u00e1mci vkladu:\u003c/b\u003e 8\u003c/div\u003e\n          \u003cdiv\u003e\u003cb\u003eCelkov\u00e1 v\u00fdm\u011bra v r\u00e1mci vkladu:\u003c/b\u003e 58 m\u00b2\u003c/div\u003e\n          \n          \u003cdiv\u003e\u003cb\u003eCenov\u00fd \u00fadaj (za vklad):\u003c/b\u003e \u003cspan style=\"font-weight:700;color:#b30000;\"\u003e5 500 000 K\u010d\u003c/span\u003e\u003c/div\u003e\n          \u003cdiv\u003e\u003cb\u003eJC:\u003c/b\u003e \u003cspan style=\"font-weight:700;color:#004a99;\"\u003e94 828 K\u010d/m\u00b2 (JC p\u0159evzata z #JC u jednotek)\u003c/span\u003e\u003c/div\u003e\n        \u003c/div\u003e\n        \u003c/div\u003e", "typ": "byt", "vusc_nazev": "Kr\u00e1lov\u00e9hradeck\u00fd kraj", "vymera_m2": "351.0"}, "type": "Feature"}], "type": "FeatureCollection"});
+
+        
+    
+    geo_json_700d3c08984506d12e860ca30a8ca843.bindPopup(
+    function(layer){
+    let div = L.DomUtil.create('div');
+    
+    let handleObject = feature=>typeof(feature)=='object' ? JSON.stringify(feature) : feature;
+    let fields = ["popup_html"];
+    let aliases = [""];
+    let table = '<table>' +
+        String(
+        fields.map(
+        (v,i)=>
+        `<tr>
+            <td>${handleObject(layer.feature.properties[v])}</td>
+        </tr>`).join(''))
+    +'</table>';
+    div.innerHTML=table;
+    
+    return div
+    }
+    ,{
+  "parseHtml": true,
+  "sticky": false,
+  "maxWidth": 520,
+  "className": "foliumpopup",
+});
+                     
+    
+            geo_json_700d3c08984506d12e860ca30a8ca843.addTo(feature_group_3d6f0fc34ce96983420637451cfd8da9);
+        
+    
+        function geo_json_3d6ce5a0578bd2e13adf502ff430f894_styler(feature) {
+            switch(feature.properties.cislo_vkladu) {
+                default:
+                    return {"color": "#333333", "fillColor": "#2ca3d2", "fillOpacity": 0.4, "weight": 2};
+            }
+        }
+        function geo_json_3d6ce5a0578bd2e13adf502ff430f894_highlighter(feature) {
+            switch(feature.properties.cislo_vkladu) {
+                default:
+                    return {"color": "#000000", "fillColor": "#74c3e2", "fillOpacity": 0.6, "weight": 3};
+            }
+        }
+
+        function geo_json_3d6ce5a0578bd2e13adf502ff430f894_onEachFeature(feature, layer) {
+            layer.on({
+                mouseout: function(e) {
+                    if(typeof e.target.setStyle === "function"){
+                            geo_json_3d6ce5a0578bd2e13adf502ff430f894.resetStyle(e.target);
+                    }
+                },
+                mouseover: function(e) {
+                    if(typeof e.target.setStyle === "function"){
+                        const highlightStyle = geo_json_3d6ce5a0578bd2e13adf502ff430f894_highlighter(e.target.feature)
+                        e.target.setStyle(highlightStyle);
+                    }
+                },
+            });
+        };
+        var geo_json_3d6ce5a0578bd2e13adf502ff430f894 = L.geoJson(null, {
+                onEachFeature: geo_json_3d6ce5a0578bd2e13adf502ff430f894_onEachFeature,
+            
+                style: geo_json_3d6ce5a0578bd2e13adf502ff430f894_styler,
+            ...{
+}
+        });
+
+        function geo_json_3d6ce5a0578bd2e13adf502ff430f894_add (data) {
+            geo_json_3d6ce5a0578bd2e13adf502ff430f894
+                .addData(data);
+        }
+            geo_json_3d6ce5a0578bd2e13adf502ff430f894_add({"features": [{"geometry": {"coordinates": [[[15.817938809704742, 50.2189212589851], [15.817940927080087, 50.21892811977927], [15.817890042676684, 50.21893393206478], [15.817892987530525, 50.218945473134404], [15.817922489505289, 50.21903771105193], [15.817859011137154, 50.219046004601864], [15.817825928812889, 50.218960917840384], [15.81781171973917, 50.21892407465161], [15.818277903001627, 50.21886315532689], [15.818281918578522, 50.21887577379273], [15.818237517402158, 50.21888162723447], [15.818243089228663, 50.21889880039721], [15.818195355634478, 50.2189051243424], [15.818189783824208, 50.218887951177386], [15.818129744206612, 50.218895963505126], [15.818135315996495, 50.218913136673045], [15.81812245339356, 50.218914782694], [15.818116881608043, 50.21889760952548], [15.818056113224785, 50.21890574739125], [15.818061545846925, 50.21892290996696], [15.818013673061937, 50.2189292232426], [15.818008240456054, 50.21891206066466], [15.817938809704742, 50.2189212589851]]], "type": "Polygon"}, "properties": {"#CELKOVA_VYMERA": "58.0", "#JC": "94827.5", "#PARCEL": "8", "UP": "", "cenovy_udaj": "5500000.0", "cislo_vkladu": "V-9488/2024-602", "datum_podani": "2024-10-15 11:55:42", "gml_id": "1842842602", "ku": "Pra\u017esk\u00e9 P\u0159edm\u011bst\u00ed", "ku_kod": "647101", "multi_vklad": "0", "obec_nazev": "Hradec Kr\u00e1lov\u00e9", "okres_nazev": "Hradec Kr\u00e1lov\u00e9", "parcela": "722/61", "popup_html": "\u003cdiv style=\u0027font-size:13px;\u0027\u003e\u003cdiv\u003e\u003cb\u003eParcela:\u003c/b\u003e \u003cspan style=\u0027font-weight:700;\u0027\u003e722/61\u003c/span\u003e \u003cspan style=\u0027color:#666;\u0027\u003e(gml_id 1842842602)\u003c/span\u003e\u003c/div\u003e\u003cdiv\u003e\u003cb\u003eV\u00fdm\u011bra parcely:\u003c/b\u003e \u003cspan style=\u0027font-weight:700;color:#004a99;\u0027\u003e129 m\u00b2\u003c/span\u003e\u003c/div\u003e\u003cdiv\u003e\u003cb\u003eNahl\u00ed\u017een\u00ed KN:\u003c/b\u003e \u003ca href=\"https://nahlizenidokn.cuzk.gov.cz/ZobrazObjekt.aspx?\u0026typ=parcela\u0026id=1842842602\" target=\"_blank\"\u003eOtev\u0159\u00edt v Nahl\u00ed\u017een\u00ed KN\u003c/a\u003e\u003c/div\u003e\u003cdiv\u003e\u003cb\u003eMapy.cz:\u003c/b\u003e \u003ca href=\"https://mapy.cz/zakladni?x=15.817887516042791\u0026y=50.21898344310921\u0026z=19\u0026source=coor\u0026id=15.817887516042791,50.21898344310921\" target=\"_blank\"\u003eOtev\u0159\u00edt v Mapy.cz\u003c/a\u003e\u003c/div\u003e\u003chr style=\"margin:4px 0;\"\u003e\u003cdiv\u003e\u003cb\u003eKraj:\u003c/b\u003e Kr\u00e1lov\u00e9hradeck\u00fd kraj\u003c/div\u003e\u003cdiv\u003e\u003cb\u003eOkres:\u003c/b\u003e Hradec Kr\u00e1lov\u00e9\u003c/div\u003e\u003cdiv\u003e\u003cb\u003eObec:\u003c/b\u003e Hradec Kr\u00e1lov\u00e9\u003c/div\u003e\u003cdiv\u003e\u003cb\u003eKatastr\u00e1ln\u00ed \u00fazem\u00ed:\u003c/b\u003e Pra\u017esk\u00e9 P\u0159edm\u011bst\u00ed (k\u00f3d 647101)\u003c/div\u003e\u003chr style=\"margin:4px 0;\"\u003e\n        \u003cdiv style=\"margin:3px 0 8px 0; padding:5px; border:1px solid #ccc; border-radius:4px;\"\u003e\n          \u003cdiv\u003e\u003cb\u003e\u010c\u00edslo vkladu:\u003c/b\u003e V-9488/2024-602\u003c/div\u003e\n          \u003cdiv\u003e\u003cb\u003edatum_podani:\u003c/b\u003e 2024/10/15\u003c/div\u003e\n          \n          \u003cdiv\u003e\u003cb\u003eNemovitost:\u003c/b\u003e parcela\u003c/div\u003e\n          \u003cdiv\u003e\u003cb\u003eTyp:\u003c/b\u003e jin\u00e1 plocha\u003c/div\u003e\n          \u003cdiv\u003e\u003cb\u003eAdresa:\u003c/b\u003e Pra\u017esk\u00e9 P\u0159edm\u011bst\u00ed 722/61\u003c/div\u003e\n          \u003cdiv\u003e\u003cb\u003ePopis:\u003c/b\u003e \u010d. 722/61 Pra\u017esk\u00e9 P\u0159edm\u011bst\u00ed\u003c/div\u003e\n          \u003cdiv\u003e\u003cb\u003ePo\u010det parcel/budov v r\u00e1mci vkladu:\u003c/b\u003e 8\u003c/div\u003e\n          \u003cdiv\u003e\u003cb\u003eCelkov\u00e1 v\u00fdm\u011bra v r\u00e1mci vkladu:\u003c/b\u003e 58 m\u00b2\u003c/div\u003e\n          \n          \u003cdiv\u003e\u003cb\u003eCenov\u00fd \u00fadaj (za vklad):\u003c/b\u003e \u003cspan style=\"font-weight:700;color:#b30000;\"\u003e5 500 000 K\u010d\u003c/span\u003e\u003c/div\u003e\n          \u003cdiv\u003e\u003cb\u003eJC:\u003c/b\u003e \u003cspan style=\"font-weight:700;color:#004a99;\"\u003e94 828 K\u010d/m\u00b2 (JC p\u0159evzata ze sloupce #JC za vklad)\u003c/span\u003e\u003c/div\u003e\n        \u003c/div\u003e\n        \u003c/div\u003e", "typ": "jin\u00e1 plocha", "vusc_nazev": "Kr\u00e1lov\u00e9hradeck\u00fd kraj", "vymera_m2": "129.0"}, "type": "Feature"}], "type": "FeatureCollection"});
+
+        
+    
+    geo_json_3d6ce5a0578bd2e13adf502ff430f894.bindPopup(
+    function(layer){
+    let div = L.DomUtil.create('div');
+    
+    let handleObject = feature=>typeof(feature)=='object' ? JSON.stringify(feature) : feature;
+    let fields = ["popup_html"];
+    let aliases = [""];
+    let table = '<table>' +
+        String(
+        fields.map(
+        (v,i)=>
+        `<tr>
+            <td>${handleObject(layer.feature.properties[v])}</td>
+        </tr>`).join(''))
+    +'</table>';
+    div.innerHTML=table;
+    
+    return div
+    }
+    ,{
+  "parseHtml": true,
+  "sticky": false,
+  "maxWidth": 520,
+  "className": "foliumpopup",
+});
+                     
+    
+            geo_json_3d6ce5a0578bd2e13adf502ff430f894.addTo(feature_group_3d6f0fc34ce96983420637451cfd8da9);
+        
+    
+        function geo_json_c1486bafae8e765dfaf5561560cece5b_styler(feature) {
+            switch(feature.properties.cislo_vkladu) {
+                default:
+                    return {"color": "#333333", "fillColor": "#2ca3d2", "fillOpacity": 0.4, "weight": 2};
+            }
+        }
+        function geo_json_c1486bafae8e765dfaf5561560cece5b_highlighter(feature) {
+            switch(feature.properties.cislo_vkladu) {
+                default:
+                    return {"color": "#000000", "fillColor": "#74c3e2", "fillOpacity": 0.6, "weight": 3};
+            }
+        }
+
+        function geo_json_c1486bafae8e765dfaf5561560cece5b_onEachFeature(feature, layer) {
+            layer.on({
+                mouseout: function(e) {
+                    if(typeof e.target.setStyle === "function"){
+                            geo_json_c1486bafae8e765dfaf5561560cece5b.resetStyle(e.target);
+                    }
+                },
+                mouseover: function(e) {
+                    if(typeof e.target.setStyle === "function"){
+                        const highlightStyle = geo_json_c1486bafae8e765dfaf5561560cece5b_highlighter(e.target.feature)
+                        e.target.setStyle(highlightStyle);
+                    }
+                },
+            });
+        };
+        var geo_json_c1486bafae8e765dfaf5561560cece5b = L.geoJson(null, {
+                onEachFeature: geo_json_c1486bafae8e765dfaf5561560cece5b_onEachFeature,
+            
+                style: geo_json_c1486bafae8e765dfaf5561560cece5b_styler,
+            ...{
+}
+        });
+
+        function geo_json_c1486bafae8e765dfaf5561560cece5b_add (data) {
+            geo_json_c1486bafae8e765dfaf5561560cece5b
+                .addData(data);
+        }
+            geo_json_c1486bafae8e765dfaf5561560cece5b_add({"features": [{"geometry": {"coordinates": [[[15.81835795342302, 50.21898115157275], [15.81851987040852, 50.218960164326724], [15.818530646394958, 50.21899421100694], [15.818368696273312, 50.21901537682187], [15.81835795342302, 50.21898115157275]]], "type": "Polygon"}, "properties": {"#CELKOVA_VYMERA": "58.0", "#JC": "94827.5", "#PARCEL": "8", "UP": "", "cenovy_udaj": "5500000.0", "cislo_vkladu": "V-9488/2024-602", "datum_podani": "2024-10-15 11:55:42", "gml_id": "46331683010", "ku": "Pra\u017esk\u00e9 P\u0159edm\u011bst\u00ed", "ku_kod": "647101", "multi_vklad": "0", "obec_nazev": "Hradec Kr\u00e1lov\u00e9", "okres_nazev": "Hradec Kr\u00e1lov\u00e9", "parcela": "722/233", "popup_html": "\u003cdiv style=\u0027font-size:13px;\u0027\u003e\u003cdiv\u003e\u003cb\u003eParcela:\u003c/b\u003e \u003cspan style=\u0027font-weight:700;\u0027\u003e722/233\u003c/span\u003e \u003cspan style=\u0027color:#666;\u0027\u003e(gml_id 46331683010)\u003c/span\u003e\u003c/div\u003e\u003cdiv\u003e\u003cb\u003eV\u00fdm\u011bra parcely:\u003c/b\u003e \u003cspan style=\u0027font-weight:700;color:#004a99;\u0027\u003e46 m\u00b2\u003c/span\u003e\u003c/div\u003e\u003cdiv\u003e\u003cb\u003eNahl\u00ed\u017een\u00ed KN:\u003c/b\u003e \u003ca href=\"https://nahlizenidokn.cuzk.gov.cz/ZobrazObjekt.aspx?\u0026typ=parcela\u0026id=46331683010\" target=\"_blank\"\u003eOtev\u0159\u00edt v Nahl\u00ed\u017een\u00ed KN\u003c/a\u003e\u003c/div\u003e\u003cdiv\u003e\u003cb\u003eMapy.cz:\u003c/b\u003e \u003ca href=\"https://mapy.cz/zakladni?x=15.818439477416643\u0026y=50.2189805692909\u0026z=19\u0026source=coor\u0026id=15.818439477416643,50.2189805692909\" target=\"_blank\"\u003eOtev\u0159\u00edt v Mapy.cz\u003c/a\u003e\u003c/div\u003e\u003chr style=\"margin:4px 0;\"\u003e\u003cdiv\u003e\u003cb\u003eKraj:\u003c/b\u003e Kr\u00e1lov\u00e9hradeck\u00fd kraj\u003c/div\u003e\u003cdiv\u003e\u003cb\u003eOkres:\u003c/b\u003e Hradec Kr\u00e1lov\u00e9\u003c/div\u003e\u003cdiv\u003e\u003cb\u003eObec:\u003c/b\u003e Hradec Kr\u00e1lov\u00e9\u003c/div\u003e\u003cdiv\u003e\u003cb\u003eKatastr\u00e1ln\u00ed \u00fazem\u00ed:\u003c/b\u003e Pra\u017esk\u00e9 P\u0159edm\u011bst\u00ed (k\u00f3d 647101)\u003c/div\u003e\u003chr style=\"margin:4px 0;\"\u003e\n        \u003cdiv style=\"margin:3px 0 8px 0; padding:5px; border:1px solid #ccc; border-radius:4px;\"\u003e\n          \u003cdiv\u003e\u003cb\u003e\u010c\u00edslo vkladu:\u003c/b\u003e V-9488/2024-602\u003c/div\u003e\n          \u003cdiv\u003e\u003cb\u003edatum_podani:\u003c/b\u003e 2024/10/15\u003c/div\u003e\n          \n          \u003cdiv\u003e\u003cb\u003eNemovitost:\u003c/b\u003e parcela\u003c/div\u003e\n          \u003cdiv\u003e\u003cb\u003eTyp:\u003c/b\u003e jin\u00e1 plocha\u003c/div\u003e\n          \u003cdiv\u003e\u003cb\u003eAdresa:\u003c/b\u003e Pra\u017esk\u00e9 P\u0159edm\u011bst\u00ed 722/233\u003c/div\u003e\n          \u003cdiv\u003e\u003cb\u003ePopis:\u003c/b\u003e \u010d. 722/233 Pra\u017esk\u00e9 P\u0159edm\u011bst\u00ed\u003c/div\u003e\n          \u003cdiv\u003e\u003cb\u003ePo\u010det parcel/budov v r\u00e1mci vkladu:\u003c/b\u003e 8\u003c/div\u003e\n          \u003cdiv\u003e\u003cb\u003eCelkov\u00e1 v\u00fdm\u011bra v r\u00e1mci vkladu:\u003c/b\u003e 58 m\u00b2\u003c/div\u003e\n          \n          \u003cdiv\u003e\u003cb\u003eCenov\u00fd \u00fadaj (za vklad):\u003c/b\u003e \u003cspan style=\"font-weight:700;color:#b30000;\"\u003e5 500 000 K\u010d\u003c/span\u003e\u003c/div\u003e\n          \u003cdiv\u003e\u003cb\u003eJC:\u003c/b\u003e \u003cspan style=\"font-weight:700;color:#004a99;\"\u003e94 828 K\u010d/m\u00b2 (JC p\u0159evzata ze sloupce #JC za vklad)\u003c/span\u003e\u003c/div\u003e\n        \u003c/div\u003e\n        \u003c/div\u003e", "typ": "jin\u00e1 plocha", "vusc_nazev": "Kr\u00e1lov\u00e9hradeck\u00fd kraj", "vymera_m2": "46.0"}, "type": "Feature"}], "type": "FeatureCollection"});
+
+        
+    
+    geo_json_c1486bafae8e765dfaf5561560cece5b.bindPopup(
+    function(layer){
+    let div = L.DomUtil.create('div');
+    
+    let handleObject = feature=>typeof(feature)=='object' ? JSON.stringify(feature) : feature;
+    let fields = ["popup_html"];
+    let aliases = [""];
+    let table = '<table>' +
+        String(
+        fields.map(
+        (v,i)=>
+        `<tr>
+            <td>${handleObject(layer.feature.properties[v])}</td>
+        </tr>`).join(''))
+    +'</table>';
+    div.innerHTML=table;
+    
+    return div
+    }
+    ,{
+  "parseHtml": true,
+  "sticky": false,
+  "maxWidth": 520,
+  "className": "foliumpopup",
+});
+                     
+    
+            geo_json_c1486bafae8e765dfaf5561560cece5b.addTo(feature_group_3d6f0fc34ce96983420637451cfd8da9);
+        
+    
+        function geo_json_f67cc2909d29b34b7c5c941b3a0495c0_styler(feature) {
+            switch(feature.properties.cislo_vkladu) {
+                default:
+                    return {"color": "#333333", "fillColor": "#2ca3d2", "fillOpacity": 0.4, "weight": 2};
+            }
+        }
+        function geo_json_f67cc2909d29b34b7c5c941b3a0495c0_highlighter(feature) {
+            switch(feature.properties.cislo_vkladu) {
+                default:
+                    return {"color": "#000000", "fillColor": "#74c3e2", "fillOpacity": 0.6, "weight": 3};
+            }
+        }
+
+        function geo_json_f67cc2909d29b34b7c5c941b3a0495c0_onEachFeature(feature, layer) {
+            layer.on({
+                mouseout: function(e) {
+                    if(typeof e.target.setStyle === "function"){
+                            geo_json_f67cc2909d29b34b7c5c941b3a0495c0.resetStyle(e.target);
+                    }
+                },
+                mouseover: function(e) {
+                    if(typeof e.target.setStyle === "function"){
+                        const highlightStyle = geo_json_f67cc2909d29b34b7c5c941b3a0495c0_highlighter(e.target.feature)
+                        e.target.setStyle(highlightStyle);
+                    }
+                },
+            });
+        };
+        var geo_json_f67cc2909d29b34b7c5c941b3a0495c0 = L.geoJson(null, {
+                onEachFeature: geo_json_f67cc2909d29b34b7c5c941b3a0495c0_onEachFeature,
+            
+                style: geo_json_f67cc2909d29b34b7c5c941b3a0495c0_styler,
+            ...{
+}
+        });
+
+        function geo_json_f67cc2909d29b34b7c5c941b3a0495c0_add (data) {
+            geo_json_f67cc2909d29b34b7c5c941b3a0495c0
+                .addData(data);
+        }
+            geo_json_f67cc2909d29b34b7c5c941b3a0495c0_add({"features": [{"geometry": {"coordinates": [[[15.818355281856801, 50.21897270950532], [15.81835795342302, 50.21898115157275], [15.818343494183326, 50.21898303817697], [15.818320930876988, 50.21891278545476], [15.818393259990069, 50.21890317387568], [15.818394783236567, 50.21890790712322], [15.81835428263498, 50.21891632098887], [15.818380313803418, 50.218967825534584], [15.818480533580763, 50.218947029125], [15.818483370299296, 50.21895457841944], [15.818355281856801, 50.21897270950532]]], "type": "Polygon"}, "properties": {"#CELKOVA_VYMERA": "58.0", "#JC": "94827.5", "#PARCEL": "8", "UP": "", "cenovy_udaj": "5500000.0", "cislo_vkladu": "V-9488/2024-602", "datum_podani": "2024-10-15 11:55:42", "gml_id": "1842897602", "ku": "Pra\u017esk\u00e9 P\u0159edm\u011bst\u00ed", "ku_kod": "647101", "multi_vklad": "0", "obec_nazev": "Hradec Kr\u00e1lov\u00e9", "okres_nazev": "Hradec Kr\u00e1lov\u00e9", "parcela": "722/175", "popup_html": "\u003cdiv style=\u0027font-size:13px;\u0027\u003e\u003cdiv\u003e\u003cb\u003eParcela:\u003c/b\u003e \u003cspan style=\u0027font-weight:700;\u0027\u003e722/175\u003c/span\u003e \u003cspan style=\u0027color:#666;\u0027\u003e(gml_id 1842897602)\u003c/span\u003e\u003c/div\u003e\u003cdiv\u003e\u003cb\u003eV\u00fdm\u011bra parcely:\u003c/b\u003e \u003cspan style=\u0027font-weight:700;color:#004a99;\u0027\u003e25 m\u00b2\u003c/span\u003e\u003c/div\u003e\u003cdiv\u003e\u003cb\u003eNahl\u00ed\u017een\u00ed KN:\u003c/b\u003e \u003ca href=\"https://nahlizenidokn.cuzk.gov.cz/ZobrazObjekt.aspx?\u0026typ=parcela\u0026id=1842897602\" target=\"_blank\"\u003eOtev\u0159\u00edt v Nahl\u00ed\u017een\u00ed KN\u003c/a\u003e\u003c/div\u003e\u003cdiv\u003e\u003cb\u003eMapy.cz:\u003c/b\u003e \u003ca href=\"https://mapy.cz/zakladni?x=15.818452843585137\u0026y=50.21895560369507\u0026z=19\u0026source=coor\u0026id=15.818452843585137,50.21895560369507\" target=\"_blank\"\u003eOtev\u0159\u00edt v Mapy.cz\u003c/a\u003e\u003c/div\u003e\u003chr style=\"margin:4px 0;\"\u003e\u003cdiv\u003e\u003cb\u003eKraj:\u003c/b\u003e Kr\u00e1lov\u00e9hradeck\u00fd kraj\u003c/div\u003e\u003cdiv\u003e\u003cb\u003eOkres:\u003c/b\u003e Hradec Kr\u00e1lov\u00e9\u003c/div\u003e\u003cdiv\u003e\u003cb\u003eObec:\u003c/b\u003e Hradec Kr\u00e1lov\u00e9\u003c/div\u003e\u003cdiv\u003e\u003cb\u003eKatastr\u00e1ln\u00ed \u00fazem\u00ed:\u003c/b\u003e Pra\u017esk\u00e9 P\u0159edm\u011bst\u00ed (k\u00f3d 647101)\u003c/div\u003e\u003chr style=\"margin:4px 0;\"\u003e\n        \u003cdiv style=\"margin:3px 0 8px 0; padding:5px; border:1px solid #ccc; border-radius:4px;\"\u003e\n          \u003cdiv\u003e\u003cb\u003e\u010c\u00edslo vkladu:\u003c/b\u003e V-9488/2024-602\u003c/div\u003e\n          \u003cdiv\u003e\u003cb\u003edatum_podani:\u003c/b\u003e 2024/10/15\u003c/div\u003e\n          \n          \u003cdiv\u003e\u003cb\u003eNemovitost:\u003c/b\u003e parcela\u003c/div\u003e\n          \u003cdiv\u003e\u003cb\u003eTyp:\u003c/b\u003e jin\u00e1 plocha\u003c/div\u003e\n          \u003cdiv\u003e\u003cb\u003eAdresa:\u003c/b\u003e Pra\u017esk\u00e9 P\u0159edm\u011bst\u00ed 722/175\u003c/div\u003e\n          \u003cdiv\u003e\u003cb\u003ePopis:\u003c/b\u003e \u010d. 722/175 Pra\u017esk\u00e9 P\u0159edm\u011bst\u00ed\u003c/div\u003e\n          \u003cdiv\u003e\u003cb\u003ePo\u010det parcel/budov v r\u00e1mci vkladu:\u003c/b\u003e 8\u003c/div\u003e\n          \u003cdiv\u003e\u003cb\u003eCelkov\u00e1 v\u00fdm\u011bra v r\u00e1mci vkladu:\u003c/b\u003e 58 m\u00b2\u003c/div\u003e\n          \n          \u003cdiv\u003e\u003cb\u003eCenov\u00fd \u00fadaj (za vklad):\u003c/b\u003e \u003cspan style=\"font-weight:700;color:#b30000;\"\u003e5 500 000 K\u010d\u003c/span\u003e\u003c/div\u003e\n          \u003cdiv\u003e\u003cb\u003eJC:\u003c/b\u003e \u003cspan style=\"font-weight:700;color:#004a99;\"\u003e94 828 K\u010d/m\u00b2 (JC p\u0159evzata ze sloupce #JC za vklad)\u003c/span\u003e\u003c/div\u003e\n        \u003c/div\u003e\n        \u003c/div\u003e", "typ": "jin\u00e1 plocha", "vusc_nazev": "Kr\u00e1lov\u00e9hradeck\u00fd kraj", "vymera_m2": "25.0"}, "type": "Feature"}], "type": "FeatureCollection"});
+
+        
+    
+    geo_json_f67cc2909d29b34b7c5c941b3a0495c0.bindPopup(
+    function(layer){
+    let div = L.DomUtil.create('div');
+    
+    let handleObject = feature=>typeof(feature)=='object' ? JSON.stringify(feature) : feature;
+    let fields = ["popup_html"];
+    let aliases = [""];
+    let table = '<table>' +
+        String(
+        fields.map(
+        (v,i)=>
+        `<tr>
+            <td>${handleObject(layer.feature.properties[v])}</td>
+        </tr>`).join(''))
+    +'</table>';
+    div.innerHTML=table;
+    
+    return div
+    }
+    ,{
+  "parseHtml": true,
+  "sticky": false,
+  "maxWidth": 520,
+  "className": "foliumpopup",
+});
+                     
+    
+            geo_json_f67cc2909d29b34b7c5c941b3a0495c0.addTo(feature_group_3d6f0fc34ce96983420637451cfd8da9);
+        
+    
+        function geo_json_3dc5fcec759cf4833e892ae4bccc3f2a_styler(feature) {
+            switch(feature.properties.cislo_vkladu) {
+                default:
+                    return {"color": "#333333", "fillColor": "#2ca3d2", "fillOpacity": 0.4, "weight": 2};
+            }
+        }
+        function geo_json_3dc5fcec759cf4833e892ae4bccc3f2a_highlighter(feature) {
+            switch(feature.properties.cislo_vkladu) {
+                default:
+                    return {"color": "#000000", "fillColor": "#74c3e2", "fillOpacity": 0.6, "weight": 3};
+            }
+        }
+
+        function geo_json_3dc5fcec759cf4833e892ae4bccc3f2a_onEachFeature(feature, layer) {
+            layer.on({
+                mouseout: function(e) {
+                    if(typeof e.target.setStyle === "function"){
+                            geo_json_3dc5fcec759cf4833e892ae4bccc3f2a.resetStyle(e.target);
+                    }
+                },
+                mouseover: function(e) {
+                    if(typeof e.target.setStyle === "function"){
+                        const highlightStyle = geo_json_3dc5fcec759cf4833e892ae4bccc3f2a_highlighter(e.target.feature)
+                        e.target.setStyle(highlightStyle);
+                    }
+                },
+            });
+        };
+        var geo_json_3dc5fcec759cf4833e892ae4bccc3f2a = L.geoJson(null, {
+                onEachFeature: geo_json_3dc5fcec759cf4833e892ae4bccc3f2a_onEachFeature,
+            
+                style: geo_json_3dc5fcec759cf4833e892ae4bccc3f2a_styler,
+            ...{
+}
+        });
+
+        function geo_json_3dc5fcec759cf4833e892ae4bccc3f2a_add (data) {
+            geo_json_3dc5fcec759cf4833e892ae4bccc3f2a
+                .addData(data);
+        }
+            geo_json_3dc5fcec759cf4833e892ae4bccc3f2a_add({"features": [{"geometry": {"coordinates": [[[15.818368769878818, 50.21887614044484], [15.818384096968138, 50.21887413885546], [15.818393259990069, 50.21890317387568], [15.818320930876988, 50.21891278545476], [15.81831338777162, 50.218889486915316], [15.818311881047176, 50.218884664389634], [15.818369111775592, 50.218877343427216], [15.818368769878818, 50.21887614044484]]], "type": "Polygon"}, "properties": {"#CELKOVA_VYMERA": "58.0", "#JC": "94827.5", "#PARCEL": "8", "UP": "", "cenovy_udaj": "5500000.0", "cislo_vkladu": "V-9488/2024-602", "datum_podani": "2024-10-15 11:55:42", "gml_id": "46331678010", "ku": "Pra\u017esk\u00e9 P\u0159edm\u011bst\u00ed", "ku_kod": "647101", "multi_vklad": "0", "obec_nazev": "Hradec Kr\u00e1lov\u00e9", "okres_nazev": "Hradec Kr\u00e1lov\u00e9", "parcela": "722/228", "popup_html": "\u003cdiv style=\u0027font-size:13px;\u0027\u003e\u003cdiv\u003e\u003cb\u003eParcela:\u003c/b\u003e \u003cspan style=\u0027font-weight:700;\u0027\u003e722/228\u003c/span\u003e \u003cspan style=\u0027color:#666;\u0027\u003e(gml_id 46331678010)\u003c/span\u003e\u003c/div\u003e\u003cdiv\u003e\u003cb\u003eV\u00fdm\u011bra parcely:\u003c/b\u003e \u003cspan style=\u0027font-weight:700;color:#004a99;\u0027\u003e17 m\u00b2\u003c/span\u003e\u003c/div\u003e\u003cdiv\u003e\u003cb\u003eNahl\u00ed\u017een\u00ed KN:\u003c/b\u003e \u003ca href=\"https://nahlizenidokn.cuzk.gov.cz/ZobrazObjekt.aspx?\u0026typ=parcela\u0026id=46331678010\" target=\"_blank\"\u003eOtev\u0159\u00edt v Nahl\u00ed\u017een\u00ed KN\u003c/a\u003e\u003c/div\u003e\u003cdiv\u003e\u003cb\u003eMapy.cz:\u003c/b\u003e \u003ca href=\"https://mapy.cz/zakladni?x=15.818358929646138\u0026y=50.21889730047405\u0026z=19\u0026source=coor\u0026id=15.818358929646138,50.21889730047405\" target=\"_blank\"\u003eOtev\u0159\u00edt v Mapy.cz\u003c/a\u003e\u003c/div\u003e\u003chr style=\"margin:4px 0;\"\u003e\u003cdiv\u003e\u003cb\u003eKraj:\u003c/b\u003e Kr\u00e1lov\u00e9hradeck\u00fd kraj\u003c/div\u003e\u003cdiv\u003e\u003cb\u003eOkres:\u003c/b\u003e Hradec Kr\u00e1lov\u00e9\u003c/div\u003e\u003cdiv\u003e\u003cb\u003eObec:\u003c/b\u003e Hradec Kr\u00e1lov\u00e9\u003c/div\u003e\u003cdiv\u003e\u003cb\u003eKatastr\u00e1ln\u00ed \u00fazem\u00ed:\u003c/b\u003e Pra\u017esk\u00e9 P\u0159edm\u011bst\u00ed (k\u00f3d 647101)\u003c/div\u003e\u003chr style=\"margin:4px 0;\"\u003e\n        \u003cdiv style=\"margin:3px 0 8px 0; padding:5px; border:1px solid #ccc; border-radius:4px;\"\u003e\n          \u003cdiv\u003e\u003cb\u003e\u010c\u00edslo vkladu:\u003c/b\u003e V-9488/2024-602\u003c/div\u003e\n          \u003cdiv\u003e\u003cb\u003edatum_podani:\u003c/b\u003e 2024/10/15\u003c/div\u003e\n          \n          \u003cdiv\u003e\u003cb\u003eNemovitost:\u003c/b\u003e parcela\u003c/div\u003e\n          \u003cdiv\u003e\u003cb\u003eTyp:\u003c/b\u003e jin\u00e1 plocha\u003c/div\u003e\n          \u003cdiv\u003e\u003cb\u003eAdresa:\u003c/b\u003e Pra\u017esk\u00e9 P\u0159edm\u011bst\u00ed 722/228\u003c/div\u003e\n          \u003cdiv\u003e\u003cb\u003ePopis:\u003c/b\u003e \u010d. 722/228 Pra\u017esk\u00e9 P\u0159edm\u011bst\u00ed\u003c/div\u003e\n          \u003cdiv\u003e\u003cb\u003ePo\u010det parcel/budov v r\u00e1mci vkladu:\u003c/b\u003e 8\u003c/div\u003e\n          \u003cdiv\u003e\u003cb\u003eCelkov\u00e1 v\u00fdm\u011bra v r\u00e1mci vkladu:\u003c/b\u003e 58 m\u00b2\u003c/div\u003e\n          \n          \u003cdiv\u003e\u003cb\u003eCenov\u00fd \u00fadaj (za vklad):\u003c/b\u003e \u003cspan style=\"font-weight:700;color:#b30000;\"\u003e5 500 000 K\u010d\u003c/span\u003e\u003c/div\u003e\n          \u003cdiv\u003e\u003cb\u003eJC:\u003c/b\u003e \u003cspan style=\"font-weight:700;color:#004a99;\"\u003e94 828 K\u010d/m\u00b2 (JC p\u0159evzata ze sloupce #JC za vklad)\u003c/span\u003e\u003c/div\u003e\n        \u003c/div\u003e\n        \u003c/div\u003e", "typ": "jin\u00e1 plocha", "vusc_nazev": "Kr\u00e1lov\u00e9hradeck\u00fd kraj", "vymera_m2": "17.0"}, "type": "Feature"}], "type": "FeatureCollection"});
+
+        
+    
+    geo_json_3dc5fcec759cf4833e892ae4bccc3f2a.bindPopup(
+    function(layer){
+    let div = L.DomUtil.create('div');
+    
+    let handleObject = feature=>typeof(feature)=='object' ? JSON.stringify(feature) : feature;
+    let fields = ["popup_html"];
+    let aliases = [""];
+    let table = '<table>' +
+        String(
+        fields.map(
+        (v,i)=>
+        `<tr>
+            <td>${handleObject(layer.feature.properties[v])}</td>
+        </tr>`).join(''))
+    +'</table>';
+    div.innerHTML=table;
+    
+    return div
+    }
+    ,{
+  "parseHtml": true,
+  "sticky": false,
+  "maxWidth": 520,
+  "className": "foliumpopup",
+});
+                     
+    
+            geo_json_3dc5fcec759cf4833e892ae4bccc3f2a.addTo(feature_group_3d6f0fc34ce96983420637451cfd8da9);
+        
+    
+        function geo_json_4c3118ada6d494a674968a51ae8f5358_styler(feature) {
+            switch(feature.properties.cislo_vkladu) {
+                default:
+                    return {"color": "#333333", "fillColor": "#2ca3d2", "fillOpacity": 0.4, "weight": 2};
+            }
+        }
+        function geo_json_4c3118ada6d494a674968a51ae8f5358_highlighter(feature) {
+            switch(feature.properties.cislo_vkladu) {
+                default:
+                    return {"color": "#000000", "fillColor": "#74c3e2", "fillOpacity": 0.6, "weight": 3};
+            }
+        }
+
+        function geo_json_4c3118ada6d494a674968a51ae8f5358_onEachFeature(feature, layer) {
+            layer.on({
+                mouseout: function(e) {
+                    if(typeof e.target.setStyle === "function"){
+                            geo_json_4c3118ada6d494a674968a51ae8f5358.resetStyle(e.target);
+                    }
+                },
+                mouseover: function(e) {
+                    if(typeof e.target.setStyle === "function"){
+                        const highlightStyle = geo_json_4c3118ada6d494a674968a51ae8f5358_highlighter(e.target.feature)
+                        e.target.setStyle(highlightStyle);
+                    }
+                },
+            });
+        };
+        var geo_json_4c3118ada6d494a674968a51ae8f5358 = L.geoJson(null, {
+                onEachFeature: geo_json_4c3118ada6d494a674968a51ae8f5358_onEachFeature,
+            
+                style: geo_json_4c3118ada6d494a674968a51ae8f5358_styler,
+            ...{
+}
+        });
+
+        function geo_json_4c3118ada6d494a674968a51ae8f5358_add (data) {
+            geo_json_4c3118ada6d494a674968a51ae8f5358
+                .addData(data);
+        }
+            geo_json_4c3118ada6d494a674968a51ae8f5358_add({"features": [{"geometry": {"coordinates": [[[15.818483370299296, 50.21895457841944], [15.818516750797546, 50.21895033013185], [15.81851987040852, 50.218960164326724], [15.81835795342302, 50.21898115157275], [15.818355281856801, 50.21897270950532], [15.818483370299296, 50.21895457841944]]], "type": "Polygon"}, "properties": {"#CELKOVA_VYMERA": "58.0", "#JC": "94827.5", "#PARCEL": "8", "UP": "", "cenovy_udaj": "5500000.0", "cislo_vkladu": "V-9488/2024-602", "datum_podani": "2024-10-15 11:55:42", "gml_id": "46331681010", "ku": "Pra\u017esk\u00e9 P\u0159edm\u011bst\u00ed", "ku_kod": "647101", "multi_vklad": "0", "obec_nazev": "Hradec Kr\u00e1lov\u00e9", "okres_nazev": "Hradec Kr\u00e1lov\u00e9", "parcela": "722/231", "popup_html": "\u003cdiv style=\u0027font-size:13px;\u0027\u003e\u003cdiv\u003e\u003cb\u003eParcela:\u003c/b\u003e \u003cspan style=\u0027font-weight:700;\u0027\u003e722/231\u003c/span\u003e \u003cspan style=\u0027color:#666;\u0027\u003e(gml_id 46331681010)\u003c/span\u003e\u003c/div\u003e\u003cdiv\u003e\u003cb\u003eV\u00fdm\u011bra parcely:\u003c/b\u003e \u003cspan style=\u0027font-weight:700;color:#004a99;\u0027\u003e12 m\u00b2\u003c/span\u003e\u003c/div\u003e\u003cdiv\u003e\u003cb\u003eNahl\u00ed\u017een\u00ed KN:\u003c/b\u003e \u003ca href=\"https://nahlizenidokn.cuzk.gov.cz/ZobrazObjekt.aspx?\u0026typ=parcela\u0026id=46331681010\" target=\"_blank\"\u003eOtev\u0159\u00edt v Nahl\u00ed\u017een\u00ed KN\u003c/a\u003e\u003c/div\u003e\u003cdiv\u003e\u003cb\u003eMapy.cz:\u003c/b\u003e \u003ca href=\"https://mapy.cz/zakladni?x=15.818453508150395\u0026y=50.21896497934626\u0026z=19\u0026source=coor\u0026id=15.818453508150395,50.21896497934626\" target=\"_blank\"\u003eOtev\u0159\u00edt v Mapy.cz\u003c/a\u003e\u003c/div\u003e\u003chr style=\"margin:4px 0;\"\u003e\u003cdiv\u003e\u003cb\u003eKraj:\u003c/b\u003e Kr\u00e1lov\u00e9hradeck\u00fd kraj\u003c/div\u003e\u003cdiv\u003e\u003cb\u003eOkres:\u003c/b\u003e Hradec Kr\u00e1lov\u00e9\u003c/div\u003e\u003cdiv\u003e\u003cb\u003eObec:\u003c/b\u003e Hradec Kr\u00e1lov\u00e9\u003c/div\u003e\u003cdiv\u003e\u003cb\u003eKatastr\u00e1ln\u00ed \u00fazem\u00ed:\u003c/b\u003e Pra\u017esk\u00e9 P\u0159edm\u011bst\u00ed (k\u00f3d 647101)\u003c/div\u003e\u003chr style=\"margin:4px 0;\"\u003e\n        \u003cdiv style=\"margin:3px 0 8px 0; padding:5px; border:1px solid #ccc; border-radius:4px;\"\u003e\n          \u003cdiv\u003e\u003cb\u003e\u010c\u00edslo vkladu:\u003c/b\u003e V-9488/2024-602\u003c/div\u003e\n          \u003cdiv\u003e\u003cb\u003edatum_podani:\u003c/b\u003e 2024/10/15\u003c/div\u003e\n          \n          \u003cdiv\u003e\u003cb\u003eNemovitost:\u003c/b\u003e parcela\u003c/div\u003e\n          \u003cdiv\u003e\u003cb\u003eTyp:\u003c/b\u003e jin\u00e1 plocha\u003c/div\u003e\n          \u003cdiv\u003e\u003cb\u003eAdresa:\u003c/b\u003e Pra\u017esk\u00e9 P\u0159edm\u011bst\u00ed 722/231\u003c/div\u003e\n          \u003cdiv\u003e\u003cb\u003ePopis:\u003c/b\u003e \u010d. 722/231 Pra\u017esk\u00e9 P\u0159edm\u011bst\u00ed\u003c/div\u003e\n          \u003cdiv\u003e\u003cb\u003ePo\u010det parcel/budov v r\u00e1mci vkladu:\u003c/b\u003e 8\u003c/div\u003e\n          \u003cdiv\u003e\u003cb\u003eCelkov\u00e1 v\u00fdm\u011bra v r\u00e1mci vkladu:\u003c/b\u003e 58 m\u00b2\u003c/div\u003e\n          \n          \u003cdiv\u003e\u003cb\u003eCenov\u00fd \u00fadaj (za vklad):\u003c/b\u003e \u003cspan style=\"font-weight:700;color:#b30000;\"\u003e5 500 000 K\u010d\u003c/span\u003e\u003c/div\u003e\n          \u003cdiv\u003e\u003cb\u003eJC:\u003c/b\u003e \u003cspan style=\"font-weight:700;color:#004a99;\"\u003e94 828 K\u010d/m\u00b2 (JC p\u0159evzata ze sloupce #JC za vklad)\u003c/span\u003e\u003c/div\u003e\n        \u003c/div\u003e\n        \u003c/div\u003e", "typ": "jin\u00e1 plocha", "vusc_nazev": "Kr\u00e1lov\u00e9hradeck\u00fd kraj", "vymera_m2": "12.0"}, "type": "Feature"}], "type": "FeatureCollection"});
+
+        
+    
+    geo_json_4c3118ada6d494a674968a51ae8f5358.bindPopup(
+    function(layer){
+    let div = L.DomUtil.create('div');
+    
+    let handleObject = feature=>typeof(feature)=='object' ? JSON.stringify(feature) : feature;
+    let fields = ["popup_html"];
+    let aliases = [""];
+    let table = '<table>' +
+        String(
+        fields.map(
+        (v,i)=>
+        `<tr>
+            <td>${handleObject(layer.feature.properties[v])}</td>
+        </tr>`).join(''))
+    +'</table>';
+    div.innerHTML=table;
+    
+    return div
+    }
+    ,{
+  "parseHtml": true,
+  "sticky": false,
+  "maxWidth": 520,
+  "className": "foliumpopup",
+});
+                     
+    
+            geo_json_4c3118ada6d494a674968a51ae8f5358.addTo(feature_group_3d6f0fc34ce96983420637451cfd8da9);
+        
+    
+        function geo_json_6a91e0ad28dea4ab1e33e966d79dc2e0_styler(feature) {
+            switch(feature.properties.cislo_vkladu) {
+                default:
+                    return {"color": "#333333", "fillColor": "#2ca3d2", "fillOpacity": 0.4, "weight": 2};
+            }
+        }
+        function geo_json_6a91e0ad28dea4ab1e33e966d79dc2e0_highlighter(feature) {
+            switch(feature.properties.cislo_vkladu) {
+                default:
+                    return {"color": "#000000", "fillColor": "#74c3e2", "fillOpacity": 0.6, "weight": 3};
+            }
+        }
+
+        function geo_json_6a91e0ad28dea4ab1e33e966d79dc2e0_onEachFeature(feature, layer) {
+            layer.on({
+                mouseout: function(e) {
+                    if(typeof e.target.setStyle === "function"){
+                            geo_json_6a91e0ad28dea4ab1e33e966d79dc2e0.resetStyle(e.target);
+                    }
+                },
+                mouseover: function(e) {
+                    if(typeof e.target.setStyle === "function"){
+                        const highlightStyle = geo_json_6a91e0ad28dea4ab1e33e966d79dc2e0_highlighter(e.target.feature)
+                        e.target.setStyle(highlightStyle);
+                    }
+                },
+            });
+        };
+        var geo_json_6a91e0ad28dea4ab1e33e966d79dc2e0 = L.geoJson(null, {
+                onEachFeature: geo_json_6a91e0ad28dea4ab1e33e966d79dc2e0_onEachFeature,
+            
+                style: geo_json_6a91e0ad28dea4ab1e33e966d79dc2e0_styler,
+            ...{
+}
+        });
+
+        function geo_json_6a91e0ad28dea4ab1e33e966d79dc2e0_add (data) {
+            geo_json_6a91e0ad28dea4ab1e33e966d79dc2e0
+                .addData(data);
+        }
+            geo_json_6a91e0ad28dea4ab1e33e966d79dc2e0_add({"features": [{"geometry": {"coordinates": [[[15.818315205440014, 50.21885830040398], [15.818322960772745, 50.21888197724238], [15.818368769878818, 50.21887614044484], [15.818369111775592, 50.218877343427216], [15.818311881047176, 50.218884664389634], [15.818307815921244, 50.21887231375588], [15.818281918578522, 50.21887577379273], [15.818277903001627, 50.21886315532689], [15.818315205440014, 50.21885830040398]]], "type": "Polygon"}, "properties": {"#CELKOVA_VYMERA": "58.0", "#JC": "94827.5", "#PARCEL": "8", "UP": "", "cenovy_udaj": "5500000.0", "cislo_vkladu": "V-9488/2024-602", "datum_podani": "2024-10-15 11:55:42", "gml_id": "46331671010", "ku": "Pra\u017esk\u00e9 P\u0159edm\u011bst\u00ed", "ku_kod": "647101", "multi_vklad": "0", "obec_nazev": "Hradec Kr\u00e1lov\u00e9", "okres_nazev": "Hradec Kr\u00e1lov\u00e9", "parcela": "st. 2753/1", "popup_html": "\u003cdiv style=\u0027font-size:13px;\u0027\u003e\u003cdiv\u003e\u003cb\u003eParcela:\u003c/b\u003e \u003cspan style=\u0027font-weight:700;\u0027\u003est. 2753/1\u003c/span\u003e \u003cspan style=\u0027color:#666;\u0027\u003e(gml_id 46331671010)\u003c/span\u003e\u003c/div\u003e\u003cdiv\u003e\u003cb\u003eV\u00fdm\u011bra parcely:\u003c/b\u003e \u003cspan style=\u0027font-weight:700;color:#004a99;\u0027\u003e6 m\u00b2\u003c/span\u003e\u003c/div\u003e\u003cdiv\u003e\u003cb\u003eNahl\u00ed\u017een\u00ed KN:\u003c/b\u003e \u003ca href=\"https://nahlizenidokn.cuzk.gov.cz/ZobrazObjekt.aspx?\u0026typ=parcela\u0026id=46331671010\" target=\"_blank\"\u003eOtev\u0159\u00edt v Nahl\u00ed\u017een\u00ed KN\u003c/a\u003e\u003c/div\u003e\u003cdiv\u003e\u003cb\u003eMapy.cz:\u003c/b\u003e \u003ca href=\"https://mapy.cz/zakladni?x=15.818288774783541\u0026y=50.21886769510562\u0026z=19\u0026source=coor\u0026id=15.818288774783541,50.21886769510562\" target=\"_blank\"\u003eOtev\u0159\u00edt v Mapy.cz\u003c/a\u003e\u003c/div\u003e\u003chr style=\"margin:4px 0;\"\u003e\u003cdiv\u003e\u003cb\u003eKraj:\u003c/b\u003e Kr\u00e1lov\u00e9hradeck\u00fd kraj\u003c/div\u003e\u003cdiv\u003e\u003cb\u003eOkres:\u003c/b\u003e Hradec Kr\u00e1lov\u00e9\u003c/div\u003e\u003cdiv\u003e\u003cb\u003eObec:\u003c/b\u003e Hradec Kr\u00e1lov\u00e9\u003c/div\u003e\u003cdiv\u003e\u003cb\u003eKatastr\u00e1ln\u00ed \u00fazem\u00ed:\u003c/b\u003e Pra\u017esk\u00e9 P\u0159edm\u011bst\u00ed (k\u00f3d 647101)\u003c/div\u003e\u003chr style=\"margin:4px 0;\"\u003e\n        \u003cdiv style=\"margin:3px 0 8px 0; padding:5px; border:1px solid #ccc; border-radius:4px;\"\u003e\n          \u003cdiv\u003e\u003cb\u003e\u010c\u00edslo vkladu:\u003c/b\u003e V-9488/2024-602\u003c/div\u003e\n          \u003cdiv\u003e\u003cb\u003edatum_podani:\u003c/b\u003e 2024/10/15\u003c/div\u003e\n          \n          \u003cdiv\u003e\u003cb\u003eNemovitost:\u003c/b\u003e parcela\u003c/div\u003e\n          \u003cdiv\u003e\u003cb\u003eTyp:\u003c/b\u003e spole\u010dn\u00fd dv\u016fr\u003c/div\u003e\n          \u003cdiv\u003e\u003cb\u003eAdresa:\u003c/b\u003e Pra\u017esk\u00e9 P\u0159edm\u011bst\u00ed 2753/1\u003c/div\u003e\n          \u003cdiv\u003e\u003cb\u003ePopis:\u003c/b\u003e stavebn\u00ed \u010d. 2753/1 Pra\u017esk\u00e9 P\u0159edm\u011bst\u00ed\u003c/div\u003e\n          \u003cdiv\u003e\u003cb\u003ePo\u010det parcel/budov v r\u00e1mci vkladu:\u003c/b\u003e 8\u003c/div\u003e\n          \u003cdiv\u003e\u003cb\u003eCelkov\u00e1 v\u00fdm\u011bra v r\u00e1mci vkladu:\u003c/b\u003e 58 m\u00b2\u003c/div\u003e\n          \n          \u003cdiv\u003e\u003cb\u003eCenov\u00fd \u00fadaj (za vklad):\u003c/b\u003e \u003cspan style=\"font-weight:700;color:#b30000;\"\u003e5 500 000 K\u010d\u003c/span\u003e\u003c/div\u003e\n          \u003cdiv\u003e\u003cb\u003eJC:\u003c/b\u003e \u003cspan style=\"font-weight:700;color:#004a99;\"\u003e94 828 K\u010d/m\u00b2 (JC p\u0159evzata ze sloupce #JC za vklad)\u003c/span\u003e\u003c/div\u003e\n        \u003c/div\u003e\n        \u003c/div\u003e", "typ": "spole\u010dn\u00fd dv\u016fr", "vusc_nazev": "Kr\u00e1lov\u00e9hradeck\u00fd kraj", "vymera_m2": "6.0"}, "type": "Feature"}], "type": "FeatureCollection"});
+
+        
+    
+    geo_json_6a91e0ad28dea4ab1e33e966d79dc2e0.bindPopup(
+    function(layer){
+    let div = L.DomUtil.create('div');
+    
+    let handleObject = feature=>typeof(feature)=='object' ? JSON.stringify(feature) : feature;
+    let fields = ["popup_html"];
+    let aliases = [""];
+    let table = '<table>' +
+        String(
+        fields.map(
+        (v,i)=>
+        `<tr>
+            <td>${handleObject(layer.feature.properties[v])}</td>
+        </tr>`).join(''))
+    +'</table>';
+    div.innerHTML=table;
+    
+    return div
+    }
+    ,{
+  "parseHtml": true,
+  "sticky": false,
+  "maxWidth": 520,
+  "className": "foliumpopup",
+});
+                     
+    
+            geo_json_6a91e0ad28dea4ab1e33e966d79dc2e0.addTo(feature_group_3d6f0fc34ce96983420637451cfd8da9);
+        
+    
+        function geo_json_7699d0af058fbd9cd7963501bc2126ca_styler(feature) {
+            switch(feature.properties.cislo_vkladu) {
+                default:
+                    return {"color": "#333333", "fillColor": "#2ca3d2", "fillOpacity": 0.4, "weight": 2};
+            }
+        }
+        function geo_json_7699d0af058fbd9cd7963501bc2126ca_highlighter(feature) {
+            switch(feature.properties.cislo_vkladu) {
+                default:
+                    return {"color": "#000000", "fillColor": "#74c3e2", "fillOpacity": 0.6, "weight": 3};
+            }
+        }
+
+        function geo_json_7699d0af058fbd9cd7963501bc2126ca_onEachFeature(feature, layer) {
+            layer.on({
+                mouseout: function(e) {
+                    if(typeof e.target.setStyle === "function"){
+                            geo_json_7699d0af058fbd9cd7963501bc2126ca.resetStyle(e.target);
+                    }
+                },
+                mouseover: function(e) {
+                    if(typeof e.target.setStyle === "function"){
+                        const highlightStyle = geo_json_7699d0af058fbd9cd7963501bc2126ca_highlighter(e.target.feature)
+                        e.target.setStyle(highlightStyle);
+                    }
+                },
+            });
+        };
+        var geo_json_7699d0af058fbd9cd7963501bc2126ca = L.geoJson(null, {
+                onEachFeature: geo_json_7699d0af058fbd9cd7963501bc2126ca_onEachFeature,
+            
+                style: geo_json_7699d0af058fbd9cd7963501bc2126ca_styler,
+            ...{
+}
+        });
+
+        function geo_json_7699d0af058fbd9cd7963501bc2126ca_add (data) {
+            geo_json_7699d0af058fbd9cd7963501bc2126ca
+                .addData(data);
+        }
+            geo_json_7699d0af058fbd9cd7963501bc2126ca_add({"features": [{"geometry": {"coordinates": [[[15.818393259990069, 50.21890317387568], [15.81845387265613, 50.218895114517096], [15.818453617920843, 50.21889572886095], [15.818394783236567, 50.21890790712322], [15.818393259990069, 50.21890317387568]]], "type": "Polygon"}, "properties": {"#CELKOVA_VYMERA": "58.0", "#JC": "94827.5", "#PARCEL": "8", "UP": "", "cenovy_udaj": "5500000.0", "cislo_vkladu": "V-9488/2024-602", "datum_podani": "2024-10-15 11:55:42", "gml_id": "46331680010", "ku": "Pra\u017esk\u00e9 P\u0159edm\u011bst\u00ed", "ku_kod": "647101", "multi_vklad": "0", "obec_nazev": "Hradec Kr\u00e1lov\u00e9", "okres_nazev": "Hradec Kr\u00e1lov\u00e9", "parcela": "722/230", "popup_html": "\u003cdiv style=\u0027font-size:13px;\u0027\u003e\u003cdiv\u003e\u003cb\u003eParcela:\u003c/b\u003e \u003cspan style=\u0027font-weight:700;\u0027\u003e722/230\u003c/span\u003e \u003cspan style=\u0027color:#666;\u0027\u003e(gml_id 46331680010)\u003c/span\u003e\u003c/div\u003e\u003cdiv\u003e\u003cb\u003eV\u00fdm\u011bra parcely:\u003c/b\u003e \u003cspan style=\u0027font-weight:700;color:#004a99;\u0027\u003e1 m\u00b2\u003c/span\u003e\u003c/div\u003e\u003cdiv\u003e\u003cb\u003eNahl\u00ed\u017een\u00ed KN:\u003c/b\u003e \u003ca href=\"https://nahlizenidokn.cuzk.gov.cz/ZobrazObjekt.aspx?\u0026typ=parcela\u0026id=46331680010\" target=\"_blank\"\u003eOtev\u0159\u00edt v Nahl\u00ed\u017een\u00ed KN\u003c/a\u003e\u003c/div\u003e\u003cdiv\u003e\u003cb\u003eMapy.cz:\u003c/b\u003e \u003ca href=\"https://mapy.cz/zakladni?x=15.818402566040591\u0026y=50.21890397303852\u0026z=19\u0026source=coor\u0026id=15.818402566040591,50.21890397303852\" target=\"_blank\"\u003eOtev\u0159\u00edt v Mapy.cz\u003c/a\u003e\u003c/div\u003e\u003chr style=\"margin:4px 0;\"\u003e\u003cdiv\u003e\u003cb\u003eKraj:\u003c/b\u003e Kr\u00e1lov\u00e9hradeck\u00fd kraj\u003c/div\u003e\u003cdiv\u003e\u003cb\u003eOkres:\u003c/b\u003e Hradec Kr\u00e1lov\u00e9\u003c/div\u003e\u003cdiv\u003e\u003cb\u003eObec:\u003c/b\u003e Hradec Kr\u00e1lov\u00e9\u003c/div\u003e\u003cdiv\u003e\u003cb\u003eKatastr\u00e1ln\u00ed \u00fazem\u00ed:\u003c/b\u003e Pra\u017esk\u00e9 P\u0159edm\u011bst\u00ed (k\u00f3d 647101)\u003c/div\u003e\u003chr style=\"margin:4px 0;\"\u003e\n        \u003cdiv style=\"margin:3px 0 8px 0; padding:5px; border:1px solid #ccc; border-radius:4px;\"\u003e\n          \u003cdiv\u003e\u003cb\u003e\u010c\u00edslo vkladu:\u003c/b\u003e V-9488/2024-602\u003c/div\u003e\n          \u003cdiv\u003e\u003cb\u003edatum_podani:\u003c/b\u003e 2024/10/15\u003c/div\u003e\n          \n          \u003cdiv\u003e\u003cb\u003eNemovitost:\u003c/b\u003e parcela\u003c/div\u003e\n          \u003cdiv\u003e\u003cb\u003eTyp:\u003c/b\u003e jin\u00e1 plocha\u003c/div\u003e\n          \u003cdiv\u003e\u003cb\u003eAdresa:\u003c/b\u003e Pra\u017esk\u00e9 P\u0159edm\u011bst\u00ed 722/230\u003c/div\u003e\n          \u003cdiv\u003e\u003cb\u003ePopis:\u003c/b\u003e \u010d. 722/230 Pra\u017esk\u00e9 P\u0159edm\u011bst\u00ed\u003c/div\u003e\n          \u003cdiv\u003e\u003cb\u003ePo\u010det parcel/budov v r\u00e1mci vkladu:\u003c/b\u003e 8\u003c/div\u003e\n          \u003cdiv\u003e\u003cb\u003eCelkov\u00e1 v\u00fdm\u011bra v r\u00e1mci vkladu:\u003c/b\u003e 58 m\u00b2\u003c/div\u003e\n          \n          \u003cdiv\u003e\u003cb\u003eCenov\u00fd \u00fadaj (za vklad):\u003c/b\u003e \u003cspan style=\"font-weight:700;color:#b30000;\"\u003e5 500 000 K\u010d\u003c/span\u003e\u003c/div\u003e\n          \u003cdiv\u003e\u003cb\u003eJC:\u003c/b\u003e \u003cspan style=\"font-weight:700;color:#004a99;\"\u003e94 828 K\u010d/m\u00b2 (JC p\u0159evzata ze sloupce #JC za vklad)\u003c/span\u003e\u003c/div\u003e\n        \u003c/div\u003e\n        \u003c/div\u003e", "typ": "jin\u00e1 plocha", "vusc_nazev": "Kr\u00e1lov\u00e9hradeck\u00fd kraj", "vymera_m2": "1.0"}, "type": "Feature"}], "type": "FeatureCollection"});
+
+        
+    
+    geo_json_7699d0af058fbd9cd7963501bc2126ca.bindPopup(
+    function(layer){
+    let div = L.DomUtil.create('div');
+    
+    let handleObject = feature=>typeof(feature)=='object' ? JSON.stringify(feature) : feature;
+    let fields = ["popup_html"];
+    let aliases = [""];
+    let table = '<table>' +
+        String(
+        fields.map(
+        (v,i)=>
+        `<tr>
+            <td>${handleObject(layer.feature.properties[v])}</td>
+        </tr>`).join(''))
+    +'</table>';
+    div.innerHTML=table;
+    
+    return div
+    }
+    ,{
+  "parseHtml": true,
+  "sticky": false,
+  "maxWidth": 520,
+  "className": "foliumpopup",
+});
+                     
+    
+            geo_json_7699d0af058fbd9cd7963501bc2126ca.addTo(feature_group_3d6f0fc34ce96983420637451cfd8da9);
+        
+    
+            feature_group_3d6f0fc34ce96983420637451cfd8da9.addTo(map_72ebb29c7ea77bff49d9494562cfaae4);
+        
+    
+            var feature_group_64a250fdefc0483395cb3a92f7bd798f = L.featureGroup(
+                {
+}
+            );
+        
+    
+        function geo_json_656511017a57180713421cce6c69e8b4_styler(feature) {
+            switch(feature.properties.cislo_vkladu) {
+                default:
+                    return {"color": "#333333", "fillColor": "#d2952c", "fillOpacity": 0.4, "weight": 2};
+            }
+        }
+        function geo_json_656511017a57180713421cce6c69e8b4_highlighter(feature) {
+            switch(feature.properties.cislo_vkladu) {
+                default:
+                    return {"color": "#000000", "fillColor": "#e2b974", "fillOpacity": 0.6, "weight": 3};
+            }
+        }
+
+        function geo_json_656511017a57180713421cce6c69e8b4_onEachFeature(feature, layer) {
+            layer.on({
+                mouseout: function(e) {
+                    if(typeof e.target.setStyle === "function"){
+                            geo_json_656511017a57180713421cce6c69e8b4.resetStyle(e.target);
+                    }
+                },
+                mouseover: function(e) {
+                    if(typeof e.target.setStyle === "function"){
+                        const highlightStyle = geo_json_656511017a57180713421cce6c69e8b4_highlighter(e.target.feature)
+                        e.target.setStyle(highlightStyle);
+                    }
+                },
+            });
+        };
+        var geo_json_656511017a57180713421cce6c69e8b4 = L.geoJson(null, {
+                onEachFeature: geo_json_656511017a57180713421cce6c69e8b4_onEachFeature,
+            
+                style: geo_json_656511017a57180713421cce6c69e8b4_styler,
+            ...{
+}
+        });
+
+        function geo_json_656511017a57180713421cce6c69e8b4_add (data) {
+            geo_json_656511017a57180713421cce6c69e8b4
+                .addData(data);
+        }
+            geo_json_656511017a57180713421cce6c69e8b4_add({"features": [{"geometry": {"coordinates": [[[15.8334742212442, 50.20823444265621], [15.833475712660245, 50.2082393542818], [15.833404025021308, 50.20833195032611], [15.83340229500171, 50.208334444229294], [15.833226708771916, 50.208287596353216], [15.833199424354548, 50.20828027084776], [15.833150901455433, 50.20826725645579], [15.833129384740028, 50.20826154641588], [15.832935260484048, 50.208209667168674], [15.832980478800005, 50.2081511811851], [15.832978613606459, 50.208150586694686], [15.83300787913042, 50.208112796575335], [15.833010687137639, 50.208112104765824], [15.833014673993466, 50.20811114046361], [15.832998610527545, 50.20810340066834], [15.833009054672234, 50.20808961907041], [15.83304999923003, 50.2081024194257], [15.833109645194547, 50.208120896813284], [15.833108718864796, 50.208122093834135], [15.833228010932576, 50.20815904851844], [15.833228904295337, 50.20815803005532], [15.83324610841363, 50.20816341216525], [15.83324811075623, 50.20816555613384], [15.83327266952046, 50.20817312704745], [15.833277064495416, 50.208173008561715], [15.833294669487039, 50.20817851167712], [15.833293726678558, 50.20817979797878], [15.833413526043826, 50.20821706262187], [15.833414468849837, 50.20821577631923], [15.8334742212442, 50.20823444265621]]], "type": "Polygon"}, "properties": {"#CELKOVA_VYMERA": "39.44", "#JC": "94000.0", "#PARCEL": "0", "UP": "", "cenovy_udaj": "3707360.0", "cislo_vkladu": "V-5277/2025-602", "datum_podani": "2025-06-05 11:42:34", "gml_id": "68184056010", "ku": "Hradec Kr\u00e1lov\u00e9", "ku_kod": "646873", "multi_vklad": "0", "obec_nazev": "Hradec Kr\u00e1lov\u00e9", "okres_nazev": "Hradec Kr\u00e1lov\u00e9", "parcela": "st. 332/1", "popup_html": "\u003cdiv style=\u0027font-size:13px;\u0027\u003e\u003cdiv\u003e\u003cb\u003eParcela:\u003c/b\u003e \u003cspan style=\u0027font-weight:700;\u0027\u003est. 332/1\u003c/span\u003e \u003cspan style=\u0027color:#666;\u0027\u003e(gml_id 68184056010)\u003c/span\u003e\u003c/div\u003e\u003cdiv\u003e\u003cb\u003eV\u00fdm\u011bra parcely:\u003c/b\u003e \u003cspan style=\u0027font-weight:700;color:#004a99;\u0027\u003e478 m\u00b2\u003c/span\u003e\u003c/div\u003e\u003cdiv\u003e\u003cb\u003eNahl\u00ed\u017een\u00ed KN:\u003c/b\u003e \u003ca href=\"https://nahlizenidokn.cuzk.gov.cz/ZobrazObjekt.aspx?\u0026typ=parcela\u0026id=68184056010\" target=\"_blank\"\u003eOtev\u0159\u00edt v Nahl\u00ed\u017een\u00ed KN\u003c/a\u003e\u003c/div\u003e\u003cdiv\u003e\u003cb\u003eMapy.cz:\u003c/b\u003e \u003ca href=\"https://mapy.cz/zakladni?x=15.833216901093245\u0026y=50.20820700084415\u0026z=19\u0026source=coor\u0026id=15.833216901093245,50.20820700084415\" target=\"_blank\"\u003eOtev\u0159\u00edt v Mapy.cz\u003c/a\u003e\u003c/div\u003e\u003chr style=\"margin:4px 0;\"\u003e\u003cdiv\u003e\u003cb\u003eKraj:\u003c/b\u003e Kr\u00e1lov\u00e9hradeck\u00fd kraj\u003c/div\u003e\u003cdiv\u003e\u003cb\u003eOkres:\u003c/b\u003e Hradec Kr\u00e1lov\u00e9\u003c/div\u003e\u003cdiv\u003e\u003cb\u003eObec:\u003c/b\u003e Hradec Kr\u00e1lov\u00e9\u003c/div\u003e\u003cdiv\u003e\u003cb\u003eKatastr\u00e1ln\u00ed \u00fazem\u00ed:\u003c/b\u003e Hradec Kr\u00e1lov\u00e9 (k\u00f3d 646873)\u003c/div\u003e\u003chr style=\"margin:4px 0;\"\u003e\n        \u003cdiv style=\"margin:3px 0 8px 0; padding:5px; border:1px solid #ccc; border-radius:4px;\"\u003e\n          \u003cdiv\u003e\u003cb\u003e\u010c\u00edslo vkladu:\u003c/b\u003e V-5277/2025-602\u003c/div\u003e\n          \u003cdiv\u003e\u003cb\u003edatum_podani:\u003c/b\u003e 2025/06/05\u003c/div\u003e\n          \n          \u003cdiv\u003e\u003cb\u003eNemovitost:\u003c/b\u003e jednotka (SO: 23481706)\u003c/div\u003e\n          \u003cdiv\u003e\u003cb\u003eTyp:\u003c/b\u003e budova s \u010d\u00edslem popisn\u00fdm | byt\u003c/div\u003e\n          \u003cdiv\u003e\u003cb\u003eAdresa:\u003c/b\u003e Komensk\u00e9ho 264/5, 50003 Hradec Kr\u00e1lov\u00e9\u003c/div\u003e\n          \u003cdiv\u003e\u003cb\u003ePopis:\u003c/b\u003e jednotka \u010d. 2640035, byt v budov\u011b \u010d.p. 264, \u010d\u00e1st obce Hradec Kr\u00e1lov\u00e9, na parcele st. 332/1 Hradec Kr\u00e1lov\u00e9, pod\u00edl na spole\u010dn\u00fdch \u010d\u00e1stech domu a pozemku 3944/166722\u003c/div\u003e\n          \n          \u003cdiv\u003e\u003cb\u003eCelkov\u00e1 v\u00fdm\u011bra v r\u00e1mci vkladu:\u003c/b\u003e 39 m\u00b2\u003c/div\u003e\n          \n          \u003cdiv\u003e\u003cb\u003eCenov\u00fd \u00fadaj (za vklad):\u003c/b\u003e \u003cspan style=\"font-weight:700;color:#b30000;\"\u003e3 707 360 K\u010d\u003c/span\u003e\u003c/div\u003e\n          \u003cdiv\u003e\u003cb\u003eJC:\u003c/b\u003e \u003cspan style=\"font-weight:700;color:#004a99;\"\u003e94 000 K\u010d/m\u00b2 (JC p\u0159evzata z #JC u jednotek)\u003c/span\u003e\u003c/div\u003e\n        \u003c/div\u003e\n        \u003c/div\u003e", "typ": "byt", "vusc_nazev": "Kr\u00e1lov\u00e9hradeck\u00fd kraj", "vymera_m2": "478.0"}, "type": "Feature"}], "type": "FeatureCollection"});
+
+        
+    
+    geo_json_656511017a57180713421cce6c69e8b4.bindPopup(
+    function(layer){
+    let div = L.DomUtil.create('div');
+    
+    let handleObject = feature=>typeof(feature)=='object' ? JSON.stringify(feature) : feature;
+    let fields = ["popup_html"];
+    let aliases = [""];
+    let table = '<table>' +
+        String(
+        fields.map(
+        (v,i)=>
+        `<tr>
+            <td>${handleObject(layer.feature.properties[v])}</td>
+        </tr>`).join(''))
+    +'</table>';
+    div.innerHTML=table;
+    
+    return div
+    }
+    ,{
+  "parseHtml": true,
+  "sticky": false,
+  "maxWidth": 520,
+  "className": "foliumpopup",
+});
+                     
+    
+            geo_json_656511017a57180713421cce6c69e8b4.addTo(feature_group_64a250fdefc0483395cb3a92f7bd798f);
+        
+    
+            feature_group_64a250fdefc0483395cb3a92f7bd798f.addTo(map_72ebb29c7ea77bff49d9494562cfaae4);
+        
+    
+            var feature_group_cd023d97614332fd17dd8160340caa08 = L.featureGroup(
+                {
+}
+            );
+        
+    
+        function geo_json_bcf450627e4b6675682f6ce25f12bf53_styler(feature) {
+            switch(feature.properties.cislo_vkladu) {
+                default:
+                    return {"color": "#333333", "fillColor": "#d22c7c", "fillOpacity": 0.4, "weight": 2};
+            }
+        }
+        function geo_json_bcf450627e4b6675682f6ce25f12bf53_highlighter(feature) {
+            switch(feature.properties.cislo_vkladu) {
+                default:
+                    return {"color": "#000000", "fillColor": "#e274a9", "fillOpacity": 0.6, "weight": 3};
+            }
+        }
+
+        function geo_json_bcf450627e4b6675682f6ce25f12bf53_onEachFeature(feature, layer) {
+            layer.on({
+                mouseout: function(e) {
+                    if(typeof e.target.setStyle === "function"){
+                            geo_json_bcf450627e4b6675682f6ce25f12bf53.resetStyle(e.target);
+                    }
+                },
+                mouseover: function(e) {
+                    if(typeof e.target.setStyle === "function"){
+                        const highlightStyle = geo_json_bcf450627e4b6675682f6ce25f12bf53_highlighter(e.target.feature)
+                        e.target.setStyle(highlightStyle);
+                    }
+                },
+            });
+        };
+        var geo_json_bcf450627e4b6675682f6ce25f12bf53 = L.geoJson(null, {
+                onEachFeature: geo_json_bcf450627e4b6675682f6ce25f12bf53_onEachFeature,
+            
+                style: geo_json_bcf450627e4b6675682f6ce25f12bf53_styler,
+            ...{
+}
+        });
+
+        function geo_json_bcf450627e4b6675682f6ce25f12bf53_add (data) {
+            geo_json_bcf450627e4b6675682f6ce25f12bf53
+                .addData(data);
+        }
+            geo_json_bcf450627e4b6675682f6ce25f12bf53_add({"features": [{"geometry": {"coordinates": [[[15.818004974263147, 50.201238513268734], [15.817951655050837, 50.20119733201456], [15.817908486794183, 50.201163804705395], [15.817897995566675, 50.201169433468436], [15.81786629362161, 50.201144837277894], [15.817876768339085, 50.20113929779517], [15.81780914720419, 50.201086977519786], [15.817806002190826, 50.20108872970005], [15.817803149771322, 50.20108661115978], [15.81794439661242, 50.201013083321136], [15.818231947353508, 50.201235342885305], [15.818096280491293, 50.20130920562262], [15.818037673517692, 50.20126381913069], [15.818027043191812, 50.20126943730916], [15.817994483030766, 50.20124414204025], [15.818004974263147, 50.201238513268734]]], "type": "Polygon"}, "properties": {"#CELKOVA_VYMERA": "27.8", "#JC": "93525.1", "#PARCEL": "0", "UP": "", "cenovy_udaj": "2600000.0", "cislo_vkladu": "V-3582/2025-602", "datum_podani": "2025-04-15 11:38:36", "gml_id": "1841936602", "ku": "Pra\u017esk\u00e9 P\u0159edm\u011bst\u00ed", "ku_kod": "647101", "multi_vklad": "0", "obec_nazev": "Hradec Kr\u00e1lov\u00e9", "okres_nazev": "Hradec Kr\u00e1lov\u00e9", "parcela": "st. 3372", "popup_html": "\u003cdiv style=\u0027font-size:13px;\u0027\u003e\u003cdiv\u003e\u003cb\u003eParcela:\u003c/b\u003e \u003cspan style=\u0027font-weight:700;\u0027\u003est. 3372\u003c/span\u003e \u003cspan style=\u0027color:#666;\u0027\u003e(gml_id 1841936602)\u003c/span\u003e\u003c/div\u003e\u003cdiv\u003e\u003cb\u003eV\u00fdm\u011bra parcely:\u003c/b\u003e \u003cspan style=\u0027font-weight:700;color:#004a99;\u0027\u003e417 m\u00b2\u003c/span\u003e\u003c/div\u003e\u003cdiv\u003e\u003cb\u003eNahl\u00ed\u017een\u00ed KN:\u003c/b\u003e \u003ca href=\"https://nahlizenidokn.cuzk.gov.cz/ZobrazObjekt.aspx?\u0026typ=parcela\u0026id=1841936602\" target=\"_blank\"\u003eOtev\u0159\u00edt v Nahl\u00ed\u017een\u00ed KN\u003c/a\u003e\u003c/div\u003e\u003cdiv\u003e\u003cb\u003eMapy.cz:\u003c/b\u003e \u003ca href=\"https://mapy.cz/zakladni?x=15.817987535005964\u0026y=50.20114212288979\u0026z=19\u0026source=coor\u0026id=15.817987535005964,50.20114212288979\" target=\"_blank\"\u003eOtev\u0159\u00edt v Mapy.cz\u003c/a\u003e\u003c/div\u003e\u003chr style=\"margin:4px 0;\"\u003e\u003cdiv\u003e\u003cb\u003eKraj:\u003c/b\u003e Kr\u00e1lov\u00e9hradeck\u00fd kraj\u003c/div\u003e\u003cdiv\u003e\u003cb\u003eOkres:\u003c/b\u003e Hradec Kr\u00e1lov\u00e9\u003c/div\u003e\u003cdiv\u003e\u003cb\u003eObec:\u003c/b\u003e Hradec Kr\u00e1lov\u00e9\u003c/div\u003e\u003cdiv\u003e\u003cb\u003eKatastr\u00e1ln\u00ed \u00fazem\u00ed:\u003c/b\u003e Pra\u017esk\u00e9 P\u0159edm\u011bst\u00ed (k\u00f3d 647101)\u003c/div\u003e\u003chr style=\"margin:4px 0;\"\u003e\n        \u003cdiv style=\"margin:3px 0 8px 0; padding:5px; border:1px solid #ccc; border-radius:4px;\"\u003e\n          \u003cdiv\u003e\u003cb\u003e\u010c\u00edslo vkladu:\u003c/b\u003e V-3582/2025-602\u003c/div\u003e\n          \u003cdiv\u003e\u003cb\u003edatum_podani:\u003c/b\u003e 2025/04/15\u003c/div\u003e\n          \n          \u003cdiv\u003e\u003cb\u003eNemovitost:\u003c/b\u003e jednotka (SO: 23512334)\u003c/div\u003e\n          \u003cdiv\u003e\u003cb\u003eTyp:\u003c/b\u003e budova s \u010d\u00edslem popisn\u00fdm | byt\u003c/div\u003e\n          \u003cdiv\u003e\u003cb\u003eAdresa:\u003c/b\u003e Jungmannova 1398/28, Pra\u017esk\u00e9 P\u0159edm\u011bst\u00ed, 50002 Hradec Kr\u00e1lov\u00e9\u003c/div\u003e\n          \u003cdiv\u003e\u003cb\u003ePopis:\u003c/b\u003e jednotka \u010d. 13980012, byt v budov\u011b \u010d.p. 1399, 1398, \u010d\u00e1st obce Pra\u017esk\u00e9 P\u0159edm\u011bst\u00ed, na parcele st. 3372 Pra\u017esk\u00e9 P\u0159edm\u011bst\u00ed, pod\u00edl na spole\u010dn\u00fdch \u010d\u00e1stech domu a pozemku 278/24340\u003c/div\u003e\n          \n          \u003cdiv\u003e\u003cb\u003eCelkov\u00e1 v\u00fdm\u011bra v r\u00e1mci vkladu:\u003c/b\u003e 28 m\u00b2\u003c/div\u003e\n          \n          \u003cdiv\u003e\u003cb\u003eCenov\u00fd \u00fadaj (za vklad):\u003c/b\u003e \u003cspan style=\"font-weight:700;color:#b30000;\"\u003e2 600 000 K\u010d\u003c/span\u003e\u003c/div\u003e\n          \u003cdiv\u003e\u003cb\u003eJC:\u003c/b\u003e \u003cspan style=\"font-weight:700;color:#004a99;\"\u003e93 525 K\u010d/m\u00b2 (JC p\u0159evzata z #JC u jednotek)\u003c/span\u003e\u003c/div\u003e\n        \u003c/div\u003e\n        \u003c/div\u003e", "typ": "byt", "vusc_nazev": "Kr\u00e1lov\u00e9hradeck\u00fd kraj", "vymera_m2": "417.0"}, "type": "Feature"}], "type": "FeatureCollection"});
+
+        
+    
+    geo_json_bcf450627e4b6675682f6ce25f12bf53.bindPopup(
+    function(layer){
+    let div = L.DomUtil.create('div');
+    
+    let handleObject = feature=>typeof(feature)=='object' ? JSON.stringify(feature) : feature;
+    let fields = ["popup_html"];
+    let aliases = [""];
+    let table = '<table>' +
+        String(
+        fields.map(
+        (v,i)=>
+        `<tr>
+            <td>${handleObject(layer.feature.properties[v])}</td>
+        </tr>`).join(''))
+    +'</table>';
+    div.innerHTML=table;
+    
+    return div
+    }
+    ,{
+  "parseHtml": true,
+  "sticky": false,
+  "maxWidth": 520,
+  "className": "foliumpopup",
+});
+                     
+    
+            geo_json_bcf450627e4b6675682f6ce25f12bf53.addTo(feature_group_cd023d97614332fd17dd8160340caa08);
+        
+    
+            feature_group_cd023d97614332fd17dd8160340caa08.addTo(map_72ebb29c7ea77bff49d9494562cfaae4);
+        
+    
+            var feature_group_8fc0c326a2e5e7e7d978e85674fb43e0 = L.featureGroup(
+                {
+}
+            );
+        
+    
+        function geo_json_bb41aaa9f0295448515e4582cb3973e8_styler(feature) {
+            switch(feature.properties.cislo_vkladu) {
+                default:
+                    return {"color": "#333333", "fillColor": "#452cd2", "fillOpacity": 0.4, "weight": 2};
+            }
+        }
+        function geo_json_bb41aaa9f0295448515e4582cb3973e8_highlighter(feature) {
+            switch(feature.properties.cislo_vkladu) {
+                default:
+                    return {"color": "#000000", "fillColor": "#8574e2", "fillOpacity": 0.6, "weight": 3};
+            }
+        }
+
+        function geo_json_bb41aaa9f0295448515e4582cb3973e8_onEachFeature(feature, layer) {
+            layer.on({
+                mouseout: function(e) {
+                    if(typeof e.target.setStyle === "function"){
+                            geo_json_bb41aaa9f0295448515e4582cb3973e8.resetStyle(e.target);
+                    }
+                },
+                mouseover: function(e) {
+                    if(typeof e.target.setStyle === "function"){
+                        const highlightStyle = geo_json_bb41aaa9f0295448515e4582cb3973e8_highlighter(e.target.feature)
+                        e.target.setStyle(highlightStyle);
+                    }
+                },
+            });
+        };
+        var geo_json_bb41aaa9f0295448515e4582cb3973e8 = L.geoJson(null, {
+                onEachFeature: geo_json_bb41aaa9f0295448515e4582cb3973e8_onEachFeature,
+            
+                style: geo_json_bb41aaa9f0295448515e4582cb3973e8_styler,
+            ...{
+}
+        });
+
+        function geo_json_bb41aaa9f0295448515e4582cb3973e8_add (data) {
+            geo_json_bb41aaa9f0295448515e4582cb3973e8
+                .addData(data);
+        }
+            geo_json_bb41aaa9f0295448515e4582cb3973e8_add({"features": [{"geometry": {"coordinates": [[[15.842336096867088, 50.21465011538672], [15.842492465774232, 50.214506820859036], [15.842528455465395, 50.21452204740904], [15.842663215052342, 50.2145823453852], [15.842672713257532, 50.214586687960676], [15.84272051551396, 50.214608243398374], [15.842564112353074, 50.21475325568502], [15.842506590329648, 50.214727793432324], [15.842369688376175, 50.21466534090716], [15.842336096867088, 50.21465011538672]]], "type": "Polygon"}, "properties": {"#CELKOVA_VYMERA": "34.9", "#JC": "93409.7", "#PARCEL": "0", "UP": "", "cenovy_udaj": "3260000.0", "cislo_vkladu": "V-2031/2025-602", "datum_podani": "2025-03-03 08:36:13", "gml_id": "1823013602", "ku": "Hradec Kr\u00e1lov\u00e9", "ku_kod": "646873", "multi_vklad": "0", "obec_nazev": "Hradec Kr\u00e1lov\u00e9", "okres_nazev": "Hradec Kr\u00e1lov\u00e9", "parcela": "st. 975", "popup_html": "\u003cdiv style=\u0027font-size:13px;\u0027\u003e\u003cdiv\u003e\u003cb\u003eParcela:\u003c/b\u003e \u003cspan style=\u0027font-weight:700;\u0027\u003est. 975\u003c/span\u003e \u003cspan style=\u0027color:#666;\u0027\u003e(gml_id 1823013602)\u003c/span\u003e\u003c/div\u003e\u003cdiv\u003e\u003cb\u003eV\u00fdm\u011bra parcely:\u003c/b\u003e \u003cspan style=\u0027font-weight:700;color:#004a99;\u0027\u003e389 m\u00b2\u003c/span\u003e\u003c/div\u003e\u003cdiv\u003e\u003cb\u003eNahl\u00ed\u017een\u00ed KN:\u003c/b\u003e \u003ca href=\"https://nahlizenidokn.cuzk.gov.cz/ZobrazObjekt.aspx?\u0026typ=parcela\u0026id=1823013602\" target=\"_blank\"\u003eOtev\u0159\u00edt v Nahl\u00ed\u017een\u00ed KN\u003c/a\u003e\u003c/div\u003e\u003cdiv\u003e\u003cb\u003eMapy.cz:\u003c/b\u003e \u003ca href=\"https://mapy.cz/zakladni?x=15.842517300875178\u0026y=50.21461082598492\u0026z=19\u0026source=coor\u0026id=15.842517300875178,50.21461082598492\" target=\"_blank\"\u003eOtev\u0159\u00edt v Mapy.cz\u003c/a\u003e\u003c/div\u003e\u003chr style=\"margin:4px 0;\"\u003e\u003cdiv\u003e\u003cb\u003eKraj:\u003c/b\u003e Kr\u00e1lov\u00e9hradeck\u00fd kraj\u003c/div\u003e\u003cdiv\u003e\u003cb\u003eOkres:\u003c/b\u003e Hradec Kr\u00e1lov\u00e9\u003c/div\u003e\u003cdiv\u003e\u003cb\u003eObec:\u003c/b\u003e Hradec Kr\u00e1lov\u00e9\u003c/div\u003e\u003cdiv\u003e\u003cb\u003eKatastr\u00e1ln\u00ed \u00fazem\u00ed:\u003c/b\u003e Hradec Kr\u00e1lov\u00e9 (k\u00f3d 646873)\u003c/div\u003e\u003chr style=\"margin:4px 0;\"\u003e\n        \u003cdiv style=\"margin:3px 0 8px 0; padding:5px; border:1px solid #ccc; border-radius:4px;\"\u003e\n          \u003cdiv\u003e\u003cb\u003e\u010c\u00edslo vkladu:\u003c/b\u003e V-2031/2025-602\u003c/div\u003e\n          \u003cdiv\u003e\u003cb\u003edatum_podani:\u003c/b\u003e 2025/03/03\u003c/div\u003e\n          \n          \u003cdiv\u003e\u003cb\u003eNemovitost:\u003c/b\u003e jednotka (SO: 23487526)\u003c/div\u003e\n          \u003cdiv\u003e\u003cb\u003eTyp:\u003c/b\u003e budova s \u010d\u00edslem popisn\u00fdm | byt\u003c/div\u003e\n          \u003cdiv\u003e\u003cb\u003eAdresa:\u003c/b\u003e Brat\u0159\u00ed \u010capk\u016f 877/7, 50003 Hradec Kr\u00e1lov\u00e9\u003c/div\u003e\n          \u003cdiv\u003e\u003cb\u003ePopis:\u003c/b\u003e jednotka \u010d. 8770011, byt v budov\u011b \u010d.p. 877, \u010d\u00e1st obce Hradec Kr\u00e1lov\u00e9, na parcele st. 975 Hradec Kr\u00e1lov\u00e9, pod\u00edl na spole\u010dn\u00fdch \u010d\u00e1stech domu a pozemku 349/8295\u003c/div\u003e\n          \n          \u003cdiv\u003e\u003cb\u003eCelkov\u00e1 v\u00fdm\u011bra v r\u00e1mci vkladu:\u003c/b\u003e 35 m\u00b2\u003c/div\u003e\n          \n          \u003cdiv\u003e\u003cb\u003eCenov\u00fd \u00fadaj (za vklad):\u003c/b\u003e \u003cspan style=\"font-weight:700;color:#b30000;\"\u003e3 260 000 K\u010d\u003c/span\u003e\u003c/div\u003e\n          \u003cdiv\u003e\u003cb\u003eJC:\u003c/b\u003e \u003cspan style=\"font-weight:700;color:#004a99;\"\u003e93 410 K\u010d/m\u00b2 (JC p\u0159evzata z #JC u jednotek)\u003c/span\u003e\u003c/div\u003e\n        \u003c/div\u003e\n        \u003c/div\u003e", "typ": "byt", "vusc_nazev": "Kr\u00e1lov\u00e9hradeck\u00fd kraj", "vymera_m2": "389.0"}, "type": "Feature"}], "type": "FeatureCollection"});
+
+        
+    
+    geo_json_bb41aaa9f0295448515e4582cb3973e8.bindPopup(
+    function(layer){
+    let div = L.DomUtil.create('div');
+    
+    let handleObject = feature=>typeof(feature)=='object' ? JSON.stringify(feature) : feature;
+    let fields = ["popup_html"];
+    let aliases = [""];
+    let table = '<table>' +
+        String(
+        fields.map(
+        (v,i)=>
+        `<tr>
+            <td>${handleObject(layer.feature.properties[v])}</td>
+        </tr>`).join(''))
+    +'</table>';
+    div.innerHTML=table;
+    
+    return div
+    }
+    ,{
+  "parseHtml": true,
+  "sticky": false,
+  "maxWidth": 520,
+  "className": "foliumpopup",
+});
+                     
+    
+            geo_json_bb41aaa9f0295448515e4582cb3973e8.addTo(feature_group_8fc0c326a2e5e7e7d978e85674fb43e0);
+        
+    
+            feature_group_8fc0c326a2e5e7e7d978e85674fb43e0.addTo(map_72ebb29c7ea77bff49d9494562cfaae4);
+        
+    
+            var feature_group_5219d5b6790b880df19f4dc6dab9432e = L.featureGroup(
+                {
+}
+            );
+        
+    
+        function geo_json_d4a5b5c7120cab02881091b3d6d3d662_styler(feature) {
+            switch(feature.properties.cislo_vkladu) {
+                default:
+                    return {"color": "#333333", "fillColor": "#2cd2c1", "fillOpacity": 0.4, "weight": 2};
+            }
+        }
+        function geo_json_d4a5b5c7120cab02881091b3d6d3d662_highlighter(feature) {
+            switch(feature.properties.cislo_vkladu) {
+                default:
+                    return {"color": "#000000", "fillColor": "#74e2d6", "fillOpacity": 0.6, "weight": 3};
+            }
+        }
+
+        function geo_json_d4a5b5c7120cab02881091b3d6d3d662_onEachFeature(feature, layer) {
+            layer.on({
+                mouseout: function(e) {
+                    if(typeof e.target.setStyle === "function"){
+                            geo_json_d4a5b5c7120cab02881091b3d6d3d662.resetStyle(e.target);
+                    }
+                },
+                mouseover: function(e) {
+                    if(typeof e.target.setStyle === "function"){
+                        const highlightStyle = geo_json_d4a5b5c7120cab02881091b3d6d3d662_highlighter(e.target.feature)
+                        e.target.setStyle(highlightStyle);
+                    }
+                },
+            });
+        };
+        var geo_json_d4a5b5c7120cab02881091b3d6d3d662 = L.geoJson(null, {
+                onEachFeature: geo_json_d4a5b5c7120cab02881091b3d6d3d662_onEachFeature,
+            
+                style: geo_json_d4a5b5c7120cab02881091b3d6d3d662_styler,
+            ...{
+}
+        });
+
+        function geo_json_d4a5b5c7120cab02881091b3d6d3d662_add (data) {
+            geo_json_d4a5b5c7120cab02881091b3d6d3d662
+                .addData(data);
+        }
+            geo_json_d4a5b5c7120cab02881091b3d6d3d662_add({"features": [{"geometry": {"coordinates": [[[15.844877359014916, 50.211281790667286], [15.84479808992144, 50.21127559061725], [15.844794945682153, 50.21129264325434], [15.844748493937534, 50.211289025566494], [15.844751777319319, 50.21127198349469], [15.844672925636337, 50.21126581505229], [15.844593656594434, 50.21125961486388], [15.844590512283917, 50.2112766674958], [15.844543520526841, 50.21127291818864], [15.844546787517501, 50.21125596540304], [15.84446390122661, 50.21124949045337], [15.844480468376133, 50.21116193770036], [15.844689754201998, 50.21117837268045], [15.84483284906662, 50.21118960026935], [15.84483553978452, 50.211175772304564], [15.844856392230714, 50.21117744618632], [15.84485384064478, 50.211191284715525], [15.844892640366556, 50.21119432134501], [15.845044205559375, 50.211206282357146], [15.84510150908962, 50.21121072389743], [15.845085548940668, 50.211298051145924], [15.84500238425496, 50.211291555449904], [15.844999183268477, 50.21130815112413], [15.844952592367736, 50.211304522953455], [15.844955793370021, 50.21128792728041], [15.844877359014916, 50.211281790667286]]], "type": "Polygon"}, "properties": {"#CELKOVA_VYMERA": "52.3", "#JC": "93116.6", "#PARCEL": "0", "UP": "", "cenovy_udaj": "4870000.0", "cislo_vkladu": "V-3961/2024-602", "datum_podani": "2024-04-29 11:43:56", "gml_id": "1823248602", "ku": "Hradec Kr\u00e1lov\u00e9", "ku_kod": "646873", "multi_vklad": "0", "obec_nazev": "Hradec Kr\u00e1lov\u00e9", "okres_nazev": "Hradec Kr\u00e1lov\u00e9", "parcela": "st. 1207", "popup_html": "\u003cdiv style=\u0027font-size:13px;\u0027\u003e\u003cdiv\u003e\u003cb\u003eParcela:\u003c/b\u003e \u003cspan style=\u0027font-weight:700;\u0027\u003est. 1207\u003c/span\u003e \u003cspan style=\u0027color:#666;\u0027\u003e(gml_id 1823248602)\u003c/span\u003e\u003c/div\u003e\u003cdiv\u003e\u003cb\u003eV\u00fdm\u011bra parcely:\u003c/b\u003e \u003cspan style=\u0027font-weight:700;color:#004a99;\u0027\u003e459 m\u00b2\u003c/span\u003e\u003c/div\u003e\u003cdiv\u003e\u003cb\u003eNahl\u00ed\u017een\u00ed KN:\u003c/b\u003e \u003ca href=\"https://nahlizenidokn.cuzk.gov.cz/ZobrazObjekt.aspx?\u0026typ=parcela\u0026id=1823248602\" target=\"_blank\"\u003eOtev\u0159\u00edt v Nahl\u00ed\u017een\u00ed KN\u003c/a\u003e\u003c/div\u003e\u003cdiv\u003e\u003cb\u003eMapy.cz:\u003c/b\u003e \u003ca href=\"https://mapy.cz/zakladni?x=15.844786242726448\u0026y=50.21121666079439\u0026z=19\u0026source=coor\u0026id=15.844786242726448,50.21121666079439\" target=\"_blank\"\u003eOtev\u0159\u00edt v Mapy.cz\u003c/a\u003e\u003c/div\u003e\u003chr style=\"margin:4px 0;\"\u003e\u003cdiv\u003e\u003cb\u003eKraj:\u003c/b\u003e Kr\u00e1lov\u00e9hradeck\u00fd kraj\u003c/div\u003e\u003cdiv\u003e\u003cb\u003eOkres:\u003c/b\u003e Hradec Kr\u00e1lov\u00e9\u003c/div\u003e\u003cdiv\u003e\u003cb\u003eObec:\u003c/b\u003e Hradec Kr\u00e1lov\u00e9\u003c/div\u003e\u003cdiv\u003e\u003cb\u003eKatastr\u00e1ln\u00ed \u00fazem\u00ed:\u003c/b\u003e Hradec Kr\u00e1lov\u00e9 (k\u00f3d 646873)\u003c/div\u003e\u003chr style=\"margin:4px 0;\"\u003e\n        \u003cdiv style=\"margin:3px 0 8px 0; padding:5px; border:1px solid #ccc; border-radius:4px;\"\u003e\n          \u003cdiv\u003e\u003cb\u003e\u010c\u00edslo vkladu:\u003c/b\u003e V-3961/2024-602\u003c/div\u003e\n          \u003cdiv\u003e\u003cb\u003edatum_podani:\u003c/b\u003e 2024/04/29\u003c/div\u003e\n          \n          \u003cdiv\u003e\u003cb\u003eNemovitost:\u003c/b\u003e jednotka (SO: 23489693)\u003c/div\u003e\n          \u003cdiv\u003e\u003cb\u003eTyp:\u003c/b\u003e budova s \u010d\u00edslem popisn\u00fdm | byt\u003c/div\u003e\n          \u003cdiv\u003e\u003cb\u003eAdresa:\u003c/b\u003e Skupova 1102/6, 50003 Hradec Kr\u00e1lov\u00e9\u003c/div\u003e\n          \u003cdiv\u003e\u003cb\u003ePopis:\u003c/b\u003e jednotka \u010d. 11020002, byt v budov\u011b \u010d.p. 1102, 1100, 1101, \u010d\u00e1st obce Hradec Kr\u00e1lov\u00e9, na parcele st. 1207 Hradec Kr\u00e1lov\u00e9, pod\u00edl na spole\u010dn\u00fdch \u010d\u00e1stech domu a pozemku 523/12378\u003c/div\u003e\n          \n          \u003cdiv\u003e\u003cb\u003eCelkov\u00e1 v\u00fdm\u011bra v r\u00e1mci vkladu:\u003c/b\u003e 52 m\u00b2\u003c/div\u003e\n          \n          \u003cdiv\u003e\u003cb\u003eCenov\u00fd \u00fadaj (za vklad):\u003c/b\u003e \u003cspan style=\"font-weight:700;color:#b30000;\"\u003e4 870 000 K\u010d\u003c/span\u003e\u003c/div\u003e\n          \u003cdiv\u003e\u003cb\u003eJC:\u003c/b\u003e \u003cspan style=\"font-weight:700;color:#004a99;\"\u003e93 117 K\u010d/m\u00b2 (JC p\u0159evzata z #JC u jednotek)\u003c/span\u003e\u003c/div\u003e\n        \u003c/div\u003e\n        \u003c/div\u003e", "typ": "byt", "vusc_nazev": "Kr\u00e1lov\u00e9hradeck\u00fd kraj", "vymera_m2": "459.0"}, "type": "Feature"}], "type": "FeatureCollection"});
+
+        
+    
+    geo_json_d4a5b5c7120cab02881091b3d6d3d662.bindPopup(
+    function(layer){
+    let div = L.DomUtil.create('div');
+    
+    let handleObject = feature=>typeof(feature)=='object' ? JSON.stringify(feature) : feature;
+    let fields = ["popup_html"];
+    let aliases = [""];
+    let table = '<table>' +
+        String(
+        fields.map(
+        (v,i)=>
+        `<tr>
+            <td>${handleObject(layer.feature.properties[v])}</td>
+        </tr>`).join(''))
+    +'</table>';
+    div.innerHTML=table;
+    
+    return div
+    }
+    ,{
+  "parseHtml": true,
+  "sticky": false,
+  "maxWidth": 520,
+  "className": "foliumpopup",
+});
+                     
+    
+            geo_json_d4a5b5c7120cab02881091b3d6d3d662.addTo(feature_group_5219d5b6790b880df19f4dc6dab9432e);
+        
+    
+            feature_group_5219d5b6790b880df19f4dc6dab9432e.addTo(map_72ebb29c7ea77bff49d9494562cfaae4);
+        
+    
+            var feature_group_f8a9b6703c77f5a7794634eb47363259 = L.featureGroup(
+                {
+}
+            );
+        
+    
+        function geo_json_73e39f30a8363b7f4f6fddb99de5645c_styler(feature) {
+            switch(feature.properties.cislo_vkladu) {
+                default:
+                    return {"color": "#333333", "fillColor": "#d22c6e", "fillOpacity": 0.4, "weight": 2};
+            }
+        }
+        function geo_json_73e39f30a8363b7f4f6fddb99de5645c_highlighter(feature) {
+            switch(feature.properties.cislo_vkladu) {
+                default:
+                    return {"color": "#000000", "fillColor": "#e274a0", "fillOpacity": 0.6, "weight": 3};
+            }
+        }
+
+        function geo_json_73e39f30a8363b7f4f6fddb99de5645c_onEachFeature(feature, layer) {
+            layer.on({
+                mouseout: function(e) {
+                    if(typeof e.target.setStyle === "function"){
+                            geo_json_73e39f30a8363b7f4f6fddb99de5645c.resetStyle(e.target);
+                    }
+                },
+                mouseover: function(e) {
+                    if(typeof e.target.setStyle === "function"){
+                        const highlightStyle = geo_json_73e39f30a8363b7f4f6fddb99de5645c_highlighter(e.target.feature)
+                        e.target.setStyle(highlightStyle);
+                    }
+                },
+            });
+        };
+        var geo_json_73e39f30a8363b7f4f6fddb99de5645c = L.geoJson(null, {
+                onEachFeature: geo_json_73e39f30a8363b7f4f6fddb99de5645c_onEachFeature,
+            
+                style: geo_json_73e39f30a8363b7f4f6fddb99de5645c_styler,
+            ...{
+}
+        });
+
+        function geo_json_73e39f30a8363b7f4f6fddb99de5645c_add (data) {
+            geo_json_73e39f30a8363b7f4f6fddb99de5645c
+                .addData(data);
+        }
+            geo_json_73e39f30a8363b7f4f6fddb99de5645c_add({"features": [{"geometry": {"coordinates": [[[15.818901012184583, 50.21848246516935], [15.818941457104936, 50.21860785672019], [15.81893074779047, 50.218609304641376], [15.8186606257502, 50.21864468670401], [15.818618927544193, 50.21864965967534], [15.818580320422015, 50.21852730499498], [15.818568558874427, 50.21849019562478], [15.81860832547876, 50.21848498506347], [15.81871559762495, 50.21847106295422], [15.818848750275091, 50.2184537698679], [15.818890096912273, 50.21844840792251], [15.818901012184583, 50.21848246516935]]], "type": "Polygon"}, "properties": {"#CELKOVA_VYMERA": "75.2", "#JC": "93018.6", "#PARCEL": "0", "UP": "", "cenovy_udaj": "6995000.0", "cislo_vkladu": "V-9362/2025-602", "datum_podani": "2025-10-09 16:12:27", "gml_id": "97941815010", "ku": "Pra\u017esk\u00e9 P\u0159edm\u011bst\u00ed", "ku_kod": "647101", "multi_vklad": "0", "obec_nazev": "Hradec Kr\u00e1lov\u00e9", "okres_nazev": "Hradec Kr\u00e1lov\u00e9", "parcela": "st. 4684", "popup_html": "\u003cdiv style=\u0027font-size:13px;\u0027\u003e\u003cdiv\u003e\u003cb\u003eParcela:\u003c/b\u003e \u003cspan style=\u0027font-weight:700;\u0027\u003est. 4684\u003c/span\u003e \u003cspan style=\u0027color:#666;\u0027\u003e(gml_id 97941815010)\u003c/span\u003e\u003c/div\u003e\u003cdiv\u003e\u003cb\u003eV\u00fdm\u011bra parcely:\u003c/b\u003e \u003cspan style=\u0027font-weight:700;color:#004a99;\u0027\u003e425 m\u00b2\u003c/span\u003e\u003c/div\u003e\u003cdiv\u003e\u003cb\u003eNahl\u00ed\u017een\u00ed KN:\u003c/b\u003e \u003ca href=\"https://nahlizenidokn.cuzk.gov.cz/ZobrazObjekt.aspx?\u0026typ=parcela\u0026id=97941815010\" target=\"_blank\"\u003eOtev\u0159\u00edt v Nahl\u00ed\u017een\u00ed KN\u003c/a\u003e\u003c/div\u003e\u003cdiv\u003e\u003cb\u003eMapy.cz:\u003c/b\u003e \u003ca href=\"https://mapy.cz/zakladni?x=15.818770885842046\u0026y=50.218537560533775\u0026z=19\u0026source=coor\u0026id=15.818770885842046,50.218537560533775\" target=\"_blank\"\u003eOtev\u0159\u00edt v Mapy.cz\u003c/a\u003e\u003c/div\u003e\u003chr style=\"margin:4px 0;\"\u003e\u003cdiv\u003e\u003cb\u003eKraj:\u003c/b\u003e Kr\u00e1lov\u00e9hradeck\u00fd kraj\u003c/div\u003e\u003cdiv\u003e\u003cb\u003eOkres:\u003c/b\u003e Hradec Kr\u00e1lov\u00e9\u003c/div\u003e\u003cdiv\u003e\u003cb\u003eObec:\u003c/b\u003e Hradec Kr\u00e1lov\u00e9\u003c/div\u003e\u003cdiv\u003e\u003cb\u003eKatastr\u00e1ln\u00ed \u00fazem\u00ed:\u003c/b\u003e Pra\u017esk\u00e9 P\u0159edm\u011bst\u00ed (k\u00f3d 647101)\u003c/div\u003e\u003chr style=\"margin:4px 0;\"\u003e\n        \u003cdiv style=\"margin:3px 0 8px 0; padding:5px; border:1px solid #ccc; border-radius:4px;\"\u003e\n          \u003cdiv\u003e\u003cb\u003e\u010c\u00edslo vkladu:\u003c/b\u003e V-9362/2025-602\u003c/div\u003e\n          \u003cdiv\u003e\u003cb\u003edatum_podani:\u003c/b\u003e 2025/10/09\u003c/div\u003e\n          \n          \u003cdiv\u003e\u003cb\u003eNemovitost:\u003c/b\u003e jednotka (SO: 149605315)\u003c/div\u003e\n          \u003cdiv\u003e\u003cb\u003eTyp:\u003c/b\u003e budova s \u010d\u00edslem popisn\u00fdm | byt\u003c/div\u003e\n          \u003cdiv\u003e\u003cb\u003eAdresa:\u003c/b\u003e Bohuslava Martin\u016f 1790/21, Pra\u017esk\u00e9 P\u0159edm\u011bst\u00ed, 50002 Hradec Kr\u00e1lov\u00e9\u003c/div\u003e\n          \u003cdiv\u003e\u003cb\u003ePopis:\u003c/b\u003e jednotka \u010d. 17900123, byt v budov\u011b \u010d.p. 1790, \u010d\u00e1st obce Pra\u017esk\u00e9 P\u0159edm\u011bst\u00ed, na parcele st. 4684 Pra\u017esk\u00e9 P\u0159edm\u011bst\u00ed (sou\u010d\u00e1st\u00ed je stavba \u010d.p. 1790, \u010dst obce Pra\u017esk\u00e9 P\u0159edm\u011bst\u00ed), pod\u00edl na spole\u010dn\u00fdch \u010d\u00e1stech domu a pozemku 752/6910\u003c/div\u003e\n          \n          \u003cdiv\u003e\u003cb\u003eCelkov\u00e1 v\u00fdm\u011bra v r\u00e1mci vkladu:\u003c/b\u003e 75 m\u00b2\u003c/div\u003e\n          \n          \u003cdiv\u003e\u003cb\u003eCenov\u00fd \u00fadaj (za vklad):\u003c/b\u003e \u003cspan style=\"font-weight:700;color:#b30000;\"\u003e6 995 000 K\u010d\u003c/span\u003e\u003c/div\u003e\n          \u003cdiv\u003e\u003cb\u003eJC:\u003c/b\u003e \u003cspan style=\"font-weight:700;color:#004a99;\"\u003e93 019 K\u010d/m\u00b2 (JC p\u0159evzata z #JC u jednotek)\u003c/span\u003e\u003c/div\u003e\n        \u003c/div\u003e\n        \u003c/div\u003e", "typ": "byt", "vusc_nazev": "Kr\u00e1lov\u00e9hradeck\u00fd kraj", "vymera_m2": "425.0"}, "type": "Feature"}], "type": "FeatureCollection"});
+
+        
+    
+    geo_json_73e39f30a8363b7f4f6fddb99de5645c.bindPopup(
+    function(layer){
+    let div = L.DomUtil.create('div');
+    
+    let handleObject = feature=>typeof(feature)=='object' ? JSON.stringify(feature) : feature;
+    let fields = ["popup_html"];
+    let aliases = [""];
+    let table = '<table>' +
+        String(
+        fields.map(
+        (v,i)=>
+        `<tr>
+            <td>${handleObject(layer.feature.properties[v])}</td>
+        </tr>`).join(''))
+    +'</table>';
+    div.innerHTML=table;
+    
+    return div
+    }
+    ,{
+  "parseHtml": true,
+  "sticky": false,
+  "maxWidth": 520,
+  "className": "foliumpopup",
+});
+                     
+    
+            geo_json_73e39f30a8363b7f4f6fddb99de5645c.addTo(feature_group_f8a9b6703c77f5a7794634eb47363259);
+        
+    
+            feature_group_f8a9b6703c77f5a7794634eb47363259.addTo(map_72ebb29c7ea77bff49d9494562cfaae4);
+        
+    
+            var layer_control_1dcf0e5d0a177f6f7478d8b9bbe29c7c_layers = {
+                base_layers : {
+                    "openstreetmap" : tile_layer_44bb9fdba8fcacc83ccc0d53ac33e693,
+                    "\u010c\u00daZK Ortofoto (WM)" : tile_layer_746f9ad511002635eefd5f637a72f95c,
+                },
+                overlays :  {
+                    "\u00dazemn\u00ed pl\u00e1n Prahy \u2013 pl\u00e1n vyu\u017eit\u00ed" : feature_group_f48758a406127686326a22866ad1e6bf,
+                    "Ukazatele (parcely)" : feature_group_0c1365c72fb14ac7aed3f2ab8d621714,
+                    "\u003cb\u003eJC: 94 828 K\u010d/m\u00b2\u003c/b\u003e | Typ: byt, jin\u00e1 plocha, spole\u010dn\u00fd dv\u016fr | Cena: 5 500 000 K\u010d | Datum: 2024/10/15 | Vklad: V-9488/2024-602 | KU: Pra\u017esk\u00e9 P\u0159edm\u011bst\u00ed" : feature_group_3d6f0fc34ce96983420637451cfd8da9,
+                    "\u003cb\u003eJC: 94 000 K\u010d/m\u00b2\u003c/b\u003e | Typ: byt | Cena: 3 707 360 K\u010d | Datum: 2025/06/05 | Vklad: V-5277/2025-602 | KU: Hradec Kr\u00e1lov\u00e9" : feature_group_64a250fdefc0483395cb3a92f7bd798f,
+                    "\u003cb\u003eJC: 93 525 K\u010d/m\u00b2\u003c/b\u003e | Typ: byt | Cena: 2 600 000 K\u010d | Datum: 2025/04/15 | Vklad: V-3582/2025-602 | KU: Pra\u017esk\u00e9 P\u0159edm\u011bst\u00ed" : feature_group_cd023d97614332fd17dd8160340caa08,
+                    "\u003cb\u003eJC: 93 410 K\u010d/m\u00b2\u003c/b\u003e | Typ: byt | Cena: 3 260 000 K\u010d | Datum: 2025/03/03 | Vklad: V-2031/2025-602 | KU: Hradec Kr\u00e1lov\u00e9" : feature_group_8fc0c326a2e5e7e7d978e85674fb43e0,
+                    "\u003cb\u003eJC: 93 117 K\u010d/m\u00b2\u003c/b\u003e | Typ: byt | Cena: 4 870 000 K\u010d | Datum: 2024/04/29 | Vklad: V-3961/2024-602 | KU: Hradec Kr\u00e1lov\u00e9" : feature_group_5219d5b6790b880df19f4dc6dab9432e,
+                    "\u003cb\u003eJC: 93 019 K\u010d/m\u00b2\u003c/b\u003e | Typ: byt | Cena: 6 995 000 K\u010d | Datum: 2025/10/09 | Vklad: V-9362/2025-602 | KU: Pra\u017esk\u00e9 P\u0159edm\u011bst\u00ed" : feature_group_f8a9b6703c77f5a7794634eb47363259,
+                },
+            };
+            let layer_control_1dcf0e5d0a177f6f7478d8b9bbe29c7c = L.control.layers(
+                layer_control_1dcf0e5d0a177f6f7478d8b9bbe29c7c_layers.base_layers,
+                layer_control_1dcf0e5d0a177f6f7478d8b9bbe29c7c_layers.overlays,
+                {
+  "position": "topright",
+  "collapsed": false,
+  "autoZIndex": true,
+}
+            ).addTo(map_72ebb29c7ea77bff49d9494562cfaae4);
+
+        
+    
+        (function(){
+          try {
+            // Bezpečný pokus získat mapu
+            var map;
+            try {
+              map = map_72ebb29c7ea77bff49d9494562cfaae4;
+            } catch(e) {
+              // fallback: pokud by parent nebyl přímo Map
+              if (typeof window !== 'undefined') {
+                // najdeme první globální proměnnou typu L.Map
+                for (var k in window) {
+                  if (window.hasOwnProperty(k) && window[k] && window[k] instanceof L.Map) {
+                    map = window[k];
+                    break;
+                  }
+                }
+              }
+            }
+            if (!map) {
+              console.error("LegendHoverHighlighter: map object not found");
+              return;
+            }
+
+            function stripTags(t){ return String(t||"").replace(/<[^>]*>/g, ""); }
+            function norm(t){ return stripTags(t).replace(/\u00a0/g,' ').replace(/[\s\n\r\t]+/g,' ').trim(); }
+
+            var PAIRS = [
+              
+              { layerObj: feature_group_3d6f0fc34ce96983420637451cfd8da9, label: "\u003cb\u003eJC: 94 828 K\u010d/m\u00b2\u003c/b\u003e | Typ: byt, jin\u00e1 plocha, spole\u010dn\u00fd dv\u016fr | Cena: 5 500 000 K\u010d | Datum: 2024/10/15 | Vklad: V-9488/2024-602 | KU: Pra\u017esk\u00e9 P\u0159edm\u011bst\u00ed" },
+              
+              { layerObj: feature_group_64a250fdefc0483395cb3a92f7bd798f, label: "\u003cb\u003eJC: 94 000 K\u010d/m\u00b2\u003c/b\u003e | Typ: byt | Cena: 3 707 360 K\u010d | Datum: 2025/06/05 | Vklad: V-5277/2025-602 | KU: Hradec Kr\u00e1lov\u00e9" },
+              
+              { layerObj: feature_group_cd023d97614332fd17dd8160340caa08, label: "\u003cb\u003eJC: 93 525 K\u010d/m\u00b2\u003c/b\u003e | Typ: byt | Cena: 2 600 000 K\u010d | Datum: 2025/04/15 | Vklad: V-3582/2025-602 | KU: Pra\u017esk\u00e9 P\u0159edm\u011bst\u00ed" },
+              
+              { layerObj: feature_group_8fc0c326a2e5e7e7d978e85674fb43e0, label: "\u003cb\u003eJC: 93 410 K\u010d/m\u00b2\u003c/b\u003e | Typ: byt | Cena: 3 260 000 K\u010d | Datum: 2025/03/03 | Vklad: V-2031/2025-602 | KU: Hradec Kr\u00e1lov\u00e9" },
+              
+              { layerObj: feature_group_5219d5b6790b880df19f4dc6dab9432e, label: "\u003cb\u003eJC: 93 117 K\u010d/m\u00b2\u003c/b\u003e | Typ: byt | Cena: 4 870 000 K\u010d | Datum: 2024/04/29 | Vklad: V-3961/2024-602 | KU: Hradec Kr\u00e1lov\u00e9" },
+              
+              { layerObj: feature_group_f8a9b6703c77f5a7794634eb47363259, label: "\u003cb\u003eJC: 93 019 K\u010d/m\u00b2\u003c/b\u003e | Typ: byt | Cena: 6 995 000 K\u010d | Datum: 2025/10/09 | Vklad: V-9362/2025-602 | KU: Pra\u017esk\u00e9 P\u0159edm\u011bst\u00ed" }
+              
+            ];
+
+            function findPairByLabel(txt){
+              txt = norm(txt);
+              for (var i=0; i<PAIRS.length; i++){
+                if (norm(PAIRS[i].label) === txt) return PAIRS[i];
+              }
+              return null;
+            }
+
+            function highlightGroup(grp){
+              if (!grp || typeof grp.eachLayer !== "function") return;
+              grp.eachLayer(function(ly){
+                if (ly && typeof ly.setStyle === "function"){
+                  if (!ly._origStyleSaved){
+                    ly._origStyle = {
+                      color: ly.options && ly.options.color,
+                      weight: ly.options && ly.options.weight,
+                      fillColor: ly.options && ly.options.fillColor,
+                      fillOpacity: ly.options && ly.options.fillOpacity
+                    };
+                    ly._origStyleSaved = true;
+                  }
+                  var baseWeight = (ly.options && ly.options.weight) || (ly._origStyle && ly._origStyle.weight) || 2;
+                  var baseFill   = (ly.options && ly.options.fillOpacity);
+                  if (baseFill==null || isNaN(baseFill)) {
+                    baseFill = (ly._origStyle && ly._origStyle.fillOpacity) || 0.4;
+                  }
+                  ly.setStyle({
+                    color:'#000000',
+                    weight: baseWeight + 2,
+                    fillOpacity: Math.min(1, baseFill + 0.25)
+                  });
+                }
+              });
+            }
+
+            function resetGroup(grp){
+              if (!grp || typeof grp.eachLayer !== "function") return;
+              grp.eachLayer(function(ly){
+                if (typeof ly.resetStyle === "function"){
+                  ly.resetStyle();
+                  return;
+                }
+                if (ly._origStyleSaved && ly._origStyle && typeof ly.setStyle === "function"){
+                  ly.setStyle(ly._origStyle);
+                }
+              });
+            }
+
+            function waitForOverlays(cb, tries){
+              tries = tries || 0;
+              var overlays = document.querySelector('.leaflet-control-layers-overlays');
+              if (overlays){
+                cb(overlays);
+              } else if (tries < 100){
+                setTimeout(function(){ waitForOverlays(cb, tries+1); }, 50);
+              }
+            }
+
+            function setup(overlays){
+              var labels = overlays.querySelectorAll('label');
+              for (var i=0; i<labels.length; i++){
+                (function(lb){
+                  var span = lb.querySelector('span');
+                  var txt  = norm(span ? span.textContent : lb.textContent);
+                  var pair = findPairByLabel(txt);
+                  if (!pair || !pair.layerObj){
+                    return;
+                  }
+                  var grp = pair.layerObj;
+                  if (!grp || typeof grp.eachLayer !== "function"){
+                    return;
+                  }
+                  lb.addEventListener('mouseenter', function(){ highlightGroup(grp); });
+                  lb.addEventListener('mouseleave', function(){ resetGroup(grp); });
+                })(labels[i]);
+              }
+            }
+
+            waitForOverlays(setup);
+          } catch(e) {
+            console.error("LegendHoverHighlighter error:", e);
+          }
+        })();
+        
+    
+            tile_layer_44bb9fdba8fcacc83ccc0d53ac33e693.addTo(map_72ebb29c7ea77bff49d9494562cfaae4);
+        
+    
+            feature_group_0c1365c72fb14ac7aed3f2ab8d621714.addTo(map_72ebb29c7ea77bff49d9494562cfaae4);
+        
+    
+            geo_json_932fa656000b8d120cb7cbe3cc98ee77.addTo(feature_group_3d6f0fc34ce96983420637451cfd8da9);
+        
+    
+            geo_json_700d3c08984506d12e860ca30a8ca843.addTo(feature_group_3d6f0fc34ce96983420637451cfd8da9);
+        
+    
+            geo_json_3d6ce5a0578bd2e13adf502ff430f894.addTo(feature_group_3d6f0fc34ce96983420637451cfd8da9);
+        
+    
+            geo_json_c1486bafae8e765dfaf5561560cece5b.addTo(feature_group_3d6f0fc34ce96983420637451cfd8da9);
+        
+    
+            geo_json_f67cc2909d29b34b7c5c941b3a0495c0.addTo(feature_group_3d6f0fc34ce96983420637451cfd8da9);
+        
+    
+            geo_json_3dc5fcec759cf4833e892ae4bccc3f2a.addTo(feature_group_3d6f0fc34ce96983420637451cfd8da9);
+        
+    
+            geo_json_4c3118ada6d494a674968a51ae8f5358.addTo(feature_group_3d6f0fc34ce96983420637451cfd8da9);
+        
+    
+            geo_json_6a91e0ad28dea4ab1e33e966d79dc2e0.addTo(feature_group_3d6f0fc34ce96983420637451cfd8da9);
+        
+    
+            geo_json_7699d0af058fbd9cd7963501bc2126ca.addTo(feature_group_3d6f0fc34ce96983420637451cfd8da9);
+        
+    
+            feature_group_3d6f0fc34ce96983420637451cfd8da9.addTo(map_72ebb29c7ea77bff49d9494562cfaae4);
+        
+    
+            geo_json_656511017a57180713421cce6c69e8b4.addTo(feature_group_64a250fdefc0483395cb3a92f7bd798f);
+        
+    
+            feature_group_64a250fdefc0483395cb3a92f7bd798f.addTo(map_72ebb29c7ea77bff49d9494562cfaae4);
+        
+    
+            geo_json_bcf450627e4b6675682f6ce25f12bf53.addTo(feature_group_cd023d97614332fd17dd8160340caa08);
+        
+    
+            feature_group_cd023d97614332fd17dd8160340caa08.addTo(map_72ebb29c7ea77bff49d9494562cfaae4);
+        
+    
+            geo_json_bb41aaa9f0295448515e4582cb3973e8.addTo(feature_group_8fc0c326a2e5e7e7d978e85674fb43e0);
+        
+    
+            feature_group_8fc0c326a2e5e7e7d978e85674fb43e0.addTo(map_72ebb29c7ea77bff49d9494562cfaae4);
+        
+    
+            geo_json_d4a5b5c7120cab02881091b3d6d3d662.addTo(feature_group_5219d5b6790b880df19f4dc6dab9432e);
+        
+    
+            feature_group_5219d5b6790b880df19f4dc6dab9432e.addTo(map_72ebb29c7ea77bff49d9494562cfaae4);
+        
+    
+            geo_json_73e39f30a8363b7f4f6fddb99de5645c.addTo(feature_group_f8a9b6703c77f5a7794634eb47363259);
+        
+    
+            feature_group_f8a9b6703c77f5a7794634eb47363259.addTo(map_72ebb29c7ea77bff49d9494562cfaae4);
+        
+</script>
+</html>
