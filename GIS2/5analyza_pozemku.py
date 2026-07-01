@@ -41,11 +41,11 @@ OUT_MAP    = os.path.join(SCRIPT_DIR, "mapa_pozemky.html")
 OUT_DOCX   = os.path.join(SCRIPT_DIR, "Znalecka_Zprava.docx")
 
 # --- PARAMETRY OCEŇOVANÉ NEMOVITOSTI ---
-OCE_DATUM        = pd.Timestamp("2026-06-02")
+OCE_DATUM        = pd.Timestamp("2026-06-10")
 OCE_KU           = "Smíchov"          
 OCE_OKRES        = "Hlavní město Praha" 
-#OCE_UP_VSTUP     = ["LR", "ZMK", "PS", "PZO"]  # Zadejte libovolný počet zkratek do seznamu
-OCE_UP_VSTUP     = ["OB", "OB-C", "OB-D", "OB-E", "SV", "SV-C", "SV-G", "SV-I", "OV", "OV-E", "OV-D"]  # Zadejte libovolný počet zkratek do seznamu
+OCE_UP_VSTUP     = ["LR"]  # Zadejte libovolný počet zkratek do seznamu
+#OCE_UP_VSTUP     = ["OB", "OB-C", "OB-D", "OB-E", "SV", "SV-C", "SV-G", "SV-I", "OV", "OV-E", "OV-D"]  # Zadejte libovolný počet zkratek do seznamu
 
 if isinstance(OCE_UP_VSTUP, str):
     OCE_UP_LIST = [OCE_UP_VSTUP.strip()]
@@ -53,8 +53,8 @@ else:
     OCE_UP_LIST = [str(x).strip() for x in OCE_UP_VSTUP]
 OCE_UP = ", ".join(OCE_UP_LIST)
 
-OCE_VYMERA       = 2000#138332.0           
-OCE_PP_INDEX     = 0.70               
+OCE_VYMERA       = 138332.0           
+OCE_PP_INDEX     = 0.30               
 OCE_LAT          = 50.07132229220769  
 OCE_LON          = 14.364680438635116
 
@@ -65,13 +65,13 @@ OCE_LON          = 14.364680438635116
 # nebo naopak pokud model propouští nesmyslné hodnoty.
 
 # 1. Přísnost statistického filtru (Tukeyho násobek IQR pro Cenu i Výměru)
-OUTLIER_IQR_MULT = 3.0 #1.5
+OUTLIER_IQR_MULT = 3.0
 # MATEMATIKA: Definuje šířku "kleští". Běžná hodnota je 1.5 (odřízne vše nad 75. percentil + 1.5x rozptyl trhu).
 # LADĚNÍ: Pokud máte velmi nekonzistentní trh a mizí vám příliš mnoho dat, zvyšte na 2.0 nebo 3.0 (tzv. Far Outliers). 
 # Tím zajistíte, že se vyřadí jen ty naprosté a neoddiskutovatelné extrémy. Pokud chcete naopak čistší střed, snižte.
 
 # 2. Ochranné toleranční pásmo pro Výměru (Násobek vůči oceňované ploše)
-VYMERA_TOLERANCE_NASOBEK = 5.0 #10.0
+VYMERA_TOLERANCE_NASOBEK = 10.0
 # MATEMATIKA: Pokud má oceňovaný pozemek extrémní plochu (např. 14 hektarů), běžná statistika by všechny větší obchody zahodila.
 # LADĚNÍ: Hodnota 10.0 znamená, že model exaktně GARANTUJE ponechání pozemků, které jsou až 10x menší nebo 10x větší než oceňovaný.
 # Pokud oceňujete běžný pozemek (např. 1000 m²) a chcete striktnější srovnatelnost, snižte na 3.0 nebo 5.0.
@@ -83,13 +83,13 @@ PERCENTIL_DNO = 0.05
 # LADĚNÍ: 0.05 znamená, že vždy zahodí 5 % nejlevnějšího "odpadu" (např. prodeje symbolických podílů).
 
 # 4. Absolutní minimální přípustná cena (Záchranná brzda zespodu)
-MIN_POVOLENA_JC = 1000.0 #20.0
+MIN_POVOLENA_JC = 50.0
 # MATEMATIKA: Tvrdý absolutní limit v Kč/m². Cokoliv pod tuto hodnotu je bez milosti smazáno ještě před koeficienty.
 # LADĚNÍ: Pokud v datech vidíte příliš mnoho nesmyslných "korunových" převodů v rodině, zvyšte např. na 50.0.
 
 # --- MANTINELY KOREKČNÍCH KOEFICIENTŮ (Rozptyl modelu) ---
-K_CLIP_MIN = 0.20 #0.01  # Maximální povolená sleva (0.01 = srážka ceny na 1 %)
-K_CLIP_MAX = 15.0 #150.0 # Maximální povolená přirážka (150.0 = obrovský skok u přechodu zeleň -> stavební)
+K_CLIP_MIN = 0.01 #0.01  # Maximální povolená sleva (0.01 = srážka ceny na 1 %)
+K_CLIP_MAX = 150.0 #150.0 # Maximální povolená přirážka (150.0 = obrovský skok u přechodu zeleň -> stavební)
 # =============================================================================
 
 SENSITIVITY_DELTA = 0.10         # Odchylka pro tornádový graf (zde 10 %)
