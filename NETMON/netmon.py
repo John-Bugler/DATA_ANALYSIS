@@ -1,27 +1,20 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-netmon.py - sonda pro diagnostiku opakovaných výpadků (RB5009 za dvojitým NAT)
+netmon.py  v2  - sonda pro diagnostiku výpadků (RB5009 za dvojitým NAT)
 E:\\DATA_ANALYSIS\\NETMON\\netmon.py
 
 POUŽITÍ (běží v terminálu VS Code, Ctrl+C ukončí):
+    python netmon.py --init     # jednorázově: databáze + tabulky + pohledy
+    python netmon.py --test     # jeden cyklus bez zápisu, ověření nastavení
+    python netmon.py            # sběr dat
 
-    python netmon.py --init     # jednorázově: založí DB NetMon + tabulky a pohledy
-    python netmon.py            # sběr dat; nechte okno otevřené, jak dlouho chcete
-    python netmon.py --test     # jeden cyklus, vypíše výsledek a skončí (ověření nastavení)
-
-Přerušení sběru nevadí - v datech vznikne mezera, analýza si s tím poradí.
-
-Co měří v každém cyklu (paralelně, aby byl snímek okamžiku konzistentní):
-  1) DNS přes router (192.168.88.1) i přímo na 1.1.1.1
-  2) DNS s vynucením plné rekurze (náhodná subdoména -> NXDOMAIN je ÚSPĚCH),
-     aby se neměřily jen zásahy do cache routeru
-  3) TCP handshake na 443 i na 80, na pevné IP i na jména, plus LAN kontrolu
-  4) ping na 192.168.88.1 / 192.168.11.1 / 8.8.8.8 (ztrátovost + RTT)
-  5) stav RB5009 přes REST API: počet spojení v conntrack, CPU, ether1, DHCP klient
-
-Instalace závislostí:
-    pip install pyodbc dnspython requests
+NOVÉ VE VERZI 2:
+  * opraveno počítání odpovědí u pingu (dřív se do počtu započítával
+    i souhrnný řádek statistiky -> záporná ztrátovost)
+  * ROUTER_PASS se už nepřepisuje prázdnou proměnnou prostředí
+  * rozbor spojení na routeru: kolik jich míří VEN (spotřebuje port
+    u operátora) vs. lokálně, a které zařízení jich drží nejvíc
 """
 
 from __future__ import annotations
@@ -48,7 +41,7 @@ import urllib3
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
-BASE_DIR = Path(__file__).resolve().parent          # E:\DATA_ANALYSIS\NETMON
+BASE_DIR = Path(__file__).resolve().parent
 
 # ======================================================================
 # KONFIGURACE - jediné místo, kde je potřeba něco měnit
@@ -66,13 +59,21 @@ def sql_conn_str(database: str = SQL_DATABASE) -> str:
             f"Trusted_Connection=yes;")
 
 # --- RB5009 REST API ------------------------------------------------
-ROUTER_BASE = "http://192.168.88.1"          # nebo https://192.168.88.1 při www-ssl
+ROUTER_BASE = "http://192.168.88.1"
 ROUTER_USER = "monitor"
-ROUTER_PASS = "JeTe_Monitor"                             # <-- doplnit heslo uživatele 'monitor'
-                                             #     (prázdné = REST se přeskočí)
+ROUTER_PASS = "JeTe_Monitor"
+# prázdná proměnná prostředí už heslo nepřebije (operátor 'or')
+ROUTER_PASS = os.environ.get("NETMON_ROUTER_PASS") or ROUTER_PASS
+
+# --- lokální rozsahy: co NEspotřebuje port u operátora ---------------
+LOCAL_PREFIXES = ("192.168.", "10.", "127.",
+                  "172.16.", "172.17.", "172.18.", "172.19.", "172.20.",
+                  "172.21.", "172.22.", "172.23.", "172.24.", "172.25.",
+                  "172.26.", "172.27.", "172.28.", "172.29.", "172.30.",
+                  "172.31.")
 
 CONFIG = {
-    "interval_s": 30,          # 30 s = ~20 vzorků uvnitř 10minutového výpadku
+    "interval_s": 30,
 
     "dns_servers": {
         "router": "192.168.88.1",
@@ -84,12 +85,12 @@ CONFIG = {
 
     # (host, port, popis); IP cíle nezávisí na DNS = čistá kontrola
     "tcp_targets": [
-        ("1.1.1.1",        443, "ip"),      # kontrola bez DNS
+        ("1.1.1.1",        443, "ip"),
         ("8.8.8.8",        443, "ip"),
-        ("1.1.1.1",         80, "ip80"),    # rozliší "padá jen 443" vs "padá každé nové TCP"
+        ("1.1.1.1",         80, "ip80"),   # rozliší "jen 443" vs "každé nové TCP"
         ("www.idnes.cz",   443, "name"),
         ("www.novinky.cz", 443, "name"),
-        ("192.168.88.1",  8291, "lan"),     # WinBox port = kontrola lokálního stacku
+        ("192.168.88.1",  8291, "lan"),    # kontrola lokálního stacku
     ],
     "tcp_timeout_s": 4.0,
 
@@ -103,9 +104,6 @@ CONFIG = {
     "fallback_file": BASE_DIR / "netmon_fallback.jsonl",
     "schema_file":   BASE_DIR / "netmon_schema.sql",
 }
-
-# heslo lze přebít proměnnou prostředí, ať nemusí být v gitu
-ROUTER_PASS = os.environ.get("NETMON_ROUTER_PASS") or ROUTER_PASS
 
 SOURCE_HOST = socket.gethostname()
 IS_WINDOWS = platform.system() == "Windows"
@@ -147,7 +145,7 @@ def probe_dns(server: str, name: str, kind: str = "dns") -> dict:
 
 def probe_tcp(host: str, port: int, tag: str) -> dict:
     """Čistý TCP handshake (SYN -> SYN/ACK -> ACK), bez TLS.
-    Selhání = zahozený SYN, přesně to, co ukázalo předchozí měření."""
+    Selhání = zahozený SYN."""
     t0 = time.perf_counter()
     try:
         with socket.create_connection((host, port), timeout=CONFIG["tcp_timeout_s"]):
@@ -163,8 +161,10 @@ _PING_MS = re.compile(r"[=<]\s*(\d+(?:[.,]\d+)?)\s*ms", re.IGNORECASE)
 
 
 def probe_ping(host: str) -> dict:
-    """Ping přes systémový příkaz. Parsuje se regulárním výrazem na 'čas=12ms' /
-    'time=12ms' - funguje na české i anglické Windows i na macOS."""
+    """Ping přes systémový příkaz.
+    Počítají se jen řádky s odpovědí (obsahují 'ttl='), takže se do počtu
+    nezapočítá souhrnná statistika Minimum/Maximum/Average.
+    Funguje na české i anglické Windows i na macOS."""
     n = CONFIG["ping_count"]
     if IS_WINDOWS:
         cmd = ["ping", "-n", str(n), "-w", str(CONFIG["ping_timeout_ms"]), host]
@@ -176,21 +176,16 @@ def probe_ping(host: str) -> dict:
     try:
         out = subprocess.run(cmd, capture_output=True, text=True, timeout=n * 2 + 5,
                              encoding="utf-8", errors="replace").stdout
-
         times = []
         for line in out.splitlines():
             low = line.lower()
             if "ttl=" not in low:          # souhrnná statistika TTL neobsahuje
                 continue
-
             m = _PING_MS.search(line)
             if m:
                 times.append(float(m.group(1).replace(",", ".")))
-            elif "<1" in line or "<1ms" in low:
-                times.append(0.5)          # "time<1ms" = pod rozlišením
-
-
-        
+            elif "<1" in line:             # "time<1ms" / "čas<1ms"
+                times.append(0.5)
         loss = 100.0 * (n - len(times)) / n
         avg = sum(times) / len(times) if times else None
         return dict(Kind="ping", Target=host, Ok=1 if times else 0,
@@ -212,12 +207,37 @@ def probe_router() -> dict:
         s.auth = (ROUTER_USER, ROUTER_PASS)
         s.verify = False
 
-        # conntrack: total-entries / max-entries = klíčový ukazatel pro hypotézu
+        # celkový počet spojení v conntrack
         ct = s.get(f"{base}/rest/ip/firewall/connection/tracking", timeout=to).json()
         if isinstance(ct, list):
             ct = ct[0] if ct else {}
         row["ConnTotal"] = int(ct.get("total-entries", 0) or 0)
         row["ConnMax"] = int(ct.get("max-entries", 0) or 0)
+
+        # ROZBOR SPOJENÍ: kolik míří ven (= spotřebuje port u operátora),
+        # kolik je lokálních, a které zařízení jich drží nejvíc
+        try:
+            conns = s.post(f"{base}/rest/ip/firewall/connection/print",
+                           json={".proplist": ["src-address", "dst-address"]},
+                           timeout=to).json()
+            ext = loc = 0
+            per_src: dict[str, int] = {}
+            for c in conns:
+                dst = str(c.get("dst-address", ""))
+                src = str(c.get("src-address", "")).split(":")[0]
+                if dst.startswith(LOCAL_PREFIXES):
+                    loc += 1
+                else:
+                    ext += 1
+                    per_src[src] = per_src.get(src, 0) + 1
+            row["ConnExternal"] = ext
+            row["ConnLocal"] = loc
+            if per_src:
+                top_src, top_cnt = max(per_src.items(), key=lambda kv: kv[1])
+                row["TopSrc"] = top_src[:48]
+                row["TopSrcCount"] = top_cnt
+        except Exception:
+            pass
 
         res = s.get(f"{base}/rest/system/resource", timeout=to).json()
         if isinstance(res, list):
@@ -233,7 +253,6 @@ def probe_router() -> dict:
         row["Ether1RxByte"] = int(wan.get("rx-byte", 0) or 0)
         row["Ether1TxByte"] = int(wan.get("tx-byte", 0) or 0)
 
-        # link-downs je dostupné jen přes monitor; když selže, není to fatální
         try:
             mon = s.post(f"{base}/rest/interface/ethernet/monitor",
                          json={"numbers": CONFIG["router_wan_if"], "once": ""},
@@ -266,9 +285,7 @@ def init_database() -> None:
     if not sql_path.exists():
         sys.exit(f"Nenalezen soubor se schématem: {sql_path}")
     text = sql_path.read_text(encoding="utf-8")
-    # rozdělit na dávky podle samostatných řádků 'GO'
     batches = [b.strip() for b in re.split(r"(?im)^\s*GO\s*$", text) if b.strip()]
-    # připojit se k master - CREATE DATABASE nelze spustit z jiné DB
     conn = pyodbc.connect(sql_conn_str("master"), autocommit=True, timeout=10)
     cur = conn.cursor()
     for i, batch in enumerate(batches, 1):
@@ -278,8 +295,7 @@ def init_database() -> None:
             print(f"  ! dávka {i} selhala: {e}", file=sys.stderr)
     cur.close()
     conn.close()
-    print(f"Databáze {SQL_DATABASE} a objekty jsou připraveny "
-          f"(schéma: {sql_path.name}).")
+    print(f"Databáze {SQL_DATABASE} a objekty jsou připraveny ({sql_path.name}).")
 
 
 # ======================================================================
@@ -296,9 +312,20 @@ ROUTER_SQL = """
 INSERT INTO dbo.NetMon_Router
     (RunTsUtc, Reachable, ConnTotal, ConnMax, CpuLoad, FreeMemory, Uptime,
      Ether1Running, Ether1LinkDowns, Ether1RxByte, Ether1TxByte,
-     DhcpStatus, DhcpExpires, Error)
-VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+     DhcpStatus, DhcpExpires, Error,
+     ConnExternal, ConnLocal, TopSrc, TopSrcCount)
+VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
 """
+
+
+def _router_params(rts, r: dict) -> tuple:
+    return (rts, r.get("Reachable", 0), r.get("ConnTotal"), r.get("ConnMax"),
+            r.get("CpuLoad"), r.get("FreeMemory"), r.get("Uptime"),
+            r.get("Ether1Running"), r.get("Ether1LinkDowns"),
+            r.get("Ether1RxByte"), r.get("Ether1TxByte"),
+            r.get("DhcpStatus"), r.get("DhcpExpires"), r.get("Error"),
+            r.get("ConnExternal"), r.get("ConnLocal"),
+            r.get("TopSrc"), r.get("TopSrcCount"))
 
 
 class Writer:
@@ -322,13 +349,7 @@ class Writer:
                 for p in probes
             ])
             if router:
-                cur.execute(ROUTER_SQL, (
-                    run_ts, router.get("Reachable", 0), router.get("ConnTotal"),
-                    router.get("ConnMax"), router.get("CpuLoad"), router.get("FreeMemory"),
-                    router.get("Uptime"), router.get("Ether1Running"),
-                    router.get("Ether1LinkDowns"), router.get("Ether1RxByte"),
-                    router.get("Ether1TxByte"), router.get("DhcpStatus"),
-                    router.get("DhcpExpires"), router.get("Error")))
+                cur.execute(ROUTER_SQL, _router_params(run_ts, router))
             cur.close()
             self._flush_fallback()
             return True
@@ -356,12 +377,7 @@ class Writer:
                      p.get("LossPct"), p.get("Detail")) for p in rec["probes"]])
                 r = rec.get("router") or {}
                 if r:
-                    cur.execute(ROUTER_SQL, (
-                        rts, r.get("Reachable", 0), r.get("ConnTotal"), r.get("ConnMax"),
-                        r.get("CpuLoad"), r.get("FreeMemory"), r.get("Uptime"),
-                        r.get("Ether1Running"), r.get("Ether1LinkDowns"),
-                        r.get("Ether1RxByte"), r.get("Ether1TxByte"),
-                        r.get("DhcpStatus"), r.get("DhcpExpires"), r.get("Error")))
+                    cur.execute(ROUTER_SQL, _router_params(rts, r))
             except Exception:
                 continue
         cur.close()
@@ -414,13 +430,19 @@ def run_cycle(writer: Writer | None, stats: Counter):
         stats[f"fail:{p['Kind']}"] += 1
 
     stamp = dt.datetime.now().strftime("%H:%M:%S")
-    conn = router.get("ConnTotal", "-")
+    ct = router.get("ConnTotal", "-")
+    ext = router.get("ConnExternal", "-")
+    top = router.get("TopSrc", "")
+    topc = router.get("TopSrcCount", "")
+    info = f"conn={ct} ven={ext}"
+    if top:
+        info += f" top={top}({topc})"
     if fails:
-        print(f"{stamp}  ! {len(fails)}/{len(probes)} SELHÁNÍ   conn={conn}")
+        print(f"{stamp}  ! {len(fails)}/{len(probes)} SELHÁNÍ   {info}")
         for p in fails:
             print(f"           {p['Kind']:<12} {p['Target']:<30} {str(p.get('Detail',''))[:80]}")
     else:
-        print(f"{stamp}  ok  {len(probes)} sond   conn={conn}")
+        print(f"{stamp}  ok  {len(probes)} sond   {info}")
 
     if writer is not None:
         writer.write(run_ts, probes, router)
@@ -442,7 +464,7 @@ def main():
     if args.interval:
         CONFIG["interval_s"] = args.interval
 
-    print(f"NetMon | zdroj: {SOURCE_HOST} | složka: {BASE_DIR}")
+    print(f"NetMon v2 | zdroj: {SOURCE_HOST} | složka: {BASE_DIR}")
     print(f"        SQL: {SQL_SERVER}/{SQL_DATABASE} přes {SQL_DRIVER}")
     if not ROUTER_PASS:
         print("        ! heslo k RB5009 není vyplněné - REST API routeru se přeskočí")
@@ -467,8 +489,8 @@ def main():
         mins = (time.time() - t_start) / 60
         print(f"\nUkončeno. Běželo {mins:.0f} min, {stats['cycles']} cyklů, "
               f"{stats['probes']} sond.")
-        fails = {k.split(':')[1]: v for k, v in stats.items() if k.startswith("fail:")}
-        print("Selhání:", fails if fails else "žádná")
+        f = {k.split(':')[1]: v for k, v in stats.items() if k.startswith("fail:")}
+        print("Selhání:", f if f else "žádná")
 
 
 if __name__ == "__main__":
