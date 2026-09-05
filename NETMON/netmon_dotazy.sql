@@ -71,3 +71,13 @@ LEFT JOIN dbo.NetMon_Router r
 WHERE m.TcpFail > 0
 ORDER BY m.MinuteUtc;
 GO
+
+
+
+USE NetMon;
+SELECT DATEPART(hour, RunTsUtc AT TIME ZONE 'UTC' AT TIME ZONE 'Central European Standard Time') AS HodinaCZ,
+       AVG(CASE WHEN ConnExternal IS NULL     THEN ConnTotal END) AS PredZmenou,
+       AVG(CASE WHEN ConnExternal IS NOT NULL THEN ConnTotal END) AS PoZmene
+FROM dbo.NetMon_Router
+GROUP BY DATEPART(hour, RunTsUtc AT TIME ZONE 'UTC' AT TIME ZONE 'Central European Standard Time')
+ORDER BY HodinaCZ;

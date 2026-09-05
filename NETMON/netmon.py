@@ -94,7 +94,7 @@ CONFIG = {
     ],
     "tcp_timeout_s": 4.0,
 
-    "ping_targets": ["192.168.88.1", "192.168.11.1", "8.8.8.8"],
+    "ping_targets": ["192.168.88.1", "194.228.115.39", "8.8.8.8"],
     "ping_count": 4,
     "ping_timeout_ms": 1000,
 
