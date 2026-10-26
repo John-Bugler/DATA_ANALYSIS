@@ -1,0 +1,268 @@
+# -*- coding: utf-8 -*-
+"""
+38_prepocty.py — naplnění karet vkladu v databázi
+=================================================
+Databáze: VALUO        Krok: 38        Datum: 24. 10. 2026
+
+K čemu to je
+------------
+Karta vkladu se nepočítá za běhu — role parcel, komponenty a tvar se
+ukládají do tabulek. Dokud to pro daný vklad neproběhne, je ve view
+v_Valuo_karta_vkladu většina sloupců prázdná: parcel_celkem, výměry,
+Kč/m² pozemku i PP index.
+
+Tenhle skript to naplní. Jede v pěti krocích, v tomhle pořadí:
+
+  1. okolí po katastrálních územích   sp_prepocet_karty_okoli
+     Prostorové vztahy mezi parcelami. Hotovo: 40 329 parcel v 826 k. ú.
+  2. karty po vkladech                sp_prepocet_karet_davka
+     Zhruba 3,6 vkladu za vteřinu, u 49 788 vkladů tedy kolem 4 hodin.
+  3. tvar celku                       sp_prepocet_karty_tvar
+     Rychlé, běží nad hotovými kartami.
+  4. podklad pro mapu                 sp_prepocet_mapy
+     Plochý výtah pro mapovou aplikaci: bod, kategorie, jednotková cena.
+     Pohled v_Valuo_karta_vkladu je na překreslování mapy moc pomalý.
+  5. registr zdrojů plochy            sp_prepocet_ploch
+     Zlomky podílu z popisu, registr všech známých ploch vkladu a kontrola
+     posunu desetinné čárky. Běží až po mapě, protože si do ní na konci
+     obnovuje příznaky. Jednotky sekund.
+
+Pouští se i z importu: `30_import_valuo.py --dopocty` nebo `--vse`.
+
+Všech pět kroků je přerušitelných a navazují. Když to spadne nebo to
+zavřeš, spusť znovu — dopočítá se jen to, co chybí. Proto ten --limit
+a časové stropy uvnitř procedur.
+
+Spuštění
+--------
+    python 38_prepocty.py                 # vše, co chybí
+    python 38_prepocty.py --krok karty    # jen druhý krok
+    python 38_prepocty.py --prepocitat    # znovu i to, co už je hotové
+
+Závislosti: sdílí připojení s 35_export_word.py.
+"""
+
+import argparse
+import datetime
+import importlib.util
+import os
+import sys
+
+ZDE = os.path.dirname(os.path.abspath(__file__))
+
+
+def nacti_export():
+    cesta = os.path.join(ZDE, "35_export_word.py")
+    if not os.path.exists(cesta):
+        raise SystemExit(f"Vedle tohoto skriptu chybí 35_export_word.py ({cesta}).")
+    spec = importlib.util.spec_from_file_location("export_word", cesta)
+    modul = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(modul)
+    return modul
+
+
+EX = nacti_export()
+
+
+def cas(sekund):
+    sekund = int(sekund)
+    if sekund < 90:
+        return f"{sekund} s"
+    if sekund < 5400:
+        return f"{sekund // 60} min"
+    return f"{sekund / 3600:.1f} h"
+
+
+def krok_okoli(conn, sqlalchemy, prepocitat):
+    print("\n[1/5] Okolí po katastrálních územích")
+    jen_nove = 0 if prepocitat else 1
+    celkem_ku = 0
+    zacatek = datetime.datetime.now()
+    while True:
+        r = conn.execute(sqlalchemy.text(
+            "EXEC dbo.sp_prepocet_karty_okoli @kod_ku = NULL, @jen_nove = :jn, "
+            "@limit_ku = 400, @max_sekund = 600, @podrobne = 0"),
+            {"jn": jen_nove}).mappings().first()
+        conn.commit()
+        if r is None:
+            break
+        celkem_ku += r["zpracovano_ku"] or 0
+        zbyva = r["zbyva_ku"] or 0
+        print(f"      hotovo {celkem_ku} k. ú., zbývá {zbyva}"
+              f"   ({cas((datetime.datetime.now() - zacatek).total_seconds())})")
+        if zbyva == 0 or (r["zpracovano_ku"] or 0) == 0:
+            break
+        jen_nove = 1          # další kolo už jen to, co chybí
+    print("      okolí hotové")
+
+
+def krok_karty(conn, sqlalchemy, prepocitat):
+    print("\n[2/5] Karty po vkladech — tohle je ta dlouhá část")
+    jen_nove = 0 if prepocitat else 1
+    celkem = chyb = 0
+    zbyva_minule = None
+    zacatek = datetime.datetime.now()
+    while True:
+        r = conn.execute(sqlalchemy.text(
+            "EXEC dbo.sp_prepocet_karet_davka @jen_nove = :jn, "
+            "@limit = 100000, @max_sekund = 600"),
+            {"jn": jen_nove}).mappings().first()
+        conn.commit()
+        if r is None:
+            break
+        celkem += r["zpracovano"] or 0
+        chyb += r["chyb"] or 0
+        zbyva = r["zbyva"] or 0
+        ubehlo = (datetime.datetime.now() - zacatek).total_seconds()
+        odhad = (f", odhad zbývá {cas(zbyva / (celkem / ubehlo))}"
+                 if celkem and ubehlo > 0 and zbyva else "")
+        print(f"      hotovo {celkem} vkladů, zbývá {zbyva}"
+              f"   ({cas(ubehlo)}{odhad})")
+        if zbyva == 0 or (r["zpracovano"] or 0) == 0:
+            break
+        # Pojistka proti zacyklení: když se počet zbývajících nehne, nemá
+        # smysl kolo opakovat. V noci na 25. 10. 2026 takhle běh devět hodin
+        # dokola přepočítával 138 vkladů, které kartu nemohly dostat.
+        if zbyva_minule is not None and zbyva >= zbyva_minule:
+            print(f"      [!] počet zbývajících se nemění ({zbyva}) — končím, "
+                  f"aby se běh nezacyklil")
+            break
+        zbyva_minule = zbyva
+        jen_nove = 1
+    if chyb:
+        print(f"      [!] {chyb} vkladů se nepodařilo spočítat")
+    bez = r["bez_karty_celkem"] if r is not None and "bez_karty_celkem" in r.keys() else None
+    if bez:
+        print(f"      karty hotové; {bez} vkladů kartu nemá — jejich parcely "
+              f"nejsou v KN_parcel_data")
+    else:
+        print("      karty hotové")
+
+
+def krok_tvar(conn, sqlalchemy, prepocitat):
+    print("\n[3/5] Tvar celku (PP index)")
+    jen_nove = 0 if prepocitat else 1
+    celkem = 0
+    zbyva_minule = None
+    zacatek = datetime.datetime.now()
+    while True:
+        r = conn.execute(sqlalchemy.text(
+            "EXEC dbo.sp_prepocet_karty_tvar @cislo_vkladu = NULL, "
+            "@jen_nove = :jn, @limit = 2000, @max_sekund = 600"),
+            {"jn": jen_nove}).mappings().first()
+        conn.commit()
+        if r is None:
+            break
+        celkem += r["radku_tvaru"] or 0
+        zbyva = r["zbyva"] or 0
+        print(f"      hotovo {celkem} vkladů, zbývá {zbyva}"
+              f"   ({cas((datetime.datetime.now() - zacatek).total_seconds())})")
+        if zbyva == 0 or (r["radku_tvaru"] or 0) == 0:
+            break
+        if zbyva_minule is not None and zbyva >= zbyva_minule:
+            print(f"      [!] počet zbývajících se nemění ({zbyva}) — končím")
+            break
+        zbyva_minule = zbyva
+        jen_nove = 1          # další kola už jen to, co chybí
+    print("      tvar hotový")
+
+
+def krok_mapa(conn, sqlalchemy, prepocitat):
+    print("\n[4/5] Podklad pro mapovou aplikaci")
+    znovu = 1 if prepocitat else 0
+    celkem = 0
+    zacatek = datetime.datetime.now()
+    while True:
+        r = conn.execute(sqlalchemy.text(
+            "EXEC dbo.sp_prepocet_mapy @prepocitat = :zn, @limit_ku = 400, "
+            "@max_sekund = 600"), {"zn": znovu}).mappings().first()
+        conn.commit()
+        if r is None:
+            break
+        celkem += r["zpracovano_ku"] or 0
+        zbyva = r["zbyva_ku"] or 0
+        print(f"      hotovo {celkem} k. ú., zbývá {zbyva}"
+              f"   ({cas((datetime.datetime.now() - zacatek).total_seconds())})")
+        if zbyva == 0 or (r["zpracovano_ku"] or 0) == 0:
+            break
+        znovu = 0          # druhé kolo už jen to, co chybí
+    print("      mapa hotová")
+
+
+def krok_plochy(conn, sqlalchemy, prepocitat):
+    """Registr zdrojů plochy a kontrola posunu desetinné čárky (krok 44).
+    Běží až po mapě — na konci si obnovuje příznaky ve Valuo_mapa, takže
+    její řádky už musí existovat. Je rychlý (jednotky sekund), proto nemá
+    dávkování ani časový strop jako karty."""
+    print("\n[5/5] Registr zdrojů plochy")
+    r = conn.execute(sqlalchemy.text(
+        "EXEC dbo.sp_prepocet_ploch @prepocitat = :zn"),
+        {"zn": 1 if prepocitat else 0}).mappings().first()
+    conn.commit()
+    if r:
+        print(f"      zlomků podílu {r['zlomku_celkem']} "
+              f"(nových {r['novych_zlomku']}), registr {r['radku_registru']} řádků, "
+              f"posun čárky u {r['posun_v_mape']} vkladů   ({cas(r['sekund'])})")
+    print("      registr hotový")
+
+
+def stav(conn, sqlalchemy):
+    r = conn.execute(sqlalchemy.text("""
+        SELECT (SELECT COUNT(DISTINCT kod_ku) FROM dbo.Valuo_karta_okoli) AS ku,
+               (SELECT COUNT(*) FROM dbo.Valuo_karta_okoli) AS parcel_okoli,
+               (SELECT COUNT(DISTINCT cislo_vkladu) FROM dbo.Valuo_karta_parcely) AS karet,
+               (SELECT COUNT(*) FROM dbo.Valuo_karta_vklad) AS tvaru,
+               (SELECT COUNT(*) FROM dbo.Valuo_mapa) AS v_mape,
+               (SELECT COUNT(*) FROM dbo.Valuo_plochy) AS registr,
+               (SELECT COUNT(*) FROM dbo.Valuo_mapa WHERE nalez_plocha_posun = 1) AS posun,
+               (SELECT COUNT(DISTINCT cislo_vkladu) FROM dbo.Valuo_data) AS vkladu
+    """)).mappings().first()
+    print(f"\nStav: okolí {r['parcel_okoli']} parcel v {r['ku']} k. ú. | "
+          f"karty {r['karet']} z {r['vkladu']} vkladů | tvar {r['tvaru']} | "
+          f"mapa {r['v_mape']} | registr ploch {r['registr']} "
+          f"(posun čárky u {r['posun']})")
+
+
+def spust(krok="vse", prepocitat=False):
+    """Pět kroků dopočtu. Volá se z příkazové řádky i z importního skriptu
+    (30_import_valuo.py --dopocty), aby logika byla na jednom místě.
+
+    Všechno je přerušitelné a navazuje: procedury mají vlastní časové stropy
+    a berou si jen to, co ještě chybí. Když to spadne nebo to zavřeš, spusť
+    znovu — nic se nerozbije a nic se nepočítá dvakrát."""
+    import sqlalchemy
+    eng = EX.engine()
+    zacatek = datetime.datetime.now()
+    with eng.connect() as conn:
+        stav(conn, sqlalchemy)
+        if krok in ("okoli", "vse"):
+            krok_okoli(conn, sqlalchemy, prepocitat)
+        if krok in ("karty", "vse"):
+            krok_karty(conn, sqlalchemy, prepocitat)
+        if krok in ("tvar", "vse"):
+            krok_tvar(conn, sqlalchemy, prepocitat)
+        if krok in ("mapa", "vse"):
+            krok_mapa(conn, sqlalchemy, prepocitat)
+        if krok in ("plochy", "vse"):
+            krok_plochy(conn, sqlalchemy, prepocitat)
+        stav(conn, sqlalchemy)
+    print(f"\nCelkem {cas((datetime.datetime.now() - zacatek).total_seconds())}.")
+
+
+def main():
+    ap = argparse.ArgumentParser(description="Naplnění karet vkladu.")
+    ap.add_argument("--krok",
+                    choices=["okoli", "karty", "tvar", "mapa", "plochy", "vse"],
+                    default="vse")
+    ap.add_argument("--prepocitat", action="store_true",
+                    help="počítat znovu i to, co už hotové je")
+    ap.add_argument("--server", default=None)
+    a = ap.parse_args()
+    if a.server:
+        EX.SERVER = a.server
+
+    spust(krok=a.krok, prepocitat=a.prepocitat)
+
+
+if __name__ == "__main__":
+    main()

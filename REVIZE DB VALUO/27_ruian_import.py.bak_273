@@ -1,0 +1,671 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+"""
+27_ruian_import.py — stažení a import technickoekonomických atributů z RÚIAN.
+
+Čte soubory výměnného formátu RÚIAN (VFR) po obcích, vytáhne z nich stavební
+objekty a uloží je do samostatných tabulek. Do Valuo_data nezapisuje nic;
+párování obstarávají pohledy v_RUIAN_budovy a v_RUIAN_jednotky.
+
+Před prvním během spusť 27_ruian_tabulky.sql.
+
+POSTUP
+    python 27_ruian_import.py --seznam-obci            # které obce stáhnout
+    python 27_ruian_import.py --stahni 554782          # jen Praha
+    python 27_ruian_import.py --stahni auto            # všechny obce z databáze
+    python 27_ruian_import.py --ciselnik ciselnik_20251103_ST_UCIS.xml
+    python 27_ruian_import.py --test                   # rozbor, bez zápisu
+    python 27_ruian_import.py --import                 # zápis do databáze
+    python 27_ruian_import.py --parovani               # kontrola napojení
+
+POZNÁMKY K VÝKONU (ověřeno na souboru o velikosti Prahy, 1,05 GB XML)
+    ZIP se nikdy nerozbaluje — XML se čte proudem přímo z archivu.
+    Vrchol paměti 75 MB, průchod 24 s. Naivní parser se stejným souborem
+    vyšplhá na 3,4 GB, protože mu v paměti zůstanou parcely, které jsou
+    v souboru PŘED stavebními objekty.
+
+DVĚ PASTI, KTERÉ TENTO SKRIPT OBCHÁZÍ
+    1. tag='{*}StavebniObjekt' chytí i <ami:StavebniObjekt>, což je pouhý
+       odkaz uvnitř adresního místa: <ami:StavebniObjekt><soi:Kod>…</soi:Kod>.
+       Na testu to dalo 123 584 falešných záznamů navíc. Proto se používá
+       přesný jmenný prostor vf:.
+    2. IdentifikacniParcela nese <pai:Id>, nikoli <pai:Kod>.
+"""
+
+import argparse
+import csv
+import gzip
+import io
+import os
+import re
+import sys
+import time
+import zipfile
+from collections import Counter
+from datetime import date, timedelta
+
+try:
+    from lxml import etree
+except ImportError:
+    sys.exit("Chybí lxml:  pip install lxml")
+
+VERZE = "27.3 (2026-10-23)"
+# 27.1 první verze
+# 27.2 bez konfigurace (složka skriptu, Windows ověření), přepínač --varianta
+# 27.3 kontrola násobnosti párování v --parovani; patří k 27a_oprava_jednotek.sql
+
+# ---------------------------------------------------------------------------
+# KONFIGURACE
+# ---------------------------------------------------------------------------
+
+# Složka se soubory VFR. Výchozí = složka, kde leží tenhle skript, takže
+# stačí nasypat stažené .zip vedle něj. Jinou zadáš přepínačem --slozka.
+SLOZKA = os.path.dirname(os.path.abspath(__file__))
+
+# Připojení k databázi. Nic se nevyplňuje: ovladač se najde sám mezi
+# nainstalovanými a přihlašuje se účtem Windows, pod kterým skript běží.
+# Jiný server zadáš přepínačem --server.
+SERVER = "localhost"
+DATABAZE = "VALUO"
+
+# Základní datová sada bez hranic. Pro Prahu 45,7 MB v ZIPu proti 1 GB po
+# rozbalení — rozbalovat ale není potřeba, viz hlavička.
+VARIANTA = "UZSZ"
+BASE = "https://vdp.cuzk.gov.cz/vymenny_format/soucasna"
+HLAVICKY = {"User-Agent": "Mozilla/5.0 (VALUO RUIAN import)"}
+
+VF = "{urn:cz:isvs:ruian:schemas:VymennyFormatTypy:v1}"
+SOI = "{urn:cz:isvs:ruian:schemas:StavObjIntTypy:v1}"
+
+# Prvky, které se při průchodu průběžně uvolňují. Bez Parcely a AdresniMisto
+# zůstanou v paměti celé a u Prahy to znamená několik GB.
+UKLIZET = (VF + "StavebniObjekt", VF + "Parcela",
+           VF + "AdresniMisto", VF + "Ulice")
+
+# sloupec v databázi -> název prvku v XML
+MAPA = [
+    ("kod_so",                   "Kod"),
+    ("typ_so_kod",               "TypStavebnihoObjektuKod"),
+    ("zpusob_vyuziti_kod",       "ZpusobVyuzitiKod"),
+    ("dokonceni",                "Dokonceni"),
+    ("iskn_budova_id",           "IsknBudovaId"),
+    ("pocet_bytu",               "PocetBytu"),
+    ("pocet_podlazi",            "PocetPodlazi"),
+    ("zastavena_plocha",         "ZastavenaPlocha"),
+    ("podlahova_plocha",         "PodlahovaPlocha"),
+    ("obestaveny_prostor",       "ObestavenyProstor"),
+    ("druh_konstrukce_kod",      "DruhKonstrukceKod"),
+    ("zpusob_vytapeni_kod",      "ZpusobVytapeniKod"),
+    ("vybaveni_vytahem_kod",     "VybaveniVytahemKod"),
+    ("pripojeni_kanalizace_kod", "PripojeniKanalizaceKod"),
+    ("pripojeni_plyn_kod",       "PripojeniPlynKod"),
+    ("pripojeni_vodovod_kod",    "PripojeniVodovodKod"),
+    ("plati_od",                 "PlatiOd"),
+]
+SLOUPCE = [s for s, _ in MAPA] + ["parcela_id", "cast_obce_kod",
+                                  "obec_kod", "soubor_datum"]
+DATUMY = {"dokonceni", "plati_od"}
+
+CISELNIKY = {          # blok ve VFR -> název v CIS_RUIAN
+    "DruhyKonstrukce": "DruhKonstrukce",
+    "PripojeniKanalizace": "PripojeniKanalizace",
+    "PripojeniPlynu": "PripojeniPlynu",
+    "PripojeniVody": "PripojeniVody",
+    "VybaveniVytahu": "VybaveniVytahem",
+    "ZpusobyVytapeni": "ZpusobVytapeni",
+    "ZpusobyVyuzitiObjektu": "ZpusobVyuzitiObjektu",
+    "TypyStavebnichObjektu": "TypStavebnihoObjektu",
+}
+
+VZOR = re.compile(r"^(\d{8})_OB_(\d+)_([A-Z]{4})\.xml(\.zip|\.gz)?$", re.I)
+
+
+# ---------------------------------------------------------------------------
+# POMOCNÉ
+# ---------------------------------------------------------------------------
+
+def cele(x):
+    if x is None:
+        return None
+    s = str(x).strip()
+    if not s:
+        return None
+    try:
+        return int(float(s.replace(" ", "").replace(",", ".")))
+    except ValueError:
+        return None
+
+
+def datum(x):
+    return x[:10] if x else None
+
+
+def otevri(cesta):
+    """Vrátí binární proud XML. ZIP se NEROZBALUJE na disk."""
+    n = cesta.lower()
+    if n.endswith(".zip"):
+        z = zipfile.ZipFile(cesta)
+        xml = [p for p in z.namelist() if p.lower().endswith(".xml")]
+        if not xml:
+            raise ValueError(f"{cesta}: v archivu není XML")
+        return z.open(xml[0]), z
+    if n.endswith(".gz"):
+        return gzip.open(cesta, "rb"), None
+    return open(cesta, "rb"), None
+
+
+_SERVER = None   # nastaví main() podle --server
+
+
+def db():
+    """Připojení přes Windows ověření. Ovladač se vybere z nainstalovaných,
+    od nejnovějšího — není co konfigurovat."""
+    try:
+        import pyodbc
+    except ImportError:
+        sys.exit("Chybí pyodbc:  pip install pyodbc")
+
+    ovladace = [d for d in pyodbc.drivers() if "SQL Server" in d]
+    if not ovladace:
+        sys.exit("Není nainstalovaný žádný ovladač ODBC pro SQL Server.\n"
+                 "Stáhni 'ODBC Driver 18 for SQL Server' z webu Microsoftu.")
+    # nejdřív číslované verze od nejvyšší, teprve pak starý 'SQL Server'
+    def poradi(d):
+        c = re.search(r"(\d+)", d)
+        return (1 if c else 0, int(c.group(1)) if c else 0)
+    ovladace.sort(key=poradi, reverse=True)
+
+    posledni = None
+    for ovl in ovladace:
+        cs = (f"DRIVER={{{ovl}}};SERVER={_SERVER or SERVER};"
+              f"DATABASE={DATABAZE};Trusted_Connection=yes;"
+              "TrustServerCertificate=yes;")
+        try:
+            return pyodbc.connect(cs, autocommit=False)
+        except Exception as e:
+            posledni = f"{ovl}: {str(e)[:150]}"
+    sys.exit(f"K databázi {DATABAZE} na {_SERVER or SERVER} se nelze připojit.\n"
+             f"  {posledni}\n"
+             f"  Jiný server zadáš přepínačem --server, např. --server RYZEN9")
+
+
+# ---------------------------------------------------------------------------
+# PARSOVÁNÍ
+# ---------------------------------------------------------------------------
+
+def parsuj(cesta, obec_kod, soubor_datum, hlas=True):
+    """Streamové čtení jednoho souboru VFR.
+
+    Vrací (radky, cisla_domovni, nalezy). Paměť zůstává konstantní bez
+    ohledu na velikost souboru.
+    """
+    radky, cisla = [], []
+    nalezy = Counter()
+    t0 = time.time()
+    proud, archiv = otevri(cesta)
+    try:
+        ctx = etree.iterparse(proud, events=("end",), tag=UKLIZET,
+                              recover=True, huge_tree=True)
+        for _, el in ctx:
+            if el.tag == VF + "StavebniObjekt":
+                r = {}
+                for sloupec, prvek in MAPA:
+                    e = el.find(SOI + prvek)
+                    txt = e.text.strip() if e is not None and e.text else None
+                    r[sloupec] = datum(txt) if sloupec in DATUMY else cele(txt)
+
+                # IdentifikacniParcela nese pai:Id, ne Kod
+                pid = el.find(SOI + "IdentifikacniParcela/{*}Id")
+                if pid is None:
+                    pid = el.find(SOI + "IdentifikacniParcela/{*}Kod")
+                r["parcela_id"] = cele(pid.text) if pid is not None else None
+
+                co = el.find(SOI + "CastObce/{*}Kod")
+                r["cast_obce_kod"] = cele(co.text) if co is not None else None
+                r["obec_kod"] = obec_kod
+                r["soubor_datum"] = soubor_datum
+
+                if r["kod_so"] is not None:
+                    radky.append(r)
+                    for cd in el.iter("{*}CisloDomovni"):
+                        n = cele(cd.text)
+                        if n is not None:
+                            cisla.append((r["kod_so"], n, obec_kod))
+                    for s in ("dokonceni", "zastavena_plocha", "podlahova_plocha",
+                              "obestaveny_prostor", "pocet_podlazi", "pocet_bytu",
+                              "druh_konstrukce_kod", "parcela_id"):
+                        if r[s] is not None:
+                            nalezy[s] += 1
+                else:
+                    nalezy["bez_kodu"] += 1
+
+            # uvolnění: platí pro VŠECHNY sledované prvky, ne jen budovy
+            el.clear()
+            p = el.getparent()
+            while p is not None and p.getprevious() is not None:
+                del p.getparent()[0]
+                p = p.getparent()
+    finally:
+        proud.close()
+        if archiv:
+            archiv.close()
+
+    if hlas:
+        print(f"    {len(radky):7} objektů, {len(cisla):7} čísel domovních"
+              f"   za {time.time() - t0:5.1f} s")
+    return radky, cisla, nalezy
+
+
+def soubory(slozka, jen_obec=None, varianta=None):
+    """Pro každou obec jeden soubor: nejnovější datum, při shodě data
+    přednost zvolené variantě.
+
+    Leží-li ve složce pro touž obec a totéž datum víc variant (třeba UZSZ
+    i UKSH), skript to oznámí a řekne, kterou bere — jinak by volba
+    závisela na pořadí souborů ve složce, což je tichá past.
+    """
+    if not os.path.isdir(slozka):
+        sys.exit(f"Složka neexistuje: {slozka}")
+    chtena = (varianta or VARIANTA).upper()
+    vse = {}
+    for f in sorted(os.listdir(slozka)):
+        m = VZOR.match(f)
+        if not m:
+            continue
+        d, kod, var, _ = m.groups()
+        kod = int(kod)
+        if jen_obec and kod != jen_obec:
+            continue
+        vse.setdefault(kod, []).append((d, var.upper(), os.path.join(slozka, f), f))
+
+    nej = {}
+    for kod, sez in vse.items():
+        if varianta:                       # vynucená varianta
+            sez = [x for x in sez if x[1] == chtena]
+            if not sez:
+                continue
+        sez.sort(key=lambda x: (x[0], x[1] == chtena, x[1]), reverse=True)
+        d, var, cesta, nazev = sez[0]
+        jine = sorted({x[1] for x in vse[kod] if x[0] == d})
+        if len(jine) > 1 and not varianta:
+            print(f"  obec {kod}: ve složce jsou varianty {', '.join(jine)} "
+                  f"→ beru {var}   (jinou vynutíš přepínačem --varianta)")
+        nej[kod] = (d, cesta, nazev)
+    return nej
+
+
+# ---------------------------------------------------------------------------
+# STAHOVÁNÍ
+# ---------------------------------------------------------------------------
+
+def najdi_datum(obec, dnu=95):
+    """Soubory se generují jednou měsíčně. Datum se zjistí jednou a platí
+    pak pro všechny obce."""
+    from urllib.error import HTTPError, URLError
+    from urllib.request import Request, urlopen
+    for i in range(dnu):
+        d = (date.today() - timedelta(days=i)).strftime("%Y%m%d")
+        u = f"{BASE}/{d}_OB_{obec}_{VARIANTA}.xml.zip"
+        try:
+            r = urlopen(Request(u, headers=HLAVICKY, method="HEAD"), timeout=60)
+            r.close()
+            return d
+        except HTTPError as e:
+            if e.code != 404:
+                print(f"  {u} -> HTTP {e.code}")
+        except URLError as e:
+            print(f"  {u} -> {e.reason}")
+    return None
+
+
+def stahni(obce, slozka):
+    from urllib.error import HTTPError
+    from urllib.request import Request, urlopen
+    os.makedirs(slozka, exist_ok=True)
+
+    print(f"Hledám datum nejnovějšího souboru (obec {obce[0]})…")
+    d = najdi_datum(obce[0])
+    if not d:
+        sys.exit("Soubor se nepodařilo najít. Ověř kód obce, nebo si "
+                 "soubor stáhni ručně z https://vdp.cuzk.cz/vdp/ruian/vymennyformat")
+    print(f"Datum souborů: {d}\n")
+
+    ok = chyby = presk = 0
+    for i, kod in enumerate(obce, 1):
+        nazev = f"{d}_OB_{kod}_{VARIANTA}.xml.zip"
+        cil = os.path.join(slozka, nazev)
+        if os.path.exists(cil):
+            print(f"[{i}/{len(obce)}] {nazev} — už je")
+            presk += 1
+            continue
+        u = f"{BASE}/{nazev}"
+        try:
+            t0 = time.time()
+            with urlopen(Request(u, headers=HLAVICKY), timeout=900) as r, \
+                    open(cil + ".tmp", "wb") as f:
+                while True:
+                    blok = r.read(1 << 20)
+                    if not blok:
+                        break
+                    f.write(blok)
+            os.replace(cil + ".tmp", cil)
+            mb = os.path.getsize(cil) / 1e6
+            print(f"[{i}/{len(obce)}] {nazev}  {mb:7.1f} MB  "
+                  f"za {time.time() - t0:.0f} s")
+            ok += 1
+        except HTTPError as e:
+            print(f"[{i}/{len(obce)}] {nazev} — HTTP {e.code}")
+            if os.path.exists(cil + ".tmp"):
+                os.remove(cil + ".tmp")
+            chyby += 1
+        except Exception as e:
+            print(f"[{i}/{len(obce)}] {nazev} — {e}")
+            if os.path.exists(cil + ".tmp"):
+                os.remove(cil + ".tmp")
+            chyby += 1
+    print(f"\nStaženo {ok}, přeskočeno {presk}, chyb {chyby}.")
+
+
+def obce_z_databaze():
+    """Obce, kde mám budovu nebo jednotku. U obcí jen s pozemky nemá
+    RÚIAN co nabídnout."""
+    with db() as c:
+        return [(r[0], r[1], r[2]) for r in c.cursor().execute("""
+            SELECT ku.obec_kod, MIN(ku.obec_nazev), COUNT(DISTINCT v.id)
+            FROM dbo.Valuo_data v
+            JOIN dbo.KN_parcel_data p ON p.id_valuo = v.id
+            JOIN dbo.CIS_katastralni_uzemi ku ON ku.ku_kod = p.kod_ku
+            WHERE v.nemovitost IN ('budova','jednotka')
+            GROUP BY ku.obec_kod
+            ORDER BY COUNT(DISTINCT v.id) DESC""").fetchall()]
+
+
+# ---------------------------------------------------------------------------
+# ZÁPIS DO DATABÁZE
+# ---------------------------------------------------------------------------
+
+def zapis(con, radky, cisla, obec_kod, obec_nazev, soubor_datum, soubor_nazev):
+    """Obec se přepíše celá — co v novém souboru není, zmizí i tady."""
+    cur = con.cursor()
+    cur.fast_executemany = True
+
+    cur.execute("DELETE FROM dbo.RUIAN_so_cisla_domovni WHERE obec_kod = ?", obec_kod)
+    cur.execute("DELETE FROM dbo.RUIAN_stavebni_objekty WHERE obec_kod = ?", obec_kod)
+
+    if radky:
+        sl = ",".join(SLOUPCE)
+        ot = ",".join("?" * len(SLOUPCE))
+        cur.executemany(
+            f"INSERT INTO dbo.RUIAN_stavebni_objekty ({sl}) VALUES ({ot})",
+            [tuple(r[s] for s in SLOUPCE) for r in radky])
+    if cisla:
+        cur.executemany(
+            "INSERT INTO dbo.RUIAN_so_cisla_domovni "
+            "(kod_so, cislo_domovni, obec_kod) VALUES (?,?,?)",
+            sorted(set(cisla)))
+
+    cur.execute("""
+        MERGE dbo.RUIAN_obce_stav AS c
+        USING (SELECT ? AS obec_kod) AS n ON c.obec_kod = n.obec_kod
+        WHEN MATCHED THEN UPDATE SET obec_nazev = ?, soubor_datum = ?,
+             soubor_nazev = ?, pocet_so = ?, nacteno = SYSDATETIME()
+        WHEN NOT MATCHED THEN
+             INSERT (obec_kod, obec_nazev, soubor_datum, soubor_nazev, pocet_so)
+             VALUES (?,?,?,?,?);""",
+        obec_kod, obec_nazev, soubor_datum, soubor_nazev, len(radky),
+        obec_kod, obec_nazev, soubor_datum, soubor_nazev, len(radky))
+    con.commit()
+
+
+def ciselniky(cesta):
+    """Načte ST_UCIS do CIS_RUIAN. Stačí jednou; soubor je jeden za ČR."""
+    if not os.path.exists(cesta):
+        sys.exit(f"Číselník nenalezen: {cesta}")
+    root = etree.parse(cesta).getroot()
+    davka = []
+    for blok, nazev in CISELNIKY.items():
+        n = 0
+        for polozka in root.findall(f".//{{*}}{blok}/*"):
+            kod = cele(polozka.findtext("./{*}Kod"))
+            txt = polozka.findtext("./{*}Nazev")
+            if kod is None or not txt:
+                continue
+            davka.append((nazev, kod, txt.strip(),
+                          datum(polozka.findtext("./{*}PlatiOd")),
+                          datum(polozka.findtext("./{*}PlatiDo"))))
+            n += 1
+        print(f"  {nazev:24} {n:4}")
+    with db() as c:
+        cur = c.cursor()
+        cur.fast_executemany = True
+        cur.execute("DELETE FROM dbo.CIS_RUIAN")
+        cur.executemany(
+            "INSERT INTO dbo.CIS_RUIAN "
+            "(ciselnik, kod, nazev, platnost_od, platnost_do) VALUES (?,?,?,?,?)",
+            davka)
+        c.commit()
+    print(f"\nZapsáno {len(davka)} položek do CIS_RUIAN.")
+
+
+# ---------------------------------------------------------------------------
+# REŽIMY
+# ---------------------------------------------------------------------------
+
+def rozbor(radky, nalezy):
+    n = len(radky)
+    if not n:
+        print("    žádné objekty")
+        return
+    print(f"\n  VYPLNĚNOST ({n} objektů):")
+    for s in ("dokonceni", "zastavena_plocha", "obestaveny_prostor",
+              "podlahova_plocha", "pocet_podlazi", "pocet_bytu",
+              "druh_konstrukce_kod", "parcela_id"):
+        v = nalezy.get(s, 0)
+        print(f"    {s:22} {v:7}  ({v / n * 100:5.1f} %)")
+
+    pod = [r for r in radky
+           if r["podlahova_plocha"] and r["zastavena_plocha"]
+           and r["pocet_podlazi"] and r["zastavena_plocha"] > 0
+           and r["pocet_podlazi"] > 0]
+    if pod:
+        p = sorted(r["podlahova_plocha"] / (r["zastavena_plocha"] * r["pocet_podlazi"])
+                   for r in pod)
+        nizke = sum(1 for x in p if x < 0.5)
+        print(f"\n  PODLAHOVÁ PLOCHA — poměr k zastavěné × podlaží ({len(p)} objektů):")
+        print(f"    medián {p[len(p)//2]:.2f}   P10 {p[len(p)//10]:.2f}   "
+              f"P90 {p[len(p)*9//10]:.2f}")
+        print(f"    pod 0,5 (nevěrohodně nízká): {nizke} ({nizke/len(p)*100:.1f} %)")
+
+    op = [r for r in radky
+          if r["obestaveny_prostor"] and r["zastavena_plocha"]
+          and r["pocet_podlazi"] and r["zastavena_plocha"] > 0
+          and r["pocet_podlazi"] > 0]
+    if op:
+        q = sorted(r["obestaveny_prostor"] / (r["zastavena_plocha"] * r["pocet_podlazi"] * 3)
+                   for r in op)
+        print(f"\n  OBESTAVĚNÝ PROSTOR — poměr k zastavěné × podlaží × 3 m ({len(q)}):")
+        print(f"    medián {q[len(q)//2]:.2f}   P10 {q[len(q)//10]:.2f}   "
+              f"P90 {q[len(q)*9//10]:.2f}")
+
+    roky = [int(r["dokonceni"][:4]) for r in radky if r["dokonceni"]]
+    if roky:
+        roky.sort()
+        print(f"\n  ROK DOKONČENÍ: {len(roky)} objektů, medián {roky[len(roky)//2]}, "
+              f"min {roky[0]}, max {roky[-1]}")
+
+
+def parovani():
+    """Kolik nemovitostí z Valua najde svůj stavební objekt."""
+    dotazy = [
+        ("obcí načteno", "SELECT COUNT(*) FROM dbo.RUIAN_obce_stav"),
+        ("stavebních objektů", "SELECT COUNT(*) FROM dbo.RUIAN_stavebni_objekty"),
+        ("z toho s parcelou", "SELECT COUNT(*) FROM dbo.RUIAN_stavebni_objekty WHERE parcela_id IS NOT NULL"),
+        ("budov Valuo spárováno", "SELECT COUNT(DISTINCT valuo_id) FROM dbo.v_RUIAN_budovy"),
+        ("  z toho s rokem dokončení", "SELECT COUNT(DISTINCT valuo_id) FROM dbo.v_RUIAN_budovy WHERE ruian_dokonceni IS NOT NULL"),
+        ("  z toho s obestavěným prostorem", "SELECT COUNT(DISTINCT valuo_id) FROM dbo.v_RUIAN_budovy WHERE ruian_obestaveny_prostor IS NOT NULL"),
+        ("  z toho s podlahovou plochou", "SELECT COUNT(DISTINCT valuo_id) FROM dbo.v_RUIAN_budovy WHERE ruian_podlahova_plocha IS NOT NULL"),
+        ("  z toho podlahová podezřelá", "SELECT COUNT(DISTINCT valuo_id) FROM dbo.v_RUIAN_budovy WHERE ruian_podlahova_podezrela = 1"),
+        ("jednotek Valuo spárováno", "SELECT COUNT(DISTINCT valuo_id) FROM dbo.v_RUIAN_jednotky"),
+        ("  z toho s rokem dokončení domu", "SELECT COUNT(DISTINCT valuo_id) FROM dbo.v_RUIAN_jednotky WHERE dum_dokonceni IS NOT NULL"),
+        ("  z toho s druhem konstrukce", "SELECT COUNT(DISTINCT valuo_id) FROM dbo.v_RUIAN_jednotky WHERE druh_konstrukce_kod IS NOT NULL"),
+    ]
+
+    # Průměr objektů na jednu nemovitost. Pod 1,1 je v pořádku; vyšší
+    # hodnota znamená, že se párování někde rozmnožilo — přesně to se
+    # stalo pohledu v_RUIAN_jednotky před opravou 27a (36,3 objektu
+    # na jednotku, protože se pároval podle čísla popisného v obci).
+    nasobnost = [
+        ("násobnost budov", "v_RUIAN_budovy"),
+        ("násobnost jednotek", "v_RUIAN_jednotky"),
+    ]
+    with db() as c:
+        cur = c.cursor()
+        print("KONTROLA NAPOJENÍ\n")
+        for popis, q in dotazy:
+            try:
+                print(f"  {popis:36} {cur.execute(q).fetchval():8}")
+            except Exception as e:
+                print(f"  {popis:36} chyba: {str(e)[:60]}")
+
+        print()
+        for popis, pohled in nasobnost:
+            try:
+                n = cur.execute(
+                    f"SELECT CAST(COUNT(*) * 1.0 / NULLIF(COUNT(DISTINCT valuo_id),0) "
+                    f"AS decimal(6,2)) FROM dbo.{pohled}").fetchval()
+                vlajka = "" if n is None or n <= 1.1 else "   <-- POZOR, parovani se rozmnozilo"
+                print(f"  {popis:36} {n:8}{vlajka}")
+            except Exception as e:
+                print(f"  {popis:36} chyba: {str(e)[:60]}")
+
+        print("\n  Kandidáti na doplnění (budovy bez podlahové plochy od Valua):")
+        try:
+            for r in cur.execute("""
+                SELECT TOP 10 b.typ,
+                       COUNT(DISTINCT b.valuo_id) AS sparovano,
+                       SUM(CASE WHEN b.ruian_obestaveny_prostor IS NOT NULL THEN 1 ELSE 0 END) AS s_OP,
+                       SUM(CASE WHEN b.ruian_podlahova_plocha IS NOT NULL THEN 1 ELSE 0 END) AS s_PP,
+                       SUM(CASE WHEN b.ruian_dokonceni IS NOT NULL THEN 1 ELSE 0 END) AS s_rokem
+                FROM dbo.v_RUIAN_budovy b
+                WHERE b.typ_plochy_valuo IS NULL OR b.typ_plochy_valuo <> 'Podlahová plocha'
+                GROUP BY b.typ ORDER BY COUNT(DISTINCT b.valuo_id) DESC""").fetchall():
+                print(f"    {r[0][:34]:34} spárováno {r[1]:5}  "
+                      f"OP {r[2]:5}  PP {r[3]:5}  rok {r[4]:5}")
+        except Exception as e:
+            print(f"    chyba: {str(e)[:80]}")
+
+
+# ---------------------------------------------------------------------------
+# MAIN
+# ---------------------------------------------------------------------------
+
+def main():
+    p = argparse.ArgumentParser(description=__doc__,
+                                formatter_class=argparse.RawDescriptionHelpFormatter)
+    p.add_argument("--slozka", default=SLOZKA,
+                   help="složka se soubory VFR (výchozí: složka skriptu)")
+    p.add_argument("--server", default=SERVER,
+                   help="SQL server (výchozí: %s)" % SERVER)
+    p.add_argument("--seznam-obci", action="store_true",
+                   help="vypíše obce z databáze, kde má RÚIAN co nabídnout")
+    p.add_argument("--stahni", metavar="KODY",
+                   help="'auto', nebo kódy obcí oddělené čárkou")
+    p.add_argument("--ciselnik", metavar="XML", help="načte ST_UCIS do CIS_RUIAN")
+    p.add_argument("--test", action="store_true", help="rozbor bez zápisu")
+    p.add_argument("--import", dest="imp", action="store_true", help="zápis do databáze")
+    p.add_argument("--parovani", action="store_true", help="kontrola napojení")
+    p.add_argument("--obec", type=int, help="omezit na jednu obec")
+    p.add_argument("--varianta", metavar="UZSZ|UKSH",
+                   help="vynutit variantu souboru (výchozí: %s)" % VARIANTA)
+    p.add_argument("--csv", metavar="SOUBOR", help="uložit rozbor do CSV")
+    p.add_argument("--verze", action="version", version=f"27_ruian_import {VERZE}")
+    a = p.parse_args()
+
+    print(f"27_ruian_import {VERZE}\n")
+
+    global _SERVER
+    _SERVER = a.server
+
+    if a.seznam_obci:
+        o = obce_z_databaze()
+        print(f"{len(o)} obcí s budovou nebo jednotkou "
+              f"({sum(x[2] for x in o)} nemovitostí):\n")
+        for kod, nazev, n in o[:40]:
+            print(f"  {kod}  {nazev[:34]:34} {n:6}")
+        if len(o) > 40:
+            print(f"  … a dalších {len(o) - 40}")
+        print(f"\nStažení všech:  python {os.path.basename(__file__)} --stahni auto")
+        return
+
+    if a.stahni:
+        if a.stahni.strip().lower() == "auto":
+            obce = [x[0] for x in obce_z_databaze()]
+            print(f"{len(obce)} obcí z databáze.\n")
+        else:
+            obce = [int(x) for x in a.stahni.replace(" ", "").split(",") if x]
+        stahni(obce, a.slozka)
+        return
+
+    if a.ciselnik:
+        ciselniky(a.ciselnik)
+        return
+
+    if a.parovani:
+        parovani()
+        return
+
+    if not (a.test or a.imp):
+        p.error("zadej --test, --import, --stahni, --ciselnik, "
+                "--parovani nebo --seznam-obci")
+
+    nalezene = soubory(a.slozka, a.obec, a.varianta)
+    if not nalezene:
+        sys.exit(f"Ve složce nejsou soubory VFR: {a.slozka}")
+
+    nazvy = {}
+    if a.imp:
+        with db() as c:
+            nazvy = {r[0]: r[1] for r in c.cursor().execute(
+                "SELECT obec_kod, MIN(obec_nazev) FROM dbo.CIS_katastralni_uzemi "
+                "GROUP BY obec_kod").fetchall()}
+
+    print(f"{'ROZBOR (bez zápisu)' if a.test else 'IMPORT DO DATABÁZE'} — "
+          f"{len(nalezene)} obcí\n")
+    con = db() if a.imp else None
+    celkem = Counter()
+    vsechny = []
+    try:
+        for i, (kod, (d, cesta, nazev)) in enumerate(sorted(nalezene.items()), 1):
+            mb = os.path.getsize(cesta) / 1e6
+            print(f"[{i}/{len(nalezene)}] obec {kod}  {nazev}  ({mb:.1f} MB)")
+            radky, cisla, nalezy = parsuj(
+                cesta, kod, f"{d[:4]}-{d[4:6]}-{d[6:]}")
+            celkem.update(nalezy)
+            celkem["objektu"] += len(radky)
+            if a.imp:
+                zapis(con, radky, cisla, kod, nazvy.get(kod),
+                      f"{d[:4]}-{d[4:6]}-{d[6:]}", nazev)
+                print("    zapsáno")
+            else:
+                vsechny.extend(radky)
+    finally:
+        if con:
+            con.close()
+
+    if a.test:
+        print(f"\n{'=' * 64}")
+        rozbor(vsechny, celkem)
+        if a.csv:
+            with open(a.csv, "w", newline="", encoding="utf-8-sig") as f:
+                w = csv.DictWriter(f, fieldnames=SLOUPCE, delimiter=";")
+                w.writeheader()
+                w.writerows(vsechny)
+            print(f"\n  CSV: {os.path.abspath(a.csv)}")
+    else:
+        print(f"\nHotovo: {celkem['objektu']} stavebních objektů.")
+        print("Kontrola napojení:  python "
+              f"{os.path.basename(__file__)} --parovani")
+
+
+if __name__ == "__main__":
+    main()

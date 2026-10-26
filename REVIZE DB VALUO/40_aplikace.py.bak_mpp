@@ -1,0 +1,1987 @@
+# -*- coding: utf-8 -*-
+"""
+40_aplikace.py — mapová aplikace nad databází vkladů
+====================================================
+Databáze: VALUO        Krok: 40        Datum: 24. 10. 2026
+
+K čemu to je
+------------
+Místní webová aplikace: mapa všech vkladů v databázi, filtr podle druhu
+nemovitosti, barevné odlišení jednotkových cen, karta po kliknutí,
+srovnávací soubor vybraných vzorků a jeho export do jednoho dokumentu Wordu.
+
+Je to nástavba nad tím, co už existuje:
+    35_export_word.py  — datová vrstva a export do Wordu
+    37_karta_html.py   — vykreslení karty vkladu
+    39_mapa_data.sql   — tabulka Valuo_mapa, ze které mapa čte
+
+Spuštění
+--------
+    python 40_aplikace.py
+    python 40_aplikace.py --port 8080 --bez-prohlizece
+
+Pak http://localhost:8000/.
+
+Předpoklad
+----------
+Naplněná Valuo_mapa:
+    python 38_prepocty.py            # karty po vkladech, ta dlouhá část
+    EXEC dbo.sp_prepocet_mapy        # nebo python 38_prepocty.py --krok mapa
+
+Bez toho je mapa prázdná. Aplikace to na úvodní obrazovce napíše.
+
+Proč vlastní server a ne jen soubor
+-----------------------------------
+Prohlížeč sám na SQL Server nedosáhne a soubor otevřený přes file:// má
+zakázané volání cizích serverů, takže by se nenačetly ani mapové vrstvy.
+Server tady drží spojení do databáze, odpovídá na dotazy mapy a umí
+spustit export do Wordu — tedy i to tlačítko Export, které ve statické
+kartě chybělo.
+
+Stav rozpracovanosti
+--------------------
+První verze. Hotové: mapa, vrstvy, filtr druhu, barevná škála cen, rozpad
+bytového domu na jednotky, karta, srovnávací soubor, export do Wordu.
+Zatím chybí: poznámky k nemovitostem, kreslení polygonů parcel přímo
+v přehledové mapě (zatím jen body), hledání podle adresy.
+
+Závislosti: jen standardní knihovna plus to, co už mají 35 a 37.
+"""
+
+import argparse
+import datetime
+import decimal
+import importlib.util
+import io
+import json
+import os
+import re
+import sys
+import threading
+import webbrowser
+from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+from urllib.parse import urlparse, parse_qs, unquote
+
+ZDE = os.path.dirname(os.path.abspath(__file__))
+
+
+def _nacti(jmeno, nazev_modulu):
+    cesta = os.path.join(ZDE, jmeno)
+    if not os.path.exists(cesta):
+        raise SystemExit(f"Vedle tohoto skriptu chybí {jmeno}.")
+    spec = importlib.util.spec_from_file_location(nazev_modulu, cesta)
+    modul = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(modul)
+    return modul
+
+
+sys.argv_puvodni, sys.argv = sys.argv, [sys.argv[0]]   # importované skripty mají vlastní argparse
+EX = _nacti("35_export_word.py", "export_word")
+K37 = _nacti("37_karta_html.py", "karta_html")
+sys.argv = sys.argv_puvodni
+
+# -----------------------------------------------------------------------------
+# 1. Číselníky a popisky
+# -----------------------------------------------------------------------------
+
+KATEGORIE = [
+    ("byt",           "Byty"),
+    ("rodinny_dum",   "Rodinné domy"),
+    ("bytovy_dum",    "Bytové domy"),
+    ("pozemek",       "Pozemky"),
+    ("jednotka_jina", "Nebytové jednotky"),
+    ("jine",          "Ostatní stavby"),
+]
+NAZVY_KATEGORII = dict(KATEGORIE)
+
+# Zelená = nejlevnější, červená = nejdražší. Pět stupňů podle kvintilů
+# v rámci kategorie — míchat Kč/m² bytu s Kč/m² orné půdy nedává smysl.
+SKALA = ["#1a9850", "#a6d96a", "#fee08b", "#f46d43", "#d73027"]
+BEZ_CENY = "#9e9e9e"
+
+# -----------------------------------------------------------------------------
+# 2. Dotazy do databáze
+# -----------------------------------------------------------------------------
+
+SQL_BODY = """
+SELECT TOP (:limit)
+       m.cislo_vkladu, m.lat, m.lon, m.shluk_id, m.kategorie, m.druh,
+       m.jednotka_oznaceni, m.adresa, m.kat_uzemi, m.obec, m.rok,
+       m.cena_Kc, m.cena_m2, m.zaklad_ceny, m.jc_orientacni, m.plocha,
+       m.parcel_celkem, m.ma_kartu
+FROM dbo.Valuo_mapa m
+LEFT JOIN dbo.Valuo_vklad_rucne r ON r.cislo_vkladu = m.cislo_vkladu
+WHERE m.lat BETWEEN :jih AND :sever
+  AND m.lon BETWEEN :zapad AND :vychod
+  AND (:kat = '' OR m.kategorie = :kat)
+  AND (:rok_od IS NULL OR m.rok >= :rok_od)
+  AND (:bez_ceny = 1 OR m.cena_m2 IS NOT NULL)
+  /* Co vklad obsahuje — tři nezávislé příznaky. Vklad s domem,
+     garáží a zahradou vyhoví budově i parcele; prázdný výběr
+     neomezuje nic. */
+  AND (:obs_vse = 1
+       OR (:obs_budova = 1 AND m.ma_budovu = 1)
+       OR (:obs_jednotka = 1 AND m.ma_jednotku = 1)
+       OR (:obs_parcela = 1 AND m.ma_parcelu = 1))
+  AND (:druh = '' OR m.druh = :druh)
+  AND (:konstrukce = '' OR m.konstrukce = :konstrukce)
+  AND (:stavba_od IS NULL OR m.rok_stavby >= :stavba_od)
+  AND (:stavba_do IS NULL OR m.rok_stavby <= :stavba_do)
+  /* Vzorky, které znalec označil za nepoužitelné, se ve výchozím
+     stavu nezobrazují — do porovnání stejně nepatří. */
+  AND (:nepouzitelne = 1 OR ISNULL(r.pouzitelnost, '') <> 'nepouzitelny')
+  /* Jen k doplnění: co ještě čeká na znalcovo rozhodnutí. */
+  AND (:doplnit = ''
+       OR (:doplnit = 'plocha' AND r.plocha_rucne IS NULL
+           AND (m.cena_m2 IS NULL OR m.nalez_plocha_cely_dum = 1))
+       OR (:doplnit = 'pouzitelnost' AND r.pouzitelnost IS NULL)
+       OR (:doplnit = 'nalez' AND m.nalez_plocha_cely_dum = 1
+           AND r.cislo_vkladu IS NULL)
+       OR (:doplnit = 'skala' AND m.nalez_skala = 1
+           AND r.plocha_rucne IS NULL)
+       OR (:doplnit = 'cena' AND m.jc_verdikt = 'k prověření'
+           AND r.plocha_rucne IS NULL)
+       OR (:doplnit = 'vice' AND m.nalez_vice_nosnych = 1
+           AND r.plocha_rucne IS NULL)
+       OR (:doplnit = 'bezplochy' AND m.nalez_bez_plochy = 1
+           AND r.plocha_rucne IS NULL)
+       OR (:doplnit = 'odvozeno' AND m.cena_m2 IS NOT NULL
+           AND m.zaklad_ceny NOT IN (N'plocha jednotky dle Valuo', N'ověřeno znalcem')
+           AND r.plocha_rucne IS NULL)
+       OR (:doplnit = 'nelze' AND m.klasifikace = 'NELZE'
+           AND m.cena_m2 IS NOT NULL AND r.plocha_rucne IS NULL)
+       OR (:doplnit = 'orientacni' AND m.jc_orientacni = 1))
+ORDER BY CASE WHEN m.cena_m2 IS NULL THEN 1 ELSE 0 END, m.cena_Kc DESC
+"""
+
+SQL_POCET = """
+SELECT COUNT(*) AS pocet
+FROM dbo.Valuo_mapa m
+LEFT JOIN dbo.Valuo_vklad_rucne r ON r.cislo_vkladu = m.cislo_vkladu
+WHERE m.lat BETWEEN :jih AND :sever
+  AND m.lon BETWEEN :zapad AND :vychod
+  AND (:kat = '' OR m.kategorie = :kat)
+  AND (:rok_od IS NULL OR m.rok >= :rok_od)
+  AND (:bez_ceny = 1 OR m.cena_m2 IS NOT NULL)
+  /* Co vklad obsahuje — tři nezávislé příznaky. Vklad s domem,
+     garáží a zahradou vyhoví budově i parcele; prázdný výběr
+     neomezuje nic. */
+  AND (:obs_vse = 1
+       OR (:obs_budova = 1 AND m.ma_budovu = 1)
+       OR (:obs_jednotka = 1 AND m.ma_jednotku = 1)
+       OR (:obs_parcela = 1 AND m.ma_parcelu = 1))
+  AND (:druh = '' OR m.druh = :druh)
+  AND (:konstrukce = '' OR m.konstrukce = :konstrukce)
+  AND (:stavba_od IS NULL OR m.rok_stavby >= :stavba_od)
+  AND (:stavba_do IS NULL OR m.rok_stavby <= :stavba_do)
+  /* Vzorky, které znalec označil za nepoužitelné, se ve výchozím
+     stavu nezobrazují — do porovnání stejně nepatří. */
+  AND (:nepouzitelne = 1 OR ISNULL(r.pouzitelnost, '') <> 'nepouzitelny')
+  /* Jen k doplnění: co ještě čeká na znalcovo rozhodnutí. */
+  AND (:doplnit = ''
+       OR (:doplnit = 'plocha' AND r.plocha_rucne IS NULL
+           AND (m.cena_m2 IS NULL OR m.nalez_plocha_cely_dum = 1))
+       OR (:doplnit = 'pouzitelnost' AND r.pouzitelnost IS NULL)
+       OR (:doplnit = 'nalez' AND m.nalez_plocha_cely_dum = 1
+           AND r.cislo_vkladu IS NULL)
+       OR (:doplnit = 'skala' AND m.nalez_skala = 1
+           AND r.plocha_rucne IS NULL)
+       OR (:doplnit = 'cena' AND m.jc_verdikt = 'k prověření'
+           AND r.plocha_rucne IS NULL)
+       OR (:doplnit = 'vice' AND m.nalez_vice_nosnych = 1
+           AND r.plocha_rucne IS NULL)
+       OR (:doplnit = 'bezplochy' AND m.nalez_bez_plochy = 1
+           AND r.plocha_rucne IS NULL)
+       OR (:doplnit = 'odvozeno' AND m.cena_m2 IS NOT NULL
+           AND m.zaklad_ceny NOT IN (N'plocha jednotky dle Valuo', N'ověřeno znalcem')
+           AND r.plocha_rucne IS NULL)
+       OR (:doplnit = 'nelze' AND m.klasifikace = 'NELZE'
+           AND m.cena_m2 IS NOT NULL AND r.plocha_rucne IS NULL)
+       OR (:doplnit = 'orientacni' AND m.jc_orientacni = 1))
+"""
+
+SQL_MEZE = """
+SELECT kategorie,
+       COUNT(*) AS pocet,
+       MIN(cena_m2) AS nej_niz,
+       MAX(cena_m2) AS nej_vys,
+       MAX(CASE WHEN p = 1 THEN cena_m2 END) AS k20,
+       MAX(CASE WHEN p = 2 THEN cena_m2 END) AS k40,
+       MAX(CASE WHEN p = 3 THEN cena_m2 END) AS k60,
+       MAX(CASE WHEN p = 4 THEN cena_m2 END) AS k80
+FROM (SELECT kategorie, cena_m2,
+             NTILE(5) OVER (PARTITION BY kategorie ORDER BY cena_m2) AS p
+      /* Orientační ceny do kvintilů NEPATŘÍ: jsou to nerozklíčovatelné
+         balíky pozemků s rozsahem od 0 do 1 152 580 Kč/m², které by škálu
+         roztáhly a zelenou udělaly z poloviny vzorku. V mapě se zobrazují,
+         ale bez barvy — stejně jako vzorek bez ceny. */
+      FROM dbo.Valuo_mapa
+      WHERE cena_m2 IS NOT NULL AND ISNULL(jc_orientacni, 0) = 0) x
+GROUP BY kategorie
+"""
+
+SQL_POLYGONY = """
+WITH vyber AS (
+    SELECT TOP (:limit) m.cislo_vkladu, m.kategorie, m.cena_m2, m.druh,
+           m.jednotka_oznaceni, m.cena_Kc, m.jc_orientacni
+    FROM dbo.Valuo_mapa m
+    LEFT JOIN dbo.Valuo_vklad_rucne r ON r.cislo_vkladu = m.cislo_vkladu
+    WHERE m.lat BETWEEN :jih AND :sever
+      AND m.lon BETWEEN :zapad AND :vychod
+      AND (:kat = '' OR m.kategorie = :kat)
+      AND (:rok_od IS NULL OR m.rok >= :rok_od)
+      AND (:bez_ceny = 1 OR m.cena_m2 IS NOT NULL)
+      /* Co vklad obsahuje — tři nezávislé příznaky. Vklad s domem,
+         garáží a zahradou vyhoví budově i parcele; prázdný výběr
+         neomezuje nic. */
+      AND (:obs_vse = 1
+           OR (:obs_budova = 1 AND m.ma_budovu = 1)
+           OR (:obs_jednotka = 1 AND m.ma_jednotku = 1)
+           OR (:obs_parcela = 1 AND m.ma_parcelu = 1))
+      AND (:druh = '' OR m.druh = :druh)
+      AND (:konstrukce = '' OR m.konstrukce = :konstrukce)
+      AND (:stavba_od IS NULL OR m.rok_stavby >= :stavba_od)
+      AND (:stavba_do IS NULL OR m.rok_stavby <= :stavba_do)
+      /* Vzorky, které znalec označil za nepoužitelné, se ve výchozím
+         stavu nezobrazují — do porovnání stejně nepatří. */
+      AND (:nepouzitelne = 1 OR ISNULL(r.pouzitelnost, '') <> 'nepouzitelny')
+      /* Jen k doplnění: co ještě čeká na znalcovo rozhodnutí. */
+      AND (:doplnit = ''
+           OR (:doplnit = 'plocha' AND r.plocha_rucne IS NULL
+               AND (m.cena_m2 IS NULL OR m.nalez_plocha_cely_dum = 1))
+           OR (:doplnit = 'pouzitelnost' AND r.pouzitelnost IS NULL)
+           OR (:doplnit = 'nalez' AND m.nalez_plocha_cely_dum = 1
+               AND r.cislo_vkladu IS NULL)
+           OR (:doplnit = 'skala' AND m.nalez_skala = 1
+               AND r.plocha_rucne IS NULL)
+           OR (:doplnit = 'cena' AND m.jc_verdikt = 'k prověření'
+               AND r.plocha_rucne IS NULL)
+           OR (:doplnit = 'vice' AND m.nalez_vice_nosnych = 1
+               AND r.plocha_rucne IS NULL)
+           OR (:doplnit = 'bezplochy' AND m.nalez_bez_plochy = 1
+               AND r.plocha_rucne IS NULL)
+           OR (:doplnit = 'odvozeno' AND m.cena_m2 IS NOT NULL
+               AND m.zaklad_ceny NOT IN (N'plocha jednotky dle Valuo', N'ověřeno znalcem')
+               AND r.plocha_rucne IS NULL)
+           OR (:doplnit = 'nelze' AND m.klasifikace = 'NELZE'
+               AND m.cena_m2 IS NOT NULL AND r.plocha_rucne IS NULL)
+           OR (:doplnit = 'orientacni' AND m.jc_orientacni = 1))
+    ORDER BY m.cena_Kc DESC
+)
+SELECT v.cislo_vkladu, v.kategorie, v.cena_m2, v.druh, v.jednotka_oznaceni,
+       v.cena_Kc, kp.parcel_number, kp.vlastnictvi, kp.prostorova_role,
+       kn.geo_plocha.STAsText() AS wkt
+FROM vyber v
+JOIN dbo.Valuo_karta_parcely kp ON kp.cislo_vkladu = v.cislo_vkladu
+JOIN dbo.KN_parcel_data kn ON kn.id = kp.kn_id
+WHERE kn.geo_plocha IS NOT NULL
+ORDER BY v.cislo_vkladu, kp.vymera_m2 DESC
+"""
+
+SQL_SHLUK = """
+SELECT m.cislo_vkladu, m.kategorie, m.druh, m.jednotka_oznaceni, m.adresa,
+       m.rok, m.datum_zplatneni, m.cena_Kc, m.cena_m2, m.plocha,
+       m.zaklad_ceny, m.jc_orientacni, m.ma_kartu
+FROM dbo.Valuo_mapa m
+WHERE m.shluk_id = :shluk
+ORDER BY m.datum_zplatneni DESC, m.cislo_vkladu
+"""
+
+SQL_CISELNIKY = """
+SELECT 'druh' AS skupina, druh AS hodnota, COUNT(*) AS pocet
+FROM dbo.Valuo_mapa WHERE druh IS NOT NULL GROUP BY druh
+UNION ALL
+SELECT 'konstrukce', konstrukce, COUNT(*)
+FROM dbo.Valuo_mapa WHERE konstrukce IS NOT NULL GROUP BY konstrukce
+UNION ALL
+SELECT 'obsahuje', 'budova', SUM(CASE WHEN ma_budovu = 1 THEN 1 ELSE 0 END) FROM dbo.Valuo_mapa
+UNION ALL
+SELECT 'obsahuje', 'jednotka', SUM(CASE WHEN ma_jednotku = 1 THEN 1 ELSE 0 END) FROM dbo.Valuo_mapa
+UNION ALL
+SELECT 'obsahuje', 'parcela', SUM(CASE WHEN ma_parcelu = 1 THEN 1 ELSE 0 END) FROM dbo.Valuo_mapa
+UNION ALL
+SELECT 'rok_stavby', 'od', MIN(rok_stavby) FROM dbo.Valuo_mapa
+UNION ALL
+SELECT 'rok_stavby', 'do', MAX(rok_stavby) FROM dbo.Valuo_mapa
+"""
+
+# --- ruční zjištění znalce ------------------------------------------------
+# Do Valuo_data ani do ničeho z Valua se nezapisuje. Zjištění znalce jdou do
+# vlastních tabulek a pohled je upřednostní — jinak by po příštím importu
+# nešlo poznat, co je údaj z katastru a co znalcův závěr.
+
+SQL_CIS_NALEZY = """
+SELECT kod, skupina, nazev, popis, vyrazuje_vzorek, automaticky, poradi
+FROM dbo.CIS_nalezy ORDER BY poradi
+"""
+
+SQL_ZJISTENI = """
+SELECT v.cislo_vkladu, v.hlavni_druh, v.jednotka_oznaceni, v.hlavni_adresa,
+       v.cena_Kc, v.plocha_podlahova_karty, v.plocha_podlahova_zdroj,
+       v.jc_Kc_m2_podlahova, v.jc_Kc_m2_vsech_pozemku,
+       v.plocha_jednotky_valuo, v.plocha_podlahova_valuo, v.ruian_podlahova_plocha,
+       v.ruian_pocet_bytu, v.vymera_pozemku_vse,
+       v.nalez_plocha_cely_dum, v.nalez_plocha_z_podilu,
+       v.plocha_z_podilu, v.plocha_na_byt, v.nalez_skala,
+       v.plocha_navrh, v.plocha_navrh_zdroj, v.nalez_plocha_mimo_ocekavani,
+       v.nosna_skupina, v.nosny_typ, v.radku_nosnych, v.radku_mimo, v.rozpusteno,
+       v.klasifikace,
+       v.jc_verdikt, v.jc_median_ku, v.jc_vzorku_ku,
+       v.nosna_nemovitost, v.vymera_nosna, v.parcel_nosnych, v.vymera_podilu,
+       v.jc_Kc_m2_nosne_vymery, v.jc_Kc_m2_s_podilem,
+       v.nalez_vice_nosnych, v.nalez_bez_plochy,
+       r.pouzitelnost, r.pouzitelnost_duvod, r.plocha_rucne, r.plocha_rucne_zdroj,
+       r.kdo, r.kdy,
+       /* Výsledná jednotková cena se bere Z MAPY, ne z pohledu. Mapa je to,
+          co znalec vidí, a karta má vysvětlovat právě to číslo; dvě místa,
+          každé s vlastním výpočtem, se rozejdou (25. 10. 2026). */
+       mp.cena_m2 AS mapa_cena_m2, mp.zaklad_ceny AS mapa_zaklad,
+       mp.plocha AS mapa_plocha, mp.jc_orientacni
+FROM dbo.v_Valuo_karta_vkladu v
+LEFT JOIN dbo.Valuo_vklad_rucne r ON r.cislo_vkladu = v.cislo_vkladu
+LEFT JOIN dbo.Valuo_mapa mp ON mp.cislo_vkladu = v.cislo_vkladu
+WHERE v.cislo_vkladu = :v
+"""
+
+SQL_ZDROJE_PLOCHY = """
+/* Registr zdrojů plochy (krok 44). Ruční plocha se čte ŽIVĚ z
+   Valuo_vklad_rucne, ne z registru — znalec ji mohl zadat před vteřinou
+   a registr se plní až přepočtem. Odvozené zdroje z registru stačí,
+   ty se mění jen s importem. */
+SELECT c.poradi, p.zdroj, c.nazev, c.popis, c.pro_cenu, c.autoritativni,
+       p.id, p.jednotka, p.typ, p.nosna, p.plocha, p.platny, p.pouzito, p.poznamka
+FROM (
+    SELECT 'RUCNE' AS zdroj, 0 AS id, CAST(NULL AS nvarchar(50)) AS jednotka,
+           CAST(NULL AS nvarchar(100)) AS typ, 1 AS nosna,
+           r.plocha_rucne AS plocha, CAST(1 AS bit) AS platny,
+           CAST(1 AS bit) AS pouzito, r.plocha_rucne_zdroj AS poznamka
+    FROM dbo.Valuo_vklad_rucne r
+    WHERE r.cislo_vkladu = :v AND r.plocha_rucne > 0
+    UNION ALL
+    SELECT z.zdroj, z.id, d.jednotka_oznaceni, d.typ,
+           CASE WHEN t.priorita = vp.nosna_priorita
+                 AND t.skupina  = vp.nosna_skupina THEN 1 ELSE 0 END,
+           z.plocha, z.platny, z.pouzito, z.poznamka
+    FROM dbo.Valuo_plochy z
+    LEFT JOIN dbo.Valuo_data d ON d.id = z.id
+    LEFT JOIN dbo.CIS_nemovitost_typ t ON t.nemovitost = d.nemovitost AND t.typ = d.typ
+    LEFT JOIN dbo.Valuo_vklad_plocha vp ON vp.cislo_vkladu = z.cislo_vkladu
+    WHERE z.cislo_vkladu = :v AND z.zdroj <> 'RUCNE'
+) p
+JOIN dbo.CIS_plochy_zdroje c ON c.kod = p.zdroj
+ORDER BY CASE WHEN p.zdroj = 'RUCNE' THEN 0
+              WHEN p.id > 0 AND p.nosna = 1 THEN 1
+              WHEN p.id > 0 THEN 2 ELSE 3 END,
+         p.id, c.poradi
+"""
+
+SQL_NALEZY_VKLADU = """
+SELECT n.nalez_kod, n.poznamka, n.kdo, n.kdy, c.nazev, c.popis, c.vyrazuje_vzorek
+FROM dbo.Valuo_vklad_nalezy n
+LEFT JOIN dbo.CIS_nalezy c ON c.kod = n.nalez_kod
+WHERE n.cislo_vkladu = :v
+ORDER BY c.poradi
+"""
+
+SQL_POZNAMKY = """
+SELECT id, text_pozn, kdo, kdy FROM dbo.Valuo_poznamky
+WHERE cislo_vkladu = :v ORDER BY kdy DESC, id DESC
+"""
+
+SQL_OBNOV_REGISTR = """
+/* Po zápisu ručně zadané plochy se registr pro ten jeden vklad obnoví hned,
+   aby karta i export do Wordu ukazovaly totéž co aplikace. Celý přepočet
+   (sp_prepocet_ploch) se kvůli jednomu vkladu pouštět nemusí. */
+MERGE dbo.Valuo_plochy AS cil
+USING (SELECT r.cislo_vkladu, r.plocha_rucne, r.plocha_rucne_zdroj
+       FROM dbo.Valuo_vklad_rucne r
+       WHERE r.cislo_vkladu = :v AND r.plocha_rucne > 0) AS z
+   ON cil.cislo_vkladu = z.cislo_vkladu AND cil.id = 0 AND cil.zdroj = 'RUCNE'
+WHEN MATCHED THEN UPDATE SET cil.plocha = z.plocha_rucne,
+     cil.poznamka = z.plocha_rucne_zdroj, cil.kdy = SYSDATETIME()
+WHEN NOT MATCHED BY TARGET THEN
+     INSERT (cislo_vkladu, id, zdroj, plocha, platny, pouzito, poznamka, kdy)
+     VALUES (z.cislo_vkladu, 0, 'RUCNE', z.plocha_rucne, 1, 1,
+             z.plocha_rucne_zdroj, SYSDATETIME())
+WHEN NOT MATCHED BY SOURCE
+     AND cil.cislo_vkladu = :v AND cil.id = 0 AND cil.zdroj = 'RUCNE'
+     THEN DELETE;
+"""
+
+SQL_ULOZ_RUCNE = """
+MERGE dbo.Valuo_vklad_rucne AS cil
+USING (SELECT :v AS cislo_vkladu) AS z ON cil.cislo_vkladu = z.cislo_vkladu
+WHEN MATCHED THEN UPDATE SET
+    pouzitelnost = :pouzitelnost, pouzitelnost_duvod = :duvod,
+    plocha_rucne = :plocha, plocha_rucne_zdroj = :plocha_zdroj,
+    kdo = SUSER_SNAME(), kdy = SYSDATETIME()
+WHEN NOT MATCHED BY TARGET THEN INSERT
+    (cislo_vkladu, pouzitelnost, pouzitelnost_duvod, plocha_rucne,
+     plocha_rucne_zdroj, kdo, kdy)
+    VALUES (:v, :pouzitelnost, :duvod, :plocha, :plocha_zdroj,
+            SUSER_SNAME(), SYSDATETIME());
+"""
+
+SQL_ULOZ_NALEZ = """
+MERGE dbo.Valuo_vklad_nalezy AS cil
+USING (SELECT :v AS cislo_vkladu, :kod AS nalez_kod) AS z
+   ON cil.cislo_vkladu = z.cislo_vkladu AND cil.nalez_kod = z.nalez_kod
+WHEN MATCHED THEN UPDATE SET poznamka = :poznamka,
+    kdo = SUSER_SNAME(), kdy = SYSDATETIME()
+WHEN NOT MATCHED BY TARGET THEN INSERT
+    (cislo_vkladu, nalez_kod, poznamka, kdo, kdy)
+    VALUES (:v, :kod, :poznamka, SUSER_SNAME(), SYSDATETIME());
+"""
+
+SQL_SMAZ_NALEZ = """
+DELETE FROM dbo.Valuo_vklad_nalezy WHERE cislo_vkladu = :v AND nalez_kod = :kod
+"""
+
+SQL_PRIDEJ_POZNAMKU = """
+INSERT INTO dbo.Valuo_poznamky (cislo_vkladu, text_pozn, kdo, kdy)
+VALUES (:v, :text, SUSER_SNAME(), SYSDATETIME())
+"""
+
+SQL_STAV = """
+SELECT (SELECT COUNT(*) FROM dbo.Valuo_mapa) AS v_mape,
+       (SELECT COUNT(*) FROM dbo.Valuo_mapa WHERE cena_m2 IS NOT NULL) AS s_cenou,
+       (SELECT COUNT(*) FROM dbo.Valuo_mapa WHERE ma_kartu = 1) AS s_kartou,
+       (SELECT COUNT(DISTINCT cislo_vkladu) FROM dbo.Valuo_data) AS vkladu_celkem
+"""
+
+# -----------------------------------------------------------------------------
+# 3. Vrstva nad databází
+# -----------------------------------------------------------------------------
+
+import sqlalchemy
+
+_zamek = threading.Lock()
+_stroj = None
+_meze_cache = {"data": None, "cas": None}
+
+
+def stroj():
+    global _stroj
+    with _zamek:
+        if _stroj is None:
+            _stroj = EX.engine()
+        return _stroj
+
+
+def dotaz(sql, **params):
+    with stroj().connect() as conn:
+        return [dict(r) for r in conn.execute(sqlalchemy.text(sql), params).mappings().all()]
+
+
+def cislo(x):
+    if isinstance(x, decimal.Decimal):
+        return float(x)
+    if isinstance(x, (datetime.date, datetime.datetime)):
+        return x.isoformat()
+    return x
+
+
+def ocisti(radky):
+    return [{k: cislo(v) for k, v in r.items()} for r in radky]
+
+
+def meze_kategorii(znovu=False):
+    """Kvintily jednotkových cen v každé kategorii.
+
+    Počítají se z celé databáze, ne z aktuálního výřezu — barva pak
+    při posouvání mapy neskáče a dá se porovnávat mezi lokalitami.
+    Drží se v paměti, přepočítají se na vyžádání.
+    """
+    with _zamek:
+        if _meze_cache["data"] is not None and not znovu:
+            return _meze_cache["data"]
+    data = {}
+    for r in dotaz(SQL_MEZE):
+        data[r["kategorie"]] = {
+            "pocet": r["pocet"],
+            "meze": [cislo(r["k20"]), cislo(r["k40"]), cislo(r["k60"]), cislo(r["k80"])],
+            "min": cislo(r["nej_niz"]), "max": cislo(r["nej_vys"]),
+        }
+    with _zamek:
+        _meze_cache["data"] = data
+        _meze_cache["cas"] = datetime.datetime.now()
+    return data
+
+
+def stupen(cena, meze):
+    """Do kterého z pěti pásem cena spadá."""
+    if cena is None or not meze:
+        return None
+    for i, m in enumerate(meze):
+        if m is not None and cena <= m:
+            return i
+    return 4
+
+
+# -----------------------------------------------------------------------------
+# 4. Export srovnávacího souboru do Wordu
+# -----------------------------------------------------------------------------
+
+def export_do_wordu(vklady, bez_map=False):
+    """Sestaví jeden dokument ze srovnávacího souboru a vrátí ho jako bajty."""
+    sablona = EX.najdi_sablonu()
+    if not sablona:
+        raise RuntimeError(f"Nenalezena {EX.SABLONA_NAZEV}. Zadej ji přes "
+                           f"proměnnou prostředí ZNALEC_SABLONA.")
+    doc = EX.novy_dokument(sablona)
+    EX.odstavec(doc, "Srovnávací vzorky — karty vkladů", "ZP příloha nadpis", tucne=True)
+    EX.odstavec(doc, f"Příloha obsahuje "
+                     f"{EX.pocet(len(vklady), 'kartu vkladu', 'karty vkladu', 'karet vkladu')}. "
+                     f"Sestaveno {datetime.date.today():%d. %m. %Y} z databáze cenových "
+                     f"údajů ze sbírky listin katastru nemovitostí.")
+    EX.legenda_do_dokumentu(doc)
+
+    hotovo, chyby = 0, []
+    with stroj().connect() as conn:
+        for cislo_vkladu in vklady:
+            try:
+                v, parcely, fvu = EX.nacti_vklad(conn, cislo_vkladu)
+            except SystemExit as e:
+                chyby.append(f"{cislo_vkladu}: {e}")
+                continue
+            EX.oznac_popisky(parcely)
+            geometrie = EX.parcely_sjtsk(parcely)
+            if not geometrie:
+                chyby.append(f"{cislo_vkladu}: vklad nemá geometrii parcel")
+                continue
+            praha = (v.get("obec") or "").strip().lower().startswith("praha")
+            if bez_map:
+                px = (EX.SIRKA_PX, int(EX.SIRKA_PX / EX.POMER))
+                bb = EX.vyrez(geometrie, rezerva=EX.REZERVA_DETAIL)
+                mapy = [("Parcely vkladu",
+                         EX.meritko(EX.vykresli(None, geometrie, bb, px), bb),
+                         "Katastr nemovitostí, ČÚZK — bez mapového podkladu")]
+            else:
+                mapy = EX.mapy_vkladu(geometrie, praha)
+            EX.karta_do_dokumentu(doc, v, parcely, fvu, geometrie, mapy,
+                                  prvni=False,
+                                  plochy=EX.nacti_plochy(conn, cislo_vkladu),
+                                  staveb=EX.pocet_staveb(conn, cislo_vkladu))
+            hotovo += 1
+
+    if not hotovo:
+        raise RuntimeError("Nepodařilo se sestavit žádnou kartu. " + " | ".join(chyby))
+    buf = io.BytesIO()
+    doc.save(buf)
+    return buf.getvalue(), hotovo, chyby
+
+
+# -----------------------------------------------------------------------------
+# 5. HTTP server
+# -----------------------------------------------------------------------------
+
+class Obsluha(BaseHTTPRequestHandler):
+    server_version = "ValuoMapa/1.0"
+
+    def log_message(self, format, *args):
+        if "/api/" not in (args[0] if args else ""):
+            return                      # ticho, jinak se konzole zahltí
+        sys.stderr.write("  %s\n" % (format % args))
+
+    # --- pomocné odpovědi ---
+    def _posli(self, data, typ="application/json; charset=utf-8", kod=200, hlavicky=None):
+        if isinstance(data, (dict, list)):
+            data = json.dumps(data, ensure_ascii=False, default=cislo).encode("utf-8")
+        elif isinstance(data, str):
+            data = data.encode("utf-8")
+        self.send_response(kod)
+        self.send_header("Content-Type", typ)
+        self.send_header("Content-Length", str(len(data)))
+        for k, v in (hlavicky or {}).items():
+            self.send_header(k, v)
+        self.end_headers()
+        self.wfile.write(data)
+
+    def _chyba(self, zprava, kod=400):
+        self._posli({"chyba": str(zprava)}, kod=kod)
+
+    # --- GET ---
+    def do_GET(self):
+        u = urlparse(self.path)
+        q = parse_qs(u.query)
+        try:
+            if u.path == "/":
+                return self._posli(stranka(), "text/html; charset=utf-8")
+            if u.path == "/api/stav":
+                return self._posli(self._stav())
+            if u.path == "/api/body":
+                return self._posli(self._body(q))
+            if u.path == "/api/shluk":
+                return self._posli(self._shluk(q))
+            if u.path == "/api/polygony":
+                return self._posli(self._polygony(q))
+            if u.path == "/api/zjisteni":
+                return self._posli(self._zjisteni(q.get("vklad", [""])[0]))
+            if u.path.startswith("/karta/"):
+                return self._karta(unquote(u.path[len("/karta/"):]))
+            return self._chyba("Neznámá adresa " + u.path, 404)
+        except SystemExit as e:
+            # 35_export_word.py hlásí chybějící data přes SystemExit; to je
+            # potomek BaseException, takže by prošel skrz except Exception,
+            # zabil vlákno a prohlížeč by nedostal žádnou odpověď.
+            return self._chyba(str(e), 409)
+        except Exception as e:
+            return self._chyba(f"{type(e).__name__}: {e}", 500)
+
+    def _stav(self):
+        s = dotaz(SQL_STAV)[0]
+        m = meze_kategorii()
+        c = {"druh": [], "konstrukce": [], "obsahuje": [], "rok_stavby": {}}
+        for r in dotaz(SQL_CISELNIKY):
+            if r["skupina"] == "rok_stavby":
+                c["rok_stavby"][r["hodnota"]] = r["pocet"]
+            else:
+                c[r["skupina"]].append({"hodnota": r["hodnota"], "pocet": r["pocet"]})
+        for k in ("druh", "konstrukce", "obsahuje"):
+            c[k].sort(key=lambda x: -(x["pocet"] or 0))
+        return {"stav": {k: cislo(v) for k, v in s.items()},
+                "meze": m, "skala": SKALA, "bez_ceny": BEZ_CENY,
+                "ciselniky": c,
+                "kategorie": [{"kod": k, "nazev": n,
+                               "pocet": (m.get(k) or {}).get("pocet", 0)}
+                              for k, n in KATEGORIE]}
+
+    @staticmethod
+    def _parametry(q, vychozi_limit=4000, strop=20000):
+        """Rozbor parametrů filtru; sdílí ho výpis bodů i obrysů parcel."""
+        def f(jm, vych=None):
+            v = q.get(jm, [None])[0]
+            return vych if v in (None, "") else v
+        obs = [x for x in (f("obsahuje", "") or "").split(",") if x]
+        return dict(
+            sever=float(f("sever", 51.1)), jih=float(f("jih", 48.5)),
+            vychod=float(f("vychod", 18.9)), zapad=float(f("zapad", 12.0)),
+            kat=f("kategorie", "") or "",
+            rok_od=int(f("rok_od")) if f("rok_od") else None,
+            bez_ceny=1 if f("bez_ceny") == "1" else 0,
+            obs_vse=0 if obs else 1,
+            obs_budova=1 if "budova" in obs else 0,
+            obs_jednotka=1 if "jednotka" in obs else 0,
+            obs_parcela=1 if "parcela" in obs else 0,
+            druh=f("druh", "") or "",
+            konstrukce=f("konstrukce", "") or "",
+            stavba_od=int(f("stavba_od")) if f("stavba_od") else None,
+            stavba_do=int(f("stavba_do")) if f("stavba_do") else None,
+            nepouzitelne=1 if f("nepouzitelne") == "1" else 0,
+            doplnit=f("doplnit", "") or "",
+            limit=min(int(f("limit", vychozi_limit)), strop))
+
+    def _body(self, q):
+        params = self._parametry(q)
+        celkem = dotaz(SQL_POCET, **{k: v for k, v in params.items() if k != "limit"})[0]["pocet"]
+        radky = ocisti(dotaz(SQL_BODY, **params))
+        meze = meze_kategorii()
+        for r in radky:
+            r["stupen"] = None if r.get("jc_orientacni") else stupen(
+                r["cena_m2"], (meze.get(r["kategorie"]) or {}).get("meze"))
+        return {"celkem": celkem, "zobrazeno": len(radky),
+                "oriznuto": celkem > len(radky), "body": radky}
+
+    def _polygony(self, q):
+        """Obrysy parcel vkladů ve výřezu.
+
+        Kreslí se až od většího přiblížení — na přehledu celého města by to
+        byly tisíce mnohoúhelníků a nebylo by z nich nic poznat.
+
+        Geometrie je jen u vkladů se spočítanou kartou, ale nefiltruje se
+        podle sloupce ma_kartu ve Valuo_mapa — ten zestárne hned, jak
+        přepočet dopočítá další vklady. Omezení zajistí samotné spojení
+        s Valuo_karta_parcely, takže obrysy přibývají průběžně a nečekají
+        na nové naplnění mapy.
+        """
+        params = self._parametry(q, vychozi_limit=400, strop=1500)
+        radky = ocisti(dotaz(SQL_POLYGONY, **params))
+        meze = meze_kategorii()
+        vklady = {}
+        for r in radky:
+            z = vklady.setdefault(r["cislo_vkladu"], {
+                "cislo_vkladu": r["cislo_vkladu"], "kategorie": r["kategorie"],
+                "druh": r["druh"], "jednotka_oznaceni": r["jednotka_oznaceni"],
+                "cena_Kc": r["cena_Kc"], "cena_m2": r["cena_m2"],
+                "stupen": None if r.get("jc_orientacni") else stupen(r["cena_m2"],
+                                 (meze.get(r["kategorie"]) or {}).get("meze")),
+                "parcely": []})
+            z["parcely"].append({"parcel_number": r["parcel_number"],
+                                 "vlastnictvi": r["vlastnictvi"],
+                                 "prostorova_role": r["prostorova_role"],
+                                 "wkt": r["wkt"]})
+        return {"vklady": list(vklady.values()), "parcel": len(radky)}
+
+    def _shluk(self, q):
+        sid = q.get("id", [""])[0]
+        if not sid:
+            raise ValueError("chybí id shluku")
+        radky = ocisti(dotaz(SQL_SHLUK, shluk=sid))
+        meze = meze_kategorii()
+        for r in radky:
+            r["stupen"] = None if r.get("jc_orientacni") else stupen(
+                r["cena_m2"], (meze.get(r["kategorie"]) or {}).get("meze"))
+        return {"vklady": radky}
+
+    def _zjisteni(self, cislo_vkladu):
+        """Co je o vkladu známo a co k němu znalec zapsal."""
+        if not cislo_vkladu:
+            raise ValueError("chybí číslo vkladu")
+        zaklad = ocisti(dotaz(SQL_ZJISTENI, v=cislo_vkladu))
+        if not zaklad:
+            raise ValueError(f"vklad {cislo_vkladu} není v databázi")
+        return {"vklad": zaklad[0],
+                "zdroje": ocisti(dotaz(SQL_ZDROJE_PLOCHY, v=cislo_vkladu)),
+                "nalezy": ocisti(dotaz(SQL_NALEZY_VKLADU, v=cislo_vkladu)),
+                "poznamky": ocisti(dotaz(SQL_POZNAMKY, v=cislo_vkladu)),
+                "ciselnik": ocisti(dotaz(SQL_CIS_NALEZY))}
+
+    def _karta(self, cislo_vkladu):
+        try:
+            with stroj().connect() as conn:
+                return self._karta_sestav(conn, cislo_vkladu)
+        except SystemExit as e:
+            return self._posli(stranka_hlaseni(cislo_vkladu, str(e)),
+                               "text/html; charset=utf-8")
+        except Exception as e:
+            return self._posli(
+                stranka_hlaseni(cislo_vkladu, f"{type(e).__name__}: {e}"),
+                "text/html; charset=utf-8")
+
+    def _karta_sestav(self, conn, cislo_vkladu):
+        if True:
+            v_row, parcely, fvu_radky = EX.nacti_vklad(conn, cislo_vkladu)
+            stavby = conn.execute(sqlalchemy.text(K37.SQL_STAVBY),
+                                  {"v": cislo_vkladu}).mappings().all()
+            stavby = [dict(x) for x in stavby]
+        K37.FVU = {cislo_vkladu: K37.fvu_z_view(fvu_radky)}
+        K37.STAVBY = {cislo_vkladu: K37.stavby_z_view(stavby)}
+        # Registr zdrojů plochy — karta musí ukazovat totéž co aplikace.
+        K37.PLOCHY = {cislo_vkladu: EX.nacti_plochy(conn, cislo_vkladu)}
+        v = K37.v_z_view(v_row, len(parcely))
+        html = K37.html_karta(cislo_vkladu, v, K37.par_z_view(parcely))
+        return self._posli(html, "text/html; charset=utf-8")
+
+    # --- POST ---
+    def do_POST(self):
+        u = urlparse(self.path)
+        try:
+            delka = int(self.headers.get("Content-Length") or 0)
+            telo = json.loads(self.rfile.read(delka) or b"{}")
+            if u.path == "/api/export":
+                return self._export(telo)
+            if u.path == "/api/zjisteni":
+                return self._posli(self._uloz_zjisteni(telo))
+            return self._chyba("Neznámá adresa " + u.path, 404)
+        except SystemExit as e:
+            return self._chyba(str(e), 409)
+        except Exception as e:
+            return self._chyba(f"{type(e).__name__}: {e}", 500)
+
+    def _uloz_zjisteni(self, telo):
+        """Zápis ručních zjištění. Každá část je nepovinná."""
+        cislo_vkladu = (telo.get("vklad") or "").strip()
+        if not cislo_vkladu:
+            raise ValueError("chybí číslo vkladu")
+        with stroj().connect() as conn:
+            if "rucne" in telo:
+                r = telo["rucne"] or {}
+                plocha = r.get("plocha_rucne")
+                conn.execute(sqlalchemy.text(SQL_ULOZ_RUCNE), {
+                    "v": cislo_vkladu,
+                    "pouzitelnost": (r.get("pouzitelnost") or None),
+                    "duvod": (r.get("pouzitelnost_duvod") or None),
+                    "plocha": (float(plocha) if plocha not in (None, "") else None),
+                    "plocha_zdroj": (r.get("plocha_rucne_zdroj") or None)})
+                # Registr zdrojů plochy musí být hned shodný s tím, co vidí
+                # aplikace — karta ani export nemají čekat na celý přepočet.
+                conn.execute(sqlalchemy.text(SQL_OBNOV_REGISTR),
+                             {"v": cislo_vkladu})
+            for nalez in telo.get("nalezy_pridat") or []:
+                conn.execute(sqlalchemy.text(SQL_ULOZ_NALEZ), {
+                    "v": cislo_vkladu, "kod": nalez.get("kod"),
+                    "poznamka": (nalez.get("poznamka") or None)})
+            for kod in telo.get("nalezy_smazat") or []:
+                conn.execute(sqlalchemy.text(SQL_SMAZ_NALEZ),
+                             {"v": cislo_vkladu, "kod": kod})
+            text = (telo.get("poznamka") or "").strip()
+            if text:
+                conn.execute(sqlalchemy.text(SQL_PRIDEJ_POZNAMKU),
+                             {"v": cislo_vkladu, "text": text})
+            conn.commit()
+        print(f"  zápis zjištění: {cislo_vkladu}")
+        return self._zjisteni(cislo_vkladu)
+
+    def _export(self, telo):
+        vklady = telo.get("vklady") or []
+        if not vklady:
+            raise ValueError("srovnávací soubor je prázdný")
+        bez_map = bool(telo.get("bez_map"))
+        print(f"\n  export {len(vklady)} vkladů"
+              f"{' (bez map)' if bez_map else ''}…")
+        data, hotovo, chyby = export_do_wordu(vklady, bez_map)
+        jmeno = f"vzorky_{datetime.date.today():%Y%m%d_%H%M}.docx"
+        print(f"  hotovo {hotovo} karet, {len(data)} B")
+        for c in chyby:
+            print("   [!]", c)
+        self._posli(data,
+                    "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                    hlavicky={"Content-Disposition": f'attachment; filename="{jmeno}"',
+                              "X-Karet": str(hotovo),
+                              "X-Chyb": str(len(chyby))})
+
+
+# -----------------------------------------------------------------------------
+# 6. Stránka
+# -----------------------------------------------------------------------------
+# Stránka je statická — všechna data si tahá z /api/*. Proto tu není žádné
+# dosazování z Pythonu a složené závorky v JS nemusí být zdvojené.
+
+STRANKA = r"""<!doctype html>
+<html lang="cs"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Databáze vkladů — mapa srovnávacích vzorků</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/proj4js/2.11.0/proj4.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/proj4leaflet/1.0.2/proj4leaflet.js"></script>
+<style>
+:root { --b:#dcdad2; --t:#1a1a19; --t2:#5f5e5a; --bg:#faf9f6; --card:#fff; --akcent:#15664f; }
+* { box-sizing:border-box }
+html,body { margin:0; height:100%; font:14px/1.45 -apple-system,"Segoe UI",Roboto,sans-serif;
+            color:var(--t); background:var(--bg) }
+#apl { display:grid; grid-template-columns:272px 1fr 0px; height:100vh; transition:grid-template-columns .18s }
+#apl.s-panelem { grid-template-columns:272px 1fr 560px }
+.sloupec { overflow:auto; background:var(--card); border-right:1px solid var(--b) }
+#vpravo { border-right:0; border-left:1px solid var(--b) }
+#mapa { height:100vh }
+
+h1 { font-size:15px; margin:0; padding:13px 14px 11px; border-bottom:1px solid var(--b);
+     letter-spacing:.2px }
+h1 small { display:block; font-weight:400; color:var(--t2); font-size:11.5px; margin-top:3px }
+.odd { padding:12px 14px; border-bottom:1px solid var(--b) }
+.odd > .nadpis { font-size:11px; text-transform:uppercase; letter-spacing:.8px;
+                 color:var(--t2); margin-bottom:9px }
+label.radek { display:flex; align-items:center; gap:7px; padding:3px 0; cursor:pointer }
+label.radek span.pocet { margin-left:auto; color:var(--t2); font-size:11.5px;
+                         font-variant-numeric:tabular-nums }
+select, input[type=number] { width:100%; padding:5px 7px; border:1px solid var(--b);
+                             border-radius:5px; background:#fff; font:inherit }
+button { font:inherit; padding:7px 11px; border:1px solid var(--b); border-radius:6px;
+         background:#fff; cursor:pointer }
+button.hlavni { background:var(--akcent); color:#fff; border-color:var(--akcent) }
+button:disabled { opacity:.45; cursor:default }
+.skala { display:flex; gap:3px; margin:7px 0 5px }
+.skala i { flex:1; height:11px; border-radius:2px }
+.skala-popis { display:flex; justify-content:space-between; color:var(--t2); font-size:11px }
+.zprava { color:var(--t2); font-size:12px; line-height:1.5 }
+.varovani { background:#fff6e5; border:1px solid #e8d7ae; border-radius:6px;
+            padding:9px 10px; font-size:12px; line-height:1.5; margin:10px 14px }
+#soubor-seznam { max-height:230px; overflow:auto; margin-bottom:9px }
+.soubor-polozka { display:flex; gap:7px; align-items:flex-start; padding:5px 0;
+               border-bottom:1px solid #eee; font-size:12px }
+.soubor-polozka b { font-weight:600 }
+.soubor-polozka .x { margin-left:auto; cursor:pointer; color:var(--t2); padding:0 3px }
+.soubor-polozka .x:hover { color:#b23 }
+#panel-hlavicka { display:flex; align-items:center; gap:8px; padding:9px 12px;
+                  border-bottom:1px solid var(--b) }
+#panel-hlavicka .nazev { font-weight:600; font-size:13px }
+/* Odkazy do cizích map. Adresy jsou dokumentované: mapy.com /fnc/v1/showmap
+   a Google Maps URLs API (api=1). Panorama mapy.cz dokumentovanou adresu
+   nemá, proto je na pohled z ulice jen Street View. */
+#panel-mapy { display:flex; gap:6px; flex-wrap:wrap; align-items:center;
+              padding:6px 12px; border-bottom:1px solid var(--b);
+              background:#fafbfa; min-height:17px }
+#panel-mapy a { font-size:11px; text-decoration:none; color:#245; border:1px solid #cfd8d2;
+                border-radius:10px; padding:2px 8px; background:#fff; white-space:nowrap }
+#panel-mapy a:hover { background:#eef3ef; border-color:#9ab }
+#panel-mapy .popis { font-size:11px; color:var(--t2) }
+#panel-telo { height:calc(100vh - 44px - 38px - 30px) }
+#panel-telo iframe { width:100%; height:100%; border:0 }
+.seznam-vkladu { padding:4px 0 }
+.polozka { display:block; width:100%; text-align:left; border:0; border-bottom:1px solid #eee;
+           padding:9px 12px; background:#fff; cursor:pointer }
+.polozka:hover { background:#f4f6f4 }
+.polozka .r1 { display:flex; gap:8px; align-items:baseline }
+.polozka .r2 { color:var(--t2); font-size:12px; margin-top:2px }
+.polozka .cena { margin-left:auto; font-variant-numeric:tabular-nums; font-weight:600 }
+.tecka { width:11px; height:11px; border-radius:50%; display:inline-block; flex:none;
+         border:1px solid rgba(0,0,0,.3) }
+.leaflet-container { background:#f5f5f0 }
+.zalozky { display:flex; gap:0; border-bottom:1px solid var(--b); background:#f7f7f4 }
+.zalozky button { border:0; border-bottom:2px solid transparent; border-radius:0;
+                  background:none; padding:9px 14px; color:var(--t2) }
+.zalozky button.aktivni { color:var(--t); border-bottom-color:var(--akcent); font-weight:600 }
+.zj { padding:14px 16px 26px; overflow:auto; height:calc(100vh - 44px - 38px) }
+.zj h3 { font-size:12px; text-transform:uppercase; letter-spacing:.8px; color:var(--t2);
+         margin:18px 0 8px; font-weight:600 }
+.zj h3:first-child { margin-top:0 }
+.zj table.udaje { width:100%; border-collapse:collapse; font-size:12.5px }
+.zj table.udaje th { text-align:left; font-weight:400; color:var(--t2); padding:3px 0;
+                     width:48% }
+.zj table.udaje td { text-align:right; font-variant-numeric:tabular-nums; padding:3px 0 }
+.zj table.udaje tr.zvyrazneno td, .zj table.udaje tr.zvyrazneno th { font-weight:600 }
+.zj table.udaje tr.skupina th { background:#f0f0f0; color:#333; font-size:10px;
+  text-transform:uppercase; letter-spacing:.4px; padding-top:7px; font-weight:600 }
+.zj .pole { margin-bottom:10px }
+.zj .pole label { display:block; font-size:12px; color:var(--t2); margin-bottom:3px }
+.zj input[type=text], .zj input[type=number], .zj textarea {
+   width:100%; padding:6px 8px; border:1px solid var(--b); border-radius:5px; font:inherit }
+.zj textarea { min-height:62px; resize:vertical }
+.zj .volba { display:flex; gap:7px; align-items:flex-start; padding:6px 0;
+             border-bottom:1px solid #f0efea }
+.zj .volba input { margin-top:3px }
+.zj .volba .txt b { display:block; font-weight:600; font-size:12.5px }
+.zj .volba .txt span { color:var(--t2); font-size:11.5px; line-height:1.45 }
+.zj .auto { background:#fff6e5; border:1px solid #e8d7ae; border-radius:6px;
+            padding:8px 10px; font-size:12px; margin-bottom:8px; line-height:1.5 }
+.zj .pozn-zaznam { border-bottom:1px solid #f0efea; padding:6px 0; font-size:12.5px }
+.zj .pozn-zaznam .kdy { color:var(--t2); font-size:11px }
+.zj .kam { color:var(--t2); font-size:11px; font-family:ui-monospace,Consolas,monospace }
+.zj .auto.posun { background:#eaf3ff; border-color:#b9cfe8 }
+.zj .navrh-radek { margin-top:7px; display:flex; align-items:center; gap:8px; flex-wrap:wrap }
+.zj button.maly { font-size:11px; padding:3px 9px }
+.zj table.zdroje th { font-weight:500 }
+.zj table.zdroje i { color:var(--t2); font-style:normal; font-size:11px }
+.zj .lista { position:sticky; bottom:0; background:var(--card); border-top:1px solid var(--b);
+             padding:10px 0 0; margin-top:16px; display:flex; gap:8px; align-items:center }
+.znacka { border-radius:50%; border:1.5px solid rgba(0,0,0,.45); box-shadow:0 0 0 1px rgba(255,255,255,.8) }
+.znacka.vybrana { border:2.5px solid #15664f; box-shadow:0 0 0 2px #fff,0 0 0 4px #15664f }
+.znacka-shluk { border-radius:13px; background:#fff; border:1.5px solid rgba(0,0,0,.45);
+                font:600 11px/19px -apple-system,"Segoe UI",sans-serif; text-align:center;
+                color:#1a1a19; box-shadow:0 1px 3px rgba(0,0,0,.25) }
+#stav-mapy { position:absolute; left:50%; transform:translateX(-50%); bottom:14px; z-index:600;
+             background:rgba(255,255,255,.95); border:1px solid var(--b); border-radius:16px;
+             padding:5px 13px; font-size:12px; color:var(--t2); pointer-events:none;
+             box-shadow:0 1px 4px rgba(0,0,0,.12) }
+</style></head><body>
+
+<div id="apl">
+  <!-- ------------------------------------------------ levý sloupec -->
+  <div class="sloupec" id="vlevo">
+    <h1>Databáze vkladů<small>Mapa srovnávacích vzorků</small></h1>
+
+    <div id="hlaseni"></div>
+
+    <div class="odd">
+      <div class="nadpis">Druh nemovitosti</div>
+      <div id="kategorie"></div>
+    </div>
+
+    <div class="odd">
+      <div class="nadpis">Co je k doplnění</div>
+      <select id="doplnit">
+        <option value="">vše</option>
+        <option value="plocha">chybí nebo je podezřelá plocha</option>
+        <option value="pouzitelnost">nerozhodnutá použitelnost</option>
+        <option value="nalez">nepotvrzený nález databáze</option>
+        <option value="skala">rozpor ve škále podílu</option>
+        <option value="cena">cena mimo pásmo mediánu v k.ú.</option>
+        <option value="vice">více nosných nemovitostí (cena je průměr)</option>
+        <option value="bezplochy">nosná nemovitost bez podlahové plochy</option>
+        <option value="odvozeno">cena dělená odvozenou plochou</option>
+        <option value="nelze">stará klasifikace NELZE, cena přesto spočítaná</option>
+        <option value="orientacni">orientační cena (nerozklíčovaný balík pozemků)</option>
+      </select>
+      <label class="radek" style="margin-top:9px">
+        <input type="checkbox" id="nepouzitelne"> zobrazit i nepoužitelné vzorky</label>
+      <div class="zprava">Vzorky, které jsi označil za nepoužitelné, se
+        ve výchozím stavu nezobrazují.</div>
+    </div>
+
+    <div class="odd">
+      <div class="nadpis">Co vklad obsahuje</div>
+      <div id="obsahuje"></div>
+      <div class="zprava">Nezaškrtnuto nic = bez omezení. Vklad s domem,
+        garáží a zahradou vyhoví budově i parcele.</div>
+    </div>
+
+    <div class="odd">
+      <div class="nadpis">Druh nemovitosti ve vkladu</div>
+      <select id="druh"><option value="">bez omezení</option></select>
+      <div class="zprava" style="margin-top:4px">Druh hlavní nemovitosti —
+        byt, ateliér, garáž, rodinný dům a podobně.</div>
+    </div>
+
+    <div class="odd">
+      <div class="nadpis">Stavba dle RÚIAN</div>
+      <label class="radek">Druh konstrukce</label>
+      <select id="konstrukce"><option value="">bez omezení</option></select>
+      <label class="radek" style="margin-top:9px">Rok dokončení stavby</label>
+      <div style="display:flex; gap:7px">
+        <input type="number" id="stavba-od" step="1" placeholder="od">
+        <input type="number" id="stavba-do" step="1" placeholder="do">
+      </div>
+      <div class="zprava" id="stavba-pokryti" style="margin-top:5px"></div>
+    </div>
+
+    <div class="odd">
+      <div class="nadpis">Omezení výběru</div>
+      <label class="radek">Zplatněno od roku (rok prodeje)</label>
+      <input type="number" id="rok-od" min="1990" max="2030" step="1" placeholder="bez omezení">
+      <label class="radek" style="margin-top:9px">
+        <input type="checkbox" id="bez-ceny"> zobrazit i vklady bez jednotkové ceny</label>
+      <div class="zprava" style="margin-top:5px">Vklady, u nichž chybí plocha, a nelze
+        proto spočítat Kč/m². Ve výchozím stavu se nezobrazují.</div>
+    </div>
+
+    <div class="odd">
+      <div class="nadpis">Jednotková cena</div>
+      <div class="skala"><i style="background:#1a9850"></i><i style="background:#a6d96a"></i>
+        <i style="background:#fee08b"></i><i style="background:#f46d43"></i>
+        <i style="background:#d73027"></i></div>
+      <div class="skala-popis"><span>nejlevnější</span><span>nejdražší</span></div>
+      <div class="zprava" id="skala-popis" style="margin-top:7px"></div>
+    </div>
+
+    <div class="odd">
+      <div class="nadpis">Zobrazení</div>
+      <label class="radek"><input type="checkbox" id="pr-znacky" checked> značky vkladů</label>
+      <label class="radek"><input type="checkbox" id="pr-popisky"> popisky cen u značek</label>
+      <label class="radek"><input type="checkbox" id="pr-obrysy" checked> obrysy parcel</label>
+      <div class="zprava" id="obrysy-stav">Kreslí se od přiblížení, kde jsou čitelné.</div>
+    </div>
+
+    <div class="odd">
+      <div class="nadpis">Srovnávací soubor (<span id="soubor-pocet">0</span>)</div>
+      <div id="soubor-seznam"><div class="zprava">Zatím prázdný. Vzorek se přidá
+        tlačítkem v kartě nebo v seznamu.</div></div>
+      <label class="radek"><input type="checkbox" id="bez-map"> bez mapových podkladů (rychlé)</label>
+      <div style="display:flex; gap:7px; margin-top:9px">
+        <button class="hlavni" id="btn-export" disabled>Export do Wordu</button>
+        <button id="btn-soubor-smazat" disabled>Vyprázdnit</button>
+      </div>
+      <div class="zprava" id="export-stav" style="margin-top:7px"></div>
+    </div>
+  </div>
+
+  <!-- ------------------------------------------------ mapa -->
+  <div style="position:relative"><div id="mapa"></div><div id="stav-mapy">načítám…</div></div>
+
+  <!-- ------------------------------------------------ pravý panel -->
+  <div class="sloupec" id="vpravo">
+    <div id="panel-hlavicka">
+      <button id="btn-zpet" style="display:none">&larr; Zpět na dům</button>
+      <span class="nazev" id="panel-nazev"></span>
+      <button style="margin-left:auto" id="btn-do-souboru">Do souboru</button>
+      <button id="btn-zavrit">Zavřít</button>
+    </div>
+    <div class="zalozky">
+      <button id="zal-karta" class="aktivni">Karta</button>
+      <button id="zal-zjisteni">Co jsem zjistil</button>
+    </div>
+    <div id="panel-mapy"></div>
+    <div id="panel-telo"></div>
+    <div id="panel-zjisteni" style="display:none"></div>
+  </div>
+</div>
+
+<script>
+/* =========================================================================
+   Mapa je v S-JTSK (EPSG:5514). Všechny české služby v ní nativně jsou,
+   takže se nic nepřepočítává a dlaždice i obrázky sedí přesně.
+   ========================================================================= */
+var RES = [198.43789687579377, 132.2919312505292, 92.60435187537043,
+  66.14596562526459, 39.68757937515875, 26.45838625010584, 13.22919312505292,
+  6.61459656252646, 2.645838625010584, 1.3229193125052918, 0.6614596562526459,
+  0.33072982812632295, 0.16536491406316148, 0.08268245703158074];
+
+var CRS5514 = new L.Proj.CRS("EPSG:5514",
+  "+proj=krovak +lat_0=49.5 +lon_0=24.8333333333333 +alpha=30.2881397527778 " +
+  "+k=0.9999 +x_0=0 +y_0=0 +ellps=bessel " +
+  "+towgs84=570.8,85.7,462.8,4.998,1.587,5.261,3.56 +units=m +no_defs",
+  { origin: [-33699800, 33699800], resolutions: RES });
+
+var CUZK  = "https://ags.cuzk.gov.cz/arcgis1/rest/services";
+var IPR   = "https://gs-pub.praha.eu/arcgis/rest/services";
+var DMVS  = "https://dmvs.cuzk.gov.cz/api/wms";
+var KNWMS = "https://services.cuzk.gov.cz/wms/local-km-wms.asp";
+var MPP_T = "https://tiles.arcgis.com/tiles/SBTXIEUGWbqzUecw/arcgis/rest/services";
+
+/* ArcGIS "export": pro zadaný výřez vrátí hotový obrázek. */
+var ArcGISExport = L.TileLayer.extend({
+  options: { format: "png32", transparent: true, dpi: 96, layers: null,
+             vnuceneMeritko: null, maxPx: 4000 },
+  getTileUrl: function (coords) {
+    var crs = this._map.options.crs,
+        hranice = this._tileCoordsToNwSe(coords),
+        sz = crs.project(hranice[0]), jv = crs.project(hranice[1]),
+        minx = Math.min(sz.x, jv.x), maxx = Math.max(sz.x, jv.x),
+        miny = Math.min(sz.y, jv.y), maxy = Math.max(sz.y, jv.y),
+        sirkaM = maxx - minx, vyskaM = maxy - miny,
+        ts = this.getTileSize(),
+        mNaPx = this.options.dpi === 0 ? 1 : (0.0254 / this.options.dpi),
+        meritko = sirkaM / (ts.x * mNaPx),
+        w = ts.x, h = ts.y, ms = null;
+    if (this.options.vnuceneMeritko && meritko > this.options.vnuceneMeritko) {
+      ms = this.options.vnuceneMeritko;
+      var krok = ms * mNaPx;
+      w = Math.round(sirkaM / krok); h = Math.round(vyskaM / krok);
+      if (w > this.options.maxPx || h > this.options.maxPx) { ms = null; w = ts.x; h = ts.y; }
+    }
+    var u = this._url + "?bbox=" + [minx, miny, maxx, maxy].join(",") +
+      "&bboxSR=5514&imageSR=5514&size=" + w + "," + h +
+      "&format=" + this.options.format + "&transparent=" + this.options.transparent +
+      "&dpi=" + this.options.dpi + "&f=image";
+    if (this.options.layers) u += "&layers=" + this.options.layers;
+    if (ms) u += "&mapScale=" + ms;
+    return u;
+  }
+});
+function ags(url, o) { return new ArcGISExport(url, Object.assign({ maxZoom: 18 }, o || {})); }
+function wms(url, layers, o) {
+  return L.tileLayer.wms(url, Object.assign({ layers: layers, format: "image/png",
+    transparent: true, version: "1.3.0", crs: CRS5514, tileSize: 512, maxZoom: 18 }, o || {}));
+}
+function mpp(sluzba) {
+  return L.tileLayer(MPP_T + "/" + sluzba + "/MapServer/tile/{z}/{y}/{x}",
+    { tileSize: 512, opacity: 0.6, maxNativeZoom: 13, maxZoom: 18 });
+}
+var mrizka = "data:image/svg+xml;charset=UTF-8," +
+  "%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='40'%3E" +
+  "%3Crect width='40' height='40' fill='%23f5f5f0'/%3E" +
+  "%3Cpath d='M40 0H0V40' fill='none' stroke='%23dddad0' stroke-width='1'/%3E%3C/svg%3E";
+
+/* Stupně zoomu odpovídají poli RES, tedy metrům na pixel:
+   0 = 198 (kraj), 4 = 39,7 (město), 7 = 6,6 (čtvrť), 10 = 0,66 (parcely).
+   Pole má 14 položek, takže maxZoom je 13; výš by CRS neměl měřítko. */
+var mapa = L.map("mapa", { crs: CRS5514, minZoom: 0, maxZoom: 13, zoomControl: true })
+             .setView([50.075, 14.44], 4);
+
+var podklady = {
+  "Ortofotomapa (ČÚZK)": ags(CUZK + "/ORTOFOTO/MapServer/export",
+      { attribution: "&copy; ČÚZK", transparent: false, format: "jpg" }),
+  "Základní topografická mapa (ČÚZK)": ags(CUZK + "/ZTM/MapServer/export",
+      { attribution: "&copy; ČÚZK", transparent: false }),
+  "Přehledová mapa (ČÚZK)": ags(CUZK + "/PrehledovaMapa/MapServer/export",
+      { attribution: "&copy; ČÚZK", transparent: false }),
+  "Čisté pozadí (bez mapy)": L.tileLayer(mrizka, { attribution: "", maxZoom: 18 })
+};
+podklady["Ortofotomapa (ČÚZK)"].addTo(mapa);
+
+var prekryvy = {
+  "Katastrální mapa (ČÚZK)": wms(KNWMS, "KN", { attribution: "&copy; ČÚZK" }),
+  "Věcná břemena (ČÚZK)": wms(KNWMS, "vb,vb_linie", { opacity: 0.85 }),
+  "DTM — sítě": wms(DMVS + "/dtm_ti_ver",
+      "el_ved,el_kom,plyn,voda,kan,teplo,produkt,odp_hosp"),
+  "DTM — domovní přípojky (často bez dat)": wms(DMVS + "/dtm_pripojky",
+      "el_ved_prip,plyn_prip,vod_prip,kan_prip"),
+  "DTM — dopravní infrastruktura": wms(DMVS + "/dtm_di_ver",
+      "siln_dopr,dr_dopr,vod_dopr,dopr_st_skup"),
+  "DTM — ZPS plochy (barevná)": wms(DMVS + "/dtm_zps_plochy_bar",
+      "bud,dopr_st,vod_dila,prum_st,rek_kult_st,prisl_st,vod_veg", { opacity: 0.7 }),
+  "ÚP SÚ HMP 1999 — ve znění změn": ags(IPR + "/pup/uzemni_plan_platny/MapServer/export",
+      { opacity: 0.55, attribution: "&copy; IPR Praha" }),
+  "ÚP SÚ HMP 1999 — původní znění": ags(IPR + "/pup/uzemni_plan_99/MapServer/export",
+      { opacity: 0.55, attribution: "&copy; IPR Praha" }),
+  "Cenová mapa stavebních pozemků HMP": ags(IPR + "/sed/cenova_mapa/MapServer/export",
+      { layers: "show:0,1", opacity: 0.6, vnuceneMeritko: 19000,
+        attribution: "&copy; IPR Praha" }),
+  "MPP Z01 — základní členění území": mpp("Z01_Vykres_zakladniho_cleneni_uzemi_NkV_2605"),
+  "MPP Z02 — hlavní výkres (funkční využití)": mpp("Z02_Hlavni_vykres_struktury_NkV_2605"),
+  "MPP Z03 — hlavní výkres infrastruktury": mpp("Z03_Hlavni_vykres_infrastruktury_NkV_2605"),
+  "MPP Z04 — veřejně prospěšné stavby":
+      mpp("Z04_Vykres_verejne_prospesnych_staveb_opatreni_a_asanaci_NkV_2605"),
+  "MPP S03 — schéma výškové regulace": mpp("S03_Schema_vyskove_regulace_NkV_2605")
+};
+L.control.layers(podklady, prekryvy, { collapsed: true, position: "topright" }).addTo(mapa);
+
+/* =========================================================================
+   Data
+   ========================================================================= */
+var STAV = null, SKALA = [], BEZ_CENY = "#9e9e9e";
+var vrstvaZnacek = L.layerGroup().addTo(mapa);
+var vrstvaObrysu = L.layerGroup().addTo(mapa);
+var OBRYSY_OD = 8;        // zoom 8 = 2,6 m/px, výřez kolem 2,5 km
+var soubor = [];              // vzorky vybrané do srovnávacího souboru
+var vybranyVklad = null;
+var posledniShluk = null;     // ze kterého domu se přišlo na jednotku
+var casovac = null;
+
+function el(id) { return document.getElementById(id); }
+function cislo(x, des) {
+  if (x === null || x === undefined) return "—";
+  return Number(x).toLocaleString("cs-CZ", { minimumFractionDigits: des || 0,
+                                             maximumFractionDigits: des || 0 });
+}
+function barva(stupen) { return stupen === null || stupen === undefined
+                                ? BEZ_CENY : SKALA[stupen]; }
+function datum(iso) {
+  if (!iso) return "";
+  var d = String(iso).slice(0, 10).split("-");
+  return d.length === 3 ? (+d[2]) + ". " + (+d[1]) + ". " + d[0] : iso;
+}
+
+function nactiStav() {
+  fetch("/api/stav").then(function (r) { return r.json(); }).then(function (s) {
+    STAV = s; SKALA = s.skala; BEZ_CENY = s.bez_ceny;
+    var h = "";
+    s.kategorie.forEach(function (k) {
+      h += '<label class="radek"><input type="radio" name="kat" value="' + k.kod + '">' +
+           k.nazev + '<span class="pocet">' + cislo(k.pocet) + '</span></label>';
+    });
+    h = '<label class="radek"><input type="radio" name="kat" value="" checked>' +
+        'Vše<span class="pocet">' + cislo(s.stav.v_mape) + '</span></label>' + h;
+    el("kategorie").innerHTML = h;
+    naplnFiltry(s.ciselniky || {});
+    document.getElementsByName("kat").forEach(function (r) {
+      r.addEventListener("change", function () { popisSkaly(); nacti(); });
+    });
+    popisSkaly();
+
+    if (!s.stav.v_mape) {
+      el("hlaseni").innerHTML = '<div class="varovani"><b>Mapa je zatím prázdná.</b> ' +
+        'Tabulka Valuo_mapa se ještě nenaplnila. Spusť <code>python 38_prepocty.py</code> ' +
+        'a potom <code>EXEC dbo.sp_prepocet_mapy</code>.</div>';
+    } else if (s.stav.v_mape < s.stav.vkladu_celkem) {
+      el("hlaseni").innerHTML = '<div class="varovani">V mapě je <b>' +
+        cislo(s.stav.v_mape) + '</b> z <b>' + cislo(s.stav.vkladu_celkem) +
+        '</b> vkladů. Zbytek se doplní, až doběhne přepočet.</div>';
+    }
+    nacti();
+  }).catch(function (e) {
+    el("hlaseni").innerHTML = '<div class="varovani"><b>Nelze se spojit s databází.</b><br>' +
+      e + '</div>';
+  });
+}
+
+var NAZVY_OBSAHU = { budova: "Budova", jednotka: "Jednotka", parcela: "Parcela" };
+
+function naplnFiltry(c) {
+  (c.obsahuje || []).forEach(function (o) {
+    el("obsahuje").insertAdjacentHTML("beforeend",
+      '<label class="radek"><input type="checkbox" class="obs" value="' + o.hodnota +
+      '">' + (NAZVY_OBSAHU[o.hodnota] || o.hodnota) +
+      '<span class="pocet">' + cislo(o.pocet) + '</span></label>');
+  });
+  document.querySelectorAll(".obs").forEach(function (x) {
+    x.addEventListener("change", nacti);
+  });
+  (c.druh || []).forEach(function (d) {
+    el("druh").insertAdjacentHTML("beforeend",
+      '<option value="' + d.hodnota + '">' + d.hodnota + " (" + cislo(d.pocet) + ")</option>");
+  });
+  (c.konstrukce || []).forEach(function (k) {
+    el("konstrukce").insertAdjacentHTML("beforeend",
+      '<option value="' + k.hodnota + '">' + k.hodnota + " (" + cislo(k.pocet) + ")</option>");
+  });
+  var r = c.rok_stavby || {};
+  if (r.od && r.do) {
+    el("stavba-od").placeholder = "od " + r.od;
+    el("stavba-do").placeholder = "do " + r.do;
+    el("stavba-pokryti").textContent = "Rok dokončení a konstrukci zná RÚIAN " +
+      "jen u staveb; u pozemků jsou prázdné a filtr je vyřadí.";
+  }
+  ["druh", "konstrukce", "stavba-od", "stavba-do", "doplnit", "nepouzitelne"]
+    .forEach(function (id) { el(id).addEventListener("change", nacti); });
+}
+
+function popisSkaly() {
+  var kat = vybranaKategorie();
+  if (!STAV) return;
+  if (!kat) {
+    el("skala-popis").textContent = "Vyber jeden druh nemovitosti; škála se počítá " +
+      "v rámci druhu, protože Kč/m² bytu a Kč/m² orné půdy nejsou srovnatelné.";
+    return;
+  }
+  var m = STAV.meze[kat];
+  if (!m) { el("skala-popis").textContent = "Pro tento druh zatím nejsou ceny."; return; }
+  el("skala-popis").textContent = "Kvintily v druhu „" +
+    (STAV.kategorie.filter(function (k) { return k.kod === kat; })[0] || {}).nazev +
+    "“: " + cislo(m.meze[0]) + " / " + cislo(m.meze[1]) + " / " + cislo(m.meze[2]) +
+    " / " + cislo(m.meze[3]) + " Kč/m².";
+}
+
+function vybranaKategorie() {
+  var r = document.querySelector('input[name="kat"]:checked');
+  return r ? r.value : "";
+}
+
+/* WKT z SQL Serveru je "POLYGON ((lon lat, …))" nebo MULTIPOLYGON.
+   Leaflet chce [lat, lon] a prstence jako pole polí. */
+function wktNaPrstence(wkt) {
+  var skupiny = wkt.match(/\(\(([^()]*(?:\),\s*\([^()]*)*)\)\)/g) || [];
+  var out = [];
+  skupiny.forEach(function (sk) {
+    var prstence = sk.replace(/^\(\(|\)\)$/g, "").split(/\)\s*,\s*\(/);
+    var mnohouhelnik = prstence.map(function (p) {
+      return p.split(",").map(function (bod) {
+        var c = bod.trim().split(/\s+/);
+        return [parseFloat(c[1]), parseFloat(c[0])];
+      }).filter(function (b) { return !isNaN(b[0]) && !isNaN(b[1]); });
+    }).filter(function (r) { return r.length >= 3; });
+    if (mnohouhelnik.length) out.push(mnohouhelnik);
+  });
+  return out;
+}
+
+function nactiObrysy() {
+  vrstvaObrysu.clearLayers();
+  if (!el("pr-obrysy").checked) {
+    el("obrysy-stav").textContent = "Obrysy parcel vypnuté."; return;
+  }
+  if (mapa.getZoom() < OBRYSY_OD) {
+    el("obrysy-stav").textContent = "Obrysy parcel se zobrazí po přiblížení.";
+    return;
+  }
+  var b = mapa.getBounds();
+  var p = parametryFiltru({ limit: "400" });
+  el("obrysy-stav").textContent = "načítám obrysy…";
+  fetch("/api/polygony?" + p.toString()).then(function (r) { return r.json(); })
+    .then(function (d) {
+      var nakresleno = 0;
+      d.vklady.forEach(function (v) {
+        var barvaV = barva(v.stupen);
+        v.parcely.forEach(function (p) {
+          wktNaPrstence(p.wkt).forEach(function (mn) {
+            var poly = L.polygon(mn, { color: barvaV, weight: 1.5, opacity: .95,
+                                       fillColor: barvaV, fillOpacity: .22 });
+            poly.bindTooltip("<b>" + p.parcel_number + "</b> &middot; " +
+              (p.vlastnictvi || "") + ", " + (p.prostorova_role || "") +
+              "<br>" + (v.druh || "pozemek") +
+              (v.cena_m2 ? " &middot; " + cislo(v.cena_m2) + " Kč/m²" : ""),
+              { direction: "top", opacity: .95 });
+            poly.on("click", function () { otevriKartu(v.cislo_vkladu, null); });
+            vrstvaObrysu.addLayer(poly); nakresleno++;
+          });
+        });
+      });
+      el("obrysy-stav").textContent = nakresleno
+        ? "Obrysy " + cislo(d.parcel) + " parcel u " + cislo(d.vklady.length) + " vkladů."
+        : "Ve výřezu nejsou vklady se spočítanou kartou.";
+    })
+    .catch(function (e) { el("obrysy-stav").textContent = "obrysy: " + e; });
+}
+
+/* Všechny filtry na jednom místě — body i obrysy parcel musí vycházet
+   ze stejného výběru, jinak by se kreslily obrysy k neviditelným bodům. */
+function parametryFiltru(navic) {
+  var b = mapa.getBounds();
+  var p = new URLSearchParams(Object.assign({
+    sever: b.getNorth(), jih: b.getSouth(), vychod: b.getEast(), zapad: b.getWest(),
+    kategorie: vybranaKategorie(),
+    bez_ceny: el("bez-ceny").checked ? "1" : "0"
+  }, navic || {}));
+  var obs = [];
+  document.querySelectorAll(".obs:checked").forEach(function (x) { obs.push(x.value); });
+  if (obs.length) p.set("obsahuje", obs.join(","));
+  if (el("rok-od").value) p.set("rok_od", el("rok-od").value);
+  if (el("druh").value) p.set("druh", el("druh").value);
+  if (el("konstrukce").value) p.set("konstrukce", el("konstrukce").value);
+  if (el("stavba-od").value) p.set("stavba_od", el("stavba-od").value);
+  if (el("stavba-do").value) p.set("stavba_do", el("stavba-do").value);
+  if (el("doplnit").value) p.set("doplnit", el("doplnit").value);
+  if (el("nepouzitelne").checked) p.set("nepouzitelne", "1");
+  return p;
+}
+
+function nacti() {
+  if (!STAV) return;
+  var p = parametryFiltru({ limit: "4000" });
+  el("stav-mapy").textContent = "načítám…";
+  fetch("/api/body?" + p.toString()).then(function (r) { return r.json(); })
+    .then(vykresli)
+    .catch(function (e) { el("stav-mapy").textContent = "chyba: " + e; });
+  nactiObrysy();
+}
+
+var BODY_PODLE_VKLADU = {};
+
+function vykresli(d) {
+  vrstvaZnacek.clearLayers();
+  // Souřadnice se pamatují, aby šly odkazy do map postavit i u vkladu
+  // otevřeného ze seznamu jednotek nebo kliknutím do obrysu parcely.
+  d.body.forEach(function (b) { BODY_PODLE_VKLADU[b.cislo_vkladu] = b; });
+  if (!el("pr-znacky").checked) { el("stav-mapy").textContent = "značky vypnuté"; return; }
+
+  /* Byty v jednom domě mají tentýž bod. Seskupí se, značka nese počet
+     a po kliknutí se nabídne seznam jednotek. */
+  var shluky = {};
+  d.body.forEach(function (b) {
+    (shluky[b.shluk_id] = shluky[b.shluk_id] || []).push(b);
+  });
+
+  Object.keys(shluky).forEach(function (sid) {
+    var skupina = shluky[sid], prvni = skupina[0];
+    if (prvni.lat === null || prvni.lon === null) return;
+    var znacka;
+    if (skupina.length > 1) {
+      znacka = L.marker([prvni.lat, prvni.lon], { icon: L.divIcon({
+        className: "", html: '<div class="znacka-shluk" style="width:22px;height:22px;' +
+          'border-color:' + barva(prvni.stupen) + '">' + skupina.length + '</div>',
+        iconSize: [22, 22], iconAnchor: [11, 11] }) });
+      znacka.on("click", function () { ukazSeznam(sid, skupina); });
+    } else {
+      var vybrany = soubor.indexOf(prvni.cislo_vkladu) >= 0;
+      znacka = L.marker([prvni.lat, prvni.lon], { icon: L.divIcon({
+        className: "", html: '<div class="znacka' + (vybrany ? " vybrana" : "") +
+          '" style="width:13px;height:13px;background:' + barva(prvni.stupen) + '"></div>',
+        iconSize: [13, 13], iconAnchor: [6.5, 6.5] }) });
+      znacka.on("click", function () { otevriKartu(prvni.cislo_vkladu, prvni); });
+    }
+    znacka.bindTooltip(popisekZnacky(skupina),
+      { direction: "top", opacity: .95, permanent: el("pr-popisky").checked });
+    vrstvaZnacek.addLayer(znacka);
+  });
+
+  el("stav-mapy").textContent = d.oriznuto
+    ? "zobrazeno " + cislo(d.zobrazeno) + " z " + cislo(d.celkem) + " — přibliž mapu"
+    : cislo(d.celkem) + (d.celkem === 1 ? " vklad" : (d.celkem < 5 ? " vklady" : " vkladů"));
+}
+
+function popisekZnacky(skupina) {
+  if (skupina.length > 1) {
+    var ceny = skupina.map(function (b) { return b.cena_m2; })
+                      .filter(function (c) { return c !== null; });
+    var text = skupina.length + " vkladů na jedné adrese";
+    if (ceny.length) {
+      text += "<br>" + cislo(Math.min.apply(null, ceny)) + " – " +
+              cislo(Math.max.apply(null, ceny)) + " Kč/m²";
+    }
+    return text;
+  }
+  var b = skupina[0];
+  var t = "<b>" + (b.druh || "pozemek") +
+          (b.jednotka_oznaceni ? ", č. " + b.jednotka_oznaceni : "") + "</b>";
+  if (b.adresa) t += "<br>" + b.adresa;
+  t += "<br>" + cislo(b.cena_Kc) + " Kč";
+  if (b.cena_m2) t += " &middot; <b>" + cislo(b.cena_m2) + " Kč/m²</b>";
+  if (b.rok) t += "<br>zplatněno " + b.rok;
+  return t;
+}
+
+/* ---------------------------------------------------------------- panely */
+function otevriPanel(nazev) {
+  el("panel-nazev").textContent = nazev;
+  document.getElementById("apl").classList.add("s-panelem");
+}
+el("btn-zpet").onclick = function () {
+  if (posledniShluk) ukazSeznam(posledniShluk.sid, posledniShluk.skupina);
+};
+el("btn-zavrit").onclick = function () {
+  el("panel-mapy").innerHTML = "";
+  document.getElementById("apl").classList.remove("s-panelem");
+  vybranyVklad = null; posledniShluk = null;
+  el("btn-zpet").style.display = "none";
+};
+
+function ukazSeznam(sid, skupina) {
+  posledniShluk = { sid: sid, skupina: skupina };
+  otevriPanel(skupina.length + " vkladů na jedné adrese");
+  odkazyDoMap(skupina[0]);
+  el("btn-do-souboru").style.display = "none";
+  el("btn-zpet").style.display = "none";
+  zalozka("karta");
+  fetch("/api/shluk?id=" + encodeURIComponent(sid))
+    .then(function (r) { return r.json(); })
+    .then(function (d) {
+      var h = '<div class="seznam-vkladu">';
+      d.vklady.forEach(function (v) {
+        h += '<button class="polozka" data-v="' + v.cislo_vkladu + '">' +
+          '<div class="r1"><span class="tecka" style="background:' + barva(v.stupen) + '"></span>' +
+          '<b>' + (v.druh || "pozemek") +
+          (v.jednotka_oznaceni ? ", č. " + v.jednotka_oznaceni : "") + '</b>' +
+          '<span class="cena">' + (v.cena_m2 ? cislo(v.cena_m2) + " Kč/m²" : "—") + '</span></div>' +
+          '<div class="r2">' + v.cislo_vkladu + " &middot; " + cislo(v.cena_Kc) + " Kč" +
+          (v.plocha ? " &middot; " + cislo(v.plocha, 1) + " m²" : "") +
+          (v.datum_zplatneni ? " &middot; " + datum(v.datum_zplatneni) : "") +
+          (v.ma_kartu ? "" : ' &middot; <i>karta nespočítána</i>') + '</div></button>';
+      });
+      el("panel-telo").innerHTML = h + "</div>";
+      el("panel-telo").querySelectorAll(".polozka").forEach(function (b) {
+        b.onclick = function () { otevriKartu(b.dataset.v, null, true); };
+      });
+    });
+}
+
+function odkazyDoMap(bod) {
+  var c = el("panel-mapy");
+  if (!bod || bod.lat === null || bod.lat === undefined) {
+    c.innerHTML = '<span class="popis">souřadnice vkladu nejsou známy</span>';
+    return;
+  }
+  var lat = bod.lat, lon = bod.lon;
+  var ll = lat + "%2C" + lon;              // Google chce zakódovanou čárku
+  var lonlat = lon + "," + lat;            // mapy.com chce lon,lat
+  var o = [
+    ["mapy.cz", "https://mapy.com/fnc/v1/showmap?center=" + lonlat + "&zoom=18&marker=true"],
+    ["mapy.cz letecká", "https://mapy.com/fnc/v1/showmap?mapset=aerial&center=" + lonlat +
+      "&zoom=18&marker=true"],
+    ["Google Maps", "https://www.google.com/maps/search/?api=1&query=" + ll],
+    ["Street View", "https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=" + ll]
+  ];
+  var h = "";
+  o.forEach(function (x) {
+    h += '<a href="' + x[1] + '" target="_blank" rel="noopener">' + x[0] + "</a>";
+  });
+  h += '<span class="popis">' + cislo(lat, 5) + ", " + cislo(lon, 5) + "</span>";
+  c.innerHTML = h;
+}
+
+function otevriKartu(cisloVkladu, bod, zeShluku) {
+  vybranyVklad = cisloVkladu;
+  otevriPanel(cisloVkladu);
+  el("btn-do-souboru").style.display = "";
+  // Z domu s více jednotkami je potřeba cesta zpátky na seznam, jinak by se
+  // musel panel zavřít a dům znovu rozkliknout.
+  el("btn-zpet").style.display = (zeShluku && posledniShluk) ? "" : "none";
+  if (zeShluku && posledniShluk) {
+    el("btn-zpet").textContent = "\u2190 Zpět na dům (" +
+      posledniShluk.skupina.length + ")";
+  }
+  el("btn-do-souboru").textContent = soubor.indexOf(cisloVkladu) >= 0 ? "Vyjmout ze souboru" : "Do souboru";
+  odkazyDoMap(bod || BODY_PODLE_VKLADU[cisloVkladu] ||
+              (posledniShluk ? posledniShluk.skupina[0] : null));
+  el("panel-telo").innerHTML = '<iframe src="/karta/' +
+    encodeURIComponent(cisloVkladu) + '"></iframe>';
+  zalozka("karta");
+}
+
+/* =========================================================================
+   Co jsem zjistil — ruční zápisy znalce do databáze.
+   Do Valuo_data se nezapisuje; všechno jde do vlastních tabulek a pohled
+   je upřednostní. U každého pole je napsáno, kam se ukládá.
+   ========================================================================= */
+var POUZITELNOST = [
+  ["vhodny", "Vhodný", "Vzorek lze v porovnání použít bez výhrad."],
+  ["s_vyhradou", "S výhradou", "Použitelný, ale něco na něm není v pořádku — důvod napiš níž."],
+  ["nepouzitelny", "Nepoužitelný", "Do porovnání nepatří. V mapě půjde skrýt."]
+];
+
+function zalozka(kterou) {
+  var jeKarta = kterou === "karta";
+  el("zal-karta").classList.toggle("aktivni", jeKarta);
+  el("zal-zjisteni").classList.toggle("aktivni", !jeKarta);
+  el("panel-telo").style.display = jeKarta ? "" : "none";
+  el("panel-zjisteni").style.display = jeKarta ? "none" : "";
+  if (!jeKarta && vybranyVklad) nactiZjisteni(vybranyVklad);
+}
+el("zal-karta").onclick = function () { zalozka("karta"); };
+el("zal-zjisteni").onclick = function () { zalozka("zjisteni"); };
+
+function m2txt(x) { return x === null || x === undefined ? "—" : cislo(x, 1) + " m²"; }
+
+function nactiZjisteni(cisloVkladu) {
+  el("panel-zjisteni").innerHTML = '<div class="zj"><div class="zprava">načítám…</div></div>';
+  fetch("/api/zjisteni?vklad=" + encodeURIComponent(cisloVkladu))
+    .then(function (r) { return r.json(); })
+    .then(function (d) {
+      if (d.chyba) throw new Error(d.chyba);
+      vykresliZjisteni(cisloVkladu, d);
+    })
+    .catch(function (e) {
+      el("panel-zjisteni").innerHTML = '<div class="zj"><div class="varovani">' +
+        e.message + "</div></div>";
+    });
+}
+
+function vykresliZjisteni(cisloVkladu, d) {
+  var v = d.vklad, r = d.vklad;
+  var mam = {};
+  (d.nalezy || []).forEach(function (x) { mam[x.nalez_kod] = x; });
+
+  var h = '<div class="zj">';
+
+  /* --- registr zdrojů plochy: všechny vedle sebe, použitý zvýrazněný --- */
+  h += "<h3>Z čeho se počítá cena za m²</h3>";
+  h += '<table class="udaje">';
+  h += '<tr class="zvyrazneno"><th>Použitá plocha</th><td>' + m2txt(v.plocha_podlahova_karty) +
+       " <i>" + (v.plocha_podlahova_zdroj || "—") + "</i></td></tr>";
+  h += '<tr class="zvyrazneno"><th>Kč/m² podlahové</th><td>' +
+       (v.jc_Kc_m2_podlahova ? cislo(v.jc_Kc_m2_podlahova) : "—") + "</td></tr>";
+  /* Nosná výměra pozemku: výhradní parcely bez tvaru pásu a bez druhu
+     komunikace. U pozemkového vkladu je to hlavní metrika \u2014 podíly na
+     komunikacích by ji jinak rozmělnily (krok 46). */
+  if (v.jc_Kc_m2_nosne_vymery) {
+    h += '<tr class="zvyrazneno"><th>Kč/m² nosné výměry</th><td>' +
+         cislo(v.jc_Kc_m2_nosne_vymery) + " <i>" + m2txt(v.vymera_nosna) +
+         (v.parcel_nosnych ? ", " + v.parcel_nosnych + "\u00d7 výhradní parcela" +
+            (v.parcel_nosnych > 1 ? "y" : "") : "") + "</i></td></tr>";
+  }
+  if (v.jc_Kc_m2_s_podilem) {
+    h += "<tr><th>Kč/m² včetně podílu</th><td>" + cislo(v.jc_Kc_m2_s_podilem) +
+         " <i>s podílem " + m2txt(v.vymera_podilu) + " na ostatních parcelách</i></td></tr>";
+  }
+  if (!v.jc_Kc_m2_podlahova && !v.jc_Kc_m2_nosne_vymery && v.jc_Kc_m2_vsech_pozemku) {
+    h += "<tr><th>Kč/m² všech pozemků</th><td>" + cislo(v.jc_Kc_m2_vsech_pozemku) +
+         " <i>nosná parcela se nevybrala \u2014 je to balík pozemků</i></td></tr>";
+  }
+  h += "</table>";
+
+  h += "<h3>Všechny známé plochy vedle sebe</h3>";
+  h += '<div class="zprava" style="margin-bottom:8px">Nic se nepřepisuje. ' +
+       "Každá plocha je tu se svým původem, aby bylo v posudku dohledatelné, " +
+       "odkud použité číslo je. Pořadí přednosti drží číselník " +
+       "<code>CIS_plochy_zdroje</code>.</div>";
+  h += '<table class="udaje zdroje">';
+  var skupina = "\u0000";
+  (d.zdroje || []).forEach(function (z) {
+    /* Registr je po jednotkách. Hlavička u každé jednotky říká, jestli se
+       její plocha do plochy vkladu sčítá, nebo je jen v kupní ceně. */
+    var klic = (z.zdroj === "RUCNE") ? "rucne" : String(z.id || 0);
+    if (klic !== skupina) {
+      skupina = klic;
+      var nadp;
+      if (klic === "rucne") nadp = "Ověřeno znalcem";
+      else if (klic !== "0") {
+        nadp = ((z.typ || "jednotka") + " " + (z.jednotka || "")).trim();
+        if (!z.nosna) nadp += " \u2014 rozpuštěno v ceně, do plochy se nesčítá";
+      } else nadp = "Kontrolní údaje za celý vklad";
+      h += '<tr class="skupina"><th colspan="2">' + nadp + "</th></tr>";
+    }
+    h += "<tr" + (z.pouzito ? ' class="zvyrazneno"' : "") + ' title="' +
+         (z.popis || "").replace(/"/g, "&quot;") + '"><th>' + z.nazev +
+         (z.autoritativni ? " \u2605" : "") + "</th><td>" + m2txt(z.plocha) +
+         // poznámka u kontrolního zdroje už sama říká „jen kontrola řádu“
+         (z.poznamka ? ' <i>' + z.poznamka + "</i>"
+                     : (z.pro_cenu ? "" : ' <i>jen kontrola</i>')) +
+         (z.pouzito ? " <b>\u2190 použito</b>" : "") + "</td></tr>";
+  });
+  if (!(d.zdroje || []).length)
+    h += "<tr><th>—</th><td>registr plochy pro tento vklad nic nemá</td></tr>";
+  h += "</table>";
+  h += '<div class="kam">Valuo_plochy po jednotkách + číselníky ' +
+       "CIS_plochy_zdroje a CIS_nemovitost_typ (naplní sp_prepocet_ploch). " +
+       "Plocha vkladu je součet použitých ploch nosné nemovitosti" +
+       (v.rozpusteno ? "; v ceně je navíc " + v.rozpusteno : "") + ".</div>";
+  h += '<table class="udaje" style="margin-top:9px">';
+  h += "<tr><th>Výměra pozemků z katastru</th><td>" + m2txt(v.vymera_pozemku_vse) + "</td></tr>";
+  h += "</table>";
+
+  /* --- co našla sama databáze --- */
+  var auto = [];
+  if (v.nalez_plocha_cely_dum) auto.push("Plocha jednotky se shoduje s podlahovou plochou " +
+    "celé budovy a v domě jsou aspoň dvě jednotky — je to nejspíš plocha celého domu " +
+    "a cena za m² vychází násobně nižší, než má být.");
+  if (v.nalez_plocha_z_podilu) auto.push("Plocha je u Valua vedena jako „Plocha spočítaná " +
+    "z podílu na budově“ — není změřená, ale odvozená z podílu na společných částech.");
+  if (v.nalez_plocha_mimo_ocekavani) auto.push("Použitá plocha je víc než trojnásobně jinde " +
+    "než podlahová plocha domu dělená počtem bytů (" + m2txt(v.plocha_na_byt) + " na jednotku). " +
+    "Není to doklad chyby — v domě bývají garáže a nebytové prostory a dům se může skládat " +
+    "z více čísel popisných — ale zaslouží si to prověření.");
+  if (v.nalez_vice_nosnych) auto.push("Ve vkladu je " + (v.radku_nosnych || "?") +
+    "\u00d7 " + (v.nosny_typ || "nosná nemovitost") + " a žádná z nich není hlavní. " +
+    "Cena se dělí součtem jejich ploch, takže jednotková cena je průměr za všechny, " +
+    "ne cena jedné z nich \u2014 do porovnání se hodí jen tam, kde ten průměr " +
+    "něco znamená.");
+  if (v.nalez_bez_plochy) auto.push("Aspoň jedna nosná nemovitost nemá podlahovou " +
+    "plochu, proto se nic nedělí a uvádí se jen celková cena. U budov je to běžné: " +
+    "Valuo dává do pole plocha výměru parcely a RÚIAN tu stavbu často nezná.");
+  if (v.rozpusteno) auto.push("Ve vkladu je kromě nosné nemovitosti (" +
+    (v.nosny_typ || "—") + ", " + (v.radku_nosnych || 0) + "\u00d7) ještě " + v.rozpusteno +
+    ". Do plochy se sčítají jen řádky nosné nemovitosti; ostatní jednotky jsou " +
+    "v kupní ceně rozpuštěné a jednotkovou cenu tím snižují.");
+  if (v.jc_verdikt === "k prověření" && v.jc_median_ku) auto.push("Jednotková cena leží mimo " +
+    "pásmo mediánu skupiny \u201e" + (v.nosna_skupina || "—") + "\u201c v katastrálním území (" +
+    cislo(v.jc_median_ku) + " Kč/m² z " + (v.jc_vzorku_ku || 0) + " vzorků). Je to jen vodítko, " +
+    "kde se vyplatí plochu prověřit v listině — plochu to nevybírá.");
+  if (v.jc_verdikt === "neověřeno") auto.push("Cenu nelze proti okolí zkontrolovat: " +
+    "v katastrálním území není dost čistých vzorků stejné skupiny. Není to závada vzorku.");
+  /* Validita ceny stojí na jmenovateli, ne na popisku. Obě poznámky níž
+     míří na jmenovatele: čím se dělilo a jak spolehlivý ten údaj je. */
+  if (v.plocha_podlahova_zdroj && v.plocha_podlahova_zdroj !== "plocha jednotky dle Valuo" &&
+      v.plocha_podlahova_zdroj !== "ověřeno znalcem")
+    auto.push("Plocha, kterou se cena dělí, je odvozená (\u201e" + v.plocha_podlahova_zdroj +
+      "\u201c), ne přímo z podkladu. Jako vodítko dobrá; do srovnávacího vzorku teprve " +
+      "po ověření plochy v listině.");
+  if (!v.mapa_cena_m2 && v.cena_Kc && (v.jc_Kc_m2_nosne_vymery || v.jc_Kc_m2_vsech_pozemku))
+    auto.push("Jednotková cena se zde \u201anení z čeho\u2018 spočítat na podlahovou " +
+      "plochu, a na výměru pozemku se u stavby nepočítá \u2014 cena stavby dělená " +
+      "výměrou pozemku je zavádějící. Uvádí se proto jen celková cena za celek. " +
+      "Potřebuješ-li jednotkovou cenu, doplň podlahovou plochu ručně.");
+  if (v.jc_orientacni)
+    auto.push("Jednotková cena je ORIENTAČNÍ. Žádná parcela se nekvalifikovala jako " +
+      "nosná \u2014 jsou to podíly, neověřené vlastnictví nebo tvar pásu \u2014 takže " +
+      "se cena dělí součtem výměr všech parcel včetně podílů na komunikacích. Bere se " +
+      "jen jako hrubý přehled, za kolik se takový balík pozemků prodal. Do srovnávacího " +
+      "vzorku, do mediánů ani do barevné škály nevstupuje a bod zůstává v mapě bez barvy.");
+  if (v.klasifikace === "NELZE" && v.jc_Kc_m2_podlahova)
+    auto.push("Stará klasifikace vkladu je \u201eNELZE\u201c — podle pravidel do kroku 44 " +
+      "z něj jednotková cena spočítat nešla. Kroky 45 a 46 ji spočítat umí a základ je uvedený " +
+      "výše. Klasifikace zůstává jako historická informace; o použitelnosti rozhoduje základ " +
+      "ceny a nálezy, ne ona.");
+  if (auto.length) {
+    h += "<h3>Co našla databáze sama</h3>";
+    auto.forEach(function (t) { h += '<div class="auto">' + t + "</div>"; });
+  }
+
+  /* --- druhý kandidát plochy: nabídnout ho k prověření ---------------
+     Nabízí se jen tam, kde je nosná nemovitost jediná jednotka vkladu —
+     u součtu více jednotek by jedno náhradní číslo nic neznamenalo.
+     Je to nabídka k prověření v listině, ne hodnota. */
+  if (v.plocha_navrh && v.plocha_navrh != v.plocha_podlahova_karty) {
+    h += "<h3>Druhý kandidát plochy</h3>";
+    h += '<div class="auto posun">' +
+      "Kromě použité plochy " + m2txt(v.plocha_podlahova_karty) + " zná registr " +
+      "ještě <b>" + m2txt(v.plocha_navrh) + "</b> ze zdroje \u201e" +
+      (v.plocha_navrh_zdroj || "—") + "\u201c" +
+      (v.nalez_skala ? ". U této jednotky je rozpor ve škále čitatele podílu o celý " +
+        "řád a chybí nezávislý doklad, která z ploch je správná, proto zůstala " +
+        "Valuova" : "") + "." +
+      '<div class="navrh-radek">Návrh: <b>' + m2txt(v.plocha_navrh) + "</b>" +
+      (v.cena_Kc ? " \u2192 " + cislo(v.cena_Kc / v.plocha_navrh) + " Kč/m² místo " +
+        cislo(v.jc_Kc_m2_podlahova) : "") +
+      ' <button id="zj-prevzit" class="maly">Převzít do ověřené plochy</button></div>' +
+      "<div>Potvrdit ji musíš ty — databáze z dopočtu sama nepočítá. " +
+      "Ověř plochu v listině, ne podle výsledné ceny.</div></div>";
+  }
+
+  /* --- použitelnost --- */
+  h += "<h3>Použitelnost vzorku</h3>";
+  POUZITELNOST.forEach(function (p) {
+    h += '<label class="volba"><input type="radio" name="pouz" value="' + p[0] + '"' +
+         (r.pouzitelnost === p[0] ? " checked" : "") + '><span class="txt"><b>' +
+         p[1] + "</b><span>" + p[2] + "</span></span></label>";
+  });
+  h += '<label class="volba"><input type="radio" name="pouz" value=""' +
+       (r.pouzitelnost ? "" : " checked") +
+       '><span class="txt"><b>Neurčeno</b><span>Zatím jsem nerozhodl.</span></span></label>';
+  h += '<div class="pole" style="margin-top:9px"><label>Důvod</label>' +
+       '<input type="text" id="zj-duvod" maxlength="400" value="' +
+       (r.pouzitelnost_duvod || "").replace(/"/g, "&quot;") + '"></div>';
+  h += '<div class="kam">Valuo_vklad_rucne.pouzitelnost, .pouzitelnost_duvod</div>';
+
+  /* --- ověřená plocha --- */
+  h += "<h3>Plocha ověřená znalcem</h3>";
+  h += '<div class="zprava" style="margin-bottom:8px">Má přednost před Valuem i RÚIANem. ' +
+       "Doplň ji, když jsi ji dohledal v katastru, ve smlouvě nebo jinde — cena za m² se " +
+       "přepočítá a v kartě bude u zdroje napsáno „ověřeno znalcem“.</div>";
+  h += '<div class="pole"><label>Plocha v m²</label>' +
+       '<input type="number" step="0.01" id="zj-plocha" value="' +
+       (r.plocha_rucne !== null && r.plocha_rucne !== undefined ? r.plocha_rucne : "") + '"></div>';
+  h += '<div class="pole"><label>Odkud je</label>' +
+       '<input type="text" id="zj-plocha-zdroj" maxlength="200" placeholder="katastr, smlouva, inzerát…" value="' +
+       (r.plocha_rucne_zdroj || "").replace(/"/g, "&quot;") + '"></div>';
+  h += '<div class="kam">Valuo_vklad_rucne.plocha_rucne, .plocha_rucne_zdroj</div>';
+
+  /* --- nálezy z číselníku --- */
+  h += "<h3>Nálezy</h3>";
+  (d.ciselnik || []).forEach(function (c) {
+    h += '<label class="volba"><input type="checkbox" class="zj-nalez" value="' + c.kod + '"' +
+         (mam[c.kod] ? " checked" : "") + '><span class="txt"><b>' + c.nazev +
+         (c.vyrazuje_vzorek ? " — vyřazuje vzorek" : "") + "</b><span>" + c.popis +
+         "</span></span></label>";
+  });
+  h += '<div class="kam">Valuo_vklad_nalezy + číselník CIS_nalezy</div>';
+
+  /* --- poznámky --- */
+  h += "<h3>Poznámky</h3>";
+  (d.poznamky || []).forEach(function (p) {
+    h += '<div class="pozn-zaznam">' + (p.text_pozn || "").replace(/</g, "&lt;") +
+         '<div class="kdy">' + datum(p.kdy) + (p.kdo ? " · " + p.kdo : "") + "</div></div>";
+  });
+  h += '<div class="pole" style="margin-top:9px"><label>Nová poznámka</label>' +
+       '<textarea id="zj-poznamka" placeholder="co jsem zjistil…"></textarea></div>';
+  h += '<div class="kam">Valuo_poznamky — přidává se, nepřepisuje</div>';
+
+  h += '<div class="lista"><button class="hlavni" id="zj-ulozit">Uložit</button>' +
+       '<span class="zprava" id="zj-stav">' +
+       (r.kdy ? "naposledy " + datum(r.kdy) + (r.kdo ? " · " + r.kdo : "") : "") +
+       "</span></div>";
+  h += "</div>";
+
+  el("panel-zjisteni").innerHTML = h;
+  el("zj-ulozit").onclick = function () { ulozZjisteni(cisloVkladu, d); };
+  if (el("zj-prevzit")) el("zj-prevzit").onclick = function () {
+    // Jen předplní pole; uložit musí znalec tlačítkem Uložit.
+    el("zj-plocha").value = v.plocha_navrh;
+    el("zj-plocha-zdroj").value = "posun desetinné čárky, ověřeno proti RÚIAN";
+    var n = document.querySelector('.zj-nalez[value="PLOCHA_POSUN_CARKY"]');
+    if (n) n.checked = true;
+    el("zj-plocha").focus();
+  };
+}
+
+function ulozZjisteni(cisloVkladu, puvodni) {
+  var meli = {};
+  (puvodni.nalezy || []).forEach(function (x) { meli[x.nalez_kod] = true; });
+  var maji = {};
+  document.querySelectorAll(".zj-nalez:checked").forEach(function (x) { maji[x.value] = true; });
+  var pridat = Object.keys(maji).filter(function (k) { return !meli[k]; })
+                     .map(function (k) { return { kod: k }; });
+  var smazat = Object.keys(meli).filter(function (k) { return !maji[k]; });
+
+  var telo = {
+    vklad: cisloVkladu,
+    rucne: {
+      pouzitelnost: (document.querySelector('input[name="pouz"]:checked') || {}).value || "",
+      pouzitelnost_duvod: el("zj-duvod").value,
+      plocha_rucne: el("zj-plocha").value,
+      plocha_rucne_zdroj: el("zj-plocha-zdroj").value
+    },
+    nalezy_pridat: pridat,
+    nalezy_smazat: smazat,
+    poznamka: el("zj-poznamka").value
+  };
+  el("zj-ulozit").disabled = true;
+  el("zj-stav").textContent = "ukládám…";
+  fetch("/api/zjisteni", { method: "POST",
+      headers: { "Content-Type": "application/json" }, body: JSON.stringify(telo) })
+    .then(function (r) { return r.json(); })
+    .then(function (d) {
+      if (d.chyba) throw new Error(d.chyba);
+      vykresliZjisteni(cisloVkladu, d);
+      el("zj-stav").textContent = "uloženo";
+      // karta se musí překreslit, mohla se změnit plocha i cena za m²
+      var ram = document.querySelector("#panel-telo iframe");
+      if (ram) ram.src = ram.src;
+      nacti();
+    })
+    .catch(function (e) {
+      el("zj-ulozit").disabled = false;
+      el("zj-stav").textContent = "chyba: " + e.message;
+    });
+}
+
+el("btn-do-souboru").onclick = function () {
+  if (!vybranyVklad) return;
+  var i = soubor.indexOf(vybranyVklad);
+  if (i >= 0) soubor.splice(i, 1); else soubor.push(vybranyVklad);
+  el("btn-do-souboru").textContent = i >= 0 ? "Do souboru" : "Vyjmout ze souboru";
+  prekresliSoubor(); nacti();
+};
+
+function prekresliSoubor() {
+  el("soubor-pocet").textContent = soubor.length;
+  el("btn-export").disabled = !soubor.length;
+  el("btn-soubor-smazat").disabled = !soubor.length;
+  if (!soubor.length) {
+    el("soubor-seznam").innerHTML = '<div class="zprava">Zatím prázdný. Vzorek se přidá ' +
+      'tlačítkem v kartě nebo v seznamu.</div>';
+    return;
+  }
+  el("soubor-seznam").innerHTML = soubor.map(function (v, i) {
+    return '<div class="soubor-polozka"><b>' + (i + 1) + '.</b><span>' + v +
+           '</span><span class="x" data-v="' + v + '">&times;</span></div>';
+  }).join("");
+  el("soubor-seznam").querySelectorAll(".x").forEach(function (x) {
+    x.onclick = function () {
+      soubor.splice(soubor.indexOf(x.dataset.v), 1); prekresliSoubor(); nacti();
+      if (vybranyVklad === x.dataset.v) el("btn-do-souboru").textContent = "Do souboru";
+    };
+  });
+}
+
+el("btn-soubor-smazat").onclick = function () { soubor = []; prekresliSoubor(); nacti(); };
+
+el("btn-export").onclick = function () {
+  var bezMap = el("bez-map").checked;
+  el("btn-export").disabled = true;
+  el("export-stav").textContent = bezMap
+    ? "sestavuji dokument…"
+    : "stahuji mapové podklady, u " + soubor.length + " vkladů to může trvat minuty…";
+  fetch("/api/export", { method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ vklady: soubor, bez_map: bezMap }) })
+    .then(function (r) {
+      if (!r.ok) return r.json().then(function (j) { throw new Error(j.chyba || r.status); });
+      var karet = r.headers.get("X-Karet"), chyb = r.headers.get("X-Chyb");
+      return r.blob().then(function (b) { return { b: b, karet: karet, chyb: chyb }; });
+    })
+    .then(function (v) {
+      var a = document.createElement("a");
+      a.href = URL.createObjectURL(v.b);
+      a.download = "vzorky.docx"; a.click();
+      el("export-stav").textContent = "hotovo, " + v.karet + " karet" +
+        (v.chyb !== "0" ? " (" + v.chyb + " se nepodařilo)" : "");
+      el("btn-export").disabled = false;
+    })
+    .catch(function (e) {
+      el("export-stav").textContent = "chyba: " + e.message;
+      el("btn-export").disabled = false;
+    });
+};
+
+/* ---------------------------------------------------------------- události */
+function odlozene() { clearTimeout(casovac); casovac = setTimeout(nacti, 350); }
+mapa.on("moveend zoomend", odlozene);
+el("bez-ceny").addEventListener("change", nacti);
+el("rok-od").addEventListener("change", nacti);
+el("pr-znacky").addEventListener("change", nacti);
+el("pr-popisky").addEventListener("change", nacti);
+el("pr-obrysy").addEventListener("change", nactiObrysy);
+
+prekresliSoubor();
+nactiStav();
+</script>
+</body></html>
+"""
+
+
+def stranka():
+    return STRANKA
+
+
+def stranka_hlaseni(cislo_vkladu, zprava):
+    """Stránka do panelu, když kartu nelze sestavit.
+
+    Nejčastější důvod: pro vklad ještě neproběhl přepočet, takže nemá
+    v Valuo_karta_parcely žádné parcely. Prázdná odpověď by v panelu
+    vypadala jako porucha, proto se tu vysvětlí, co dělat.
+    """
+    nespocitana = "nemá v kartě žádné parcely" in zprava or "sp_prepocet_karty" in zprava
+    if nespocitana:
+        nadpis = "Karta zatím není spočítaná"
+        text = ("Pro tento vklad ještě neproběhl přepočet, takže se role parcel, "
+                "výměry ani tvar neznají. Doplní se, až doběhne hromadný přepočet.")
+        navod = ("python 38_prepocty.py", "nebo jen tento vklad:",
+                 f"EXEC dbo.sp_prepocet_karty @cislo_vkladu = '{cislo_vkladu}';\n"
+                 f"EXEC dbo.sp_prepocet_karty_tvar @cislo_vkladu = '{cislo_vkladu}';")
+    else:
+        nadpis = "Kartu se nepodařilo sestavit"
+        text = zprava
+        navod = None
+    h = ['<!doctype html><html lang="cs"><head><meta charset="utf-8">',
+         '<style>body{font:14px/1.55 -apple-system,"Segoe UI",Roboto,sans-serif;',
+         'color:#1a1a19;background:#faf9f6;margin:0;padding:34px 30px}',
+         'h2{font-size:16px;margin:0 0 10px}p{margin:0 0 12px;max-width:52ch}',
+         '.c{color:#5f5e5a}code,pre{font:12.5px/1.5 ui-monospace,Consolas,monospace;',
+         'background:#fff;border:1px solid #dcdad2;border-radius:6px;padding:9px 11px;',
+         'display:block;white-space:pre-wrap;margin:0 0 9px}</style></head><body>',
+         f'<h2>{nadpis}</h2>',
+         f'<p class="c">Vklad <b>{cislo_vkladu}</b></p>',
+         f'<p>{text}</p>']
+    if navod:
+        h.append(f'<pre>{navod[0]}</pre><p class="c">{navod[1]}</p><pre>{navod[2]}</pre>')
+    h.append('</body></html>')
+    return "".join(h)
+
+
+# -----------------------------------------------------------------------------
+# 7. Spuštění
+# -----------------------------------------------------------------------------
+
+def main():
+    ap = argparse.ArgumentParser(description="Mapová aplikace nad databází vkladů.")
+    ap.add_argument("--port", type=int, default=8000)
+    ap.add_argument("--server", default=None, help="SQL Server, jinak jako u 35")
+    ap.add_argument("--bez-prohlizece", action="store_true")
+    a = ap.parse_args()
+    if a.server:
+        EX.SERVER = a.server
+
+    adresa = f"http://localhost:{a.port}/"
+    print(f"\nDatabáze vkladů — mapa")
+    print(f"  {adresa}")
+    try:
+        s = dotaz(SQL_STAV)[0]
+        print(f"  v mapě {s['v_mape']} z {s['vkladu_celkem']} vkladů, "
+              f"{s['s_cenou']} s jednotkovou cenou, {s['s_kartou']} s kartou")
+        if not s["v_mape"]:
+            print("  [!] Valuo_mapa je prázdná — spusť 38_prepocty.py "
+                  "a pak EXEC dbo.sp_prepocet_mapy")
+    except Exception as e:
+        print(f"  [!] databáze neodpovídá: {e}")
+    print("  konec Ctrl+C\n")
+
+    if not a.bez_prohlizece:
+        threading.Timer(0.8, lambda: webbrowser.open(adresa)).start()
+    srv = ThreadingHTTPServer(("127.0.0.1", a.port), Obsluha)
+    try:
+        srv.serve_forever()
+    except KeyboardInterrupt:
+        print("\nkonec")
+
+
+if __name__ == "__main__":
+    main()
