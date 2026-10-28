@@ -278,17 +278,24 @@ def kc(v, des=0):
 def m2(v):
     return "—" if v is None else kc(v) + " m²"
 
-BARVY = {
-  ("výhradní","kotva"):     ("#0F6E56", "Dům / hlavní nemovitost"),
-  ("výhradní","celek"):     ("#1D9E75", "Výhradní, funkční celek"),
-  ("výhradní","oddělená"):  ("#378ADD", "Výhradní, mimo celek"),
-  ("podílová","celek"):     ("#BA7517", "Podíl, přilehlá"),
-  ("podílová","oddělená"):  ("#EF9F27", "Podíl, nepřilehlá"),
-  ("neověřeno","celek"):    ("#A32D2D", "Neověřeno"),
-  ("neověřeno","oddělená"): ("#A32D2D", "Neověřeno"),
+BARVY = {  # úplná paleta všech kombinací vlastnictví × role (28. 10. 2026)
+  ('výhradní', 'kotva'): ('#0F6E56', 'Hlavní nemovitost'),
+  ('podílová', 'kotva'): ('#7A5A12', 'Hlavní nemovitost na podílovém pozemku (např. pozemek pod domem s jednotkami)'),
+  ('výhradní', 'celek'): ('#1D9E75', 'Výhradní, funkční celek'),
+  ('výhradní', 'oddělená'): ('#378ADD', 'Výhradní, mimo celek'),
+  ('výhradní', 'bez kotvy'): ('#6A3FB5', 'Výhradní, vklad bez hlavní nemovitosti (soubor pozemků)'),
+  ('podílová', 'celek'): ('#BA7517', 'Podíl, přilehlá'),
+  ('podílová', 'oddělená'): ('#EF9F27', 'Podíl, nepřilehlá'),
+  ('podílová', 'bez kotvy'): ('#E3C21B', 'Podíl, vklad bez hlavní nemovitosti'),
+  ('neověřeno', 'celek'): ('#A32D2D', 'Neověřené vlastnictví'),
+  ('neověřeno', 'oddělená'): ('#A32D2D', 'Neověřené vlastnictví'),
+  ('neověřeno', 'bez kotvy'): ('#A32D2D', 'Neověřené vlastnictví'),
 }
 def barva(vl, pr):
-    return BARVY.get((vl, pr), ("#888780", "Ostatní"))[0]
+    # dřív šedá #888780 — na ortofotu a v územním plánu zanikala (28. 10. 2026)
+    return BARVY.get((vl, pr), (BARVA_JINA, "Ostatní"))[0]
+
+BARVA_JINA = "#D60078"
 
 def html_karta(vk, v, par):
     body = []
@@ -599,10 +606,17 @@ def html_karta(vk, v, par):
 
     # --- legenda ---
     pouzite = []
-    for (vl, pr), (col, lab) in BARVY.items():
+    pocty = {}
+    for (vl, pr), (col, lab) in BARVY.items():   # neověřeno má tři klíče, jeden řádek
         n = len([p for p in polys if p["vl"] == vl and p["pr"] == pr])
         if n:
-            pouzite.append(f'<span class="lg"><i style="background:{col}"></i>{lab} ({n})</span>')
+            pocty[(col, lab)] = pocty.get((col, lab), 0) + n
+    for (col, lab), n in pocty.items():
+        pouzite.append(f'<span class="lg"><i style="background:{col}"></i>{lab} ({n})</span>')
+    n_jine = len([p for p in polys if (p["vl"], p["pr"]) not in BARVY])
+    if n_jine:
+        pouzite.append(f'<span class="lg"><i style="background:{BARVA_JINA}"></i>'
+                       f'Ostatní — mimo uvedené kategorie ({n_jine})</span>')
     legenda = "".join(pouzite)
 
     radky_parcel = "".join(
@@ -960,7 +974,7 @@ function vyber(pn) {{
   PARCELY.forEach(function (q) {{
     var vybrana = q.pn === pn;
     if (vybrana) cil = q;
-    if (q._poly) q._poly.setStyle({{ weight: vybrana ? 4 : 2,
+    if (q._poly) q._poly.setStyle({{ weight: vybrana ? 4.5 : 2.5,
       fillOpacity: vybrana ? 0.55 : 0.3 }});
   }});
   document.querySelectorAll("table.par tbody tr").forEach(function (tr) {{
@@ -973,8 +987,14 @@ function vyber(pn) {{
 }}
 
 PARCELY.forEach(function(p) {{
-  var poly = L.polygon(p.coords, {{color:p.barva, weight:2, fillColor:p.barva,
-      fillOpacity:0.3}}).addTo(vrstvaPoly);
+  // Obrys ve třech vrstvách: tmavý lem, bílý lem, barva role. Jediná barva
+  // čáry nebyla vidět na ortofotu ani v územním plánu (28. 10. 2026).
+  L.polygon(p.coords, {{color:"#141414", weight:8, opacity:0.8, fill:false,
+      interactive:false}}).addTo(vrstvaPoly);
+  L.polygon(p.coords, {{color:"#ffffff", weight:5.5, opacity:1, fill:false,
+      interactive:false}}).addTo(vrstvaPoly);
+  var poly = L.polygon(p.coords, {{color:p.barva, weight:2.5, opacity:1,
+      fillColor:p.barva, fillOpacity:0.3}}).addTo(vrstvaPoly);
   var h = '<div class="pop"><b>Parcela ' + p.pn + '</b><table>' +
     radek("Výměra dle katastru", cis(p.vym) + " m²") +
     radek("Druh", p.druh, "Druh pozemku tak, jak je uveden u záznamu o prodeji.") +

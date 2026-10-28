@@ -1590,9 +1590,11 @@ def nacti_dopocty():
     """Krok 38 jako modul. Logika dopočtu karet je na jednom místě — tady
     se jen volá, aby to šlo pustit jedním příkazem."""
     import importlib.util
-    cesta = os.path.join(os.path.dirname(os.path.abspath(__file__)),
-                         "38_prepocty.py")
-    if not os.path.exists(cesta):
+    # pathlib, ne os.path: tenhle modul os vůbec neimportuje. Volání
+    # os.path.join tu leželo od zavedení funkce a spadlo na NameError při
+    # prvním skutečném použití --dopocty (28. 10. 2026, nalezl znalec).
+    cesta = Path(__file__).resolve().parent / "38_prepocty.py"
+    if not cesta.exists():
         raise SystemExit(f"Vedle tohoto skriptu chybí 38_prepocty.py ({cesta}).")
     spec = importlib.util.spec_from_file_location("prepocty38", cesta)
     modul = importlib.util.module_from_spec(spec)

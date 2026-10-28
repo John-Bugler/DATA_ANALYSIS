@@ -140,14 +140,32 @@ POPISEK_MEZ_PARCEL = 5
 POMER = 1.45             # šířka ku výšce obrázku
 TIMEOUT = 60
 
-BARVY = {
-    ("výhradní", "kotva"):    ((15, 110, 86), "Hlavní nemovitost"),
-    ("výhradní", "celek"):    ((29, 158, 117), "Výhradní, funkční celek"),
-    ("výhradní", "oddělená"): ((55, 138, 221), "Výhradní, mimo celek"),
-    ("podílová", "celek"):    ((186, 117, 23), "Podíl, přilehlá"),
-    ("podílová", "oddělená"): ((239, 159, 39), "Podíl, nepřilehlá"),
+BARVY = {  # úplná paleta všech kombinací vlastnictví × role (28. 10. 2026)
+    ('výhradní', 'kotva'): ((15, 110, 86), 'Hlavní nemovitost'),
+    ('podílová', 'kotva'): ((122, 90, 18), 'Hlavní nemovitost na podílovém pozemku (např. pozemek pod domem s jednotkami)'),
+    ('výhradní', 'celek'): ((29, 158, 117), 'Výhradní, funkční celek'),
+    ('výhradní', 'oddělená'): ((55, 138, 221), 'Výhradní, mimo celek'),
+    ('výhradní', 'bez kotvy'): ((106, 63, 181), 'Výhradní, vklad bez hlavní nemovitosti (soubor pozemků)'),
+    ('podílová', 'celek'): ((186, 117, 23), 'Podíl, přilehlá'),
+    ('podílová', 'oddělená'): ((239, 159, 39), 'Podíl, nepřilehlá'),
+    ('podílová', 'bez kotvy'): ((227, 194, 27), 'Podíl, vklad bez hlavní nemovitosti'),
+    ('neověřeno', 'celek'): ((163, 45, 45), 'Neověřené vlastnictví'),
+    ('neověřeno', 'oddělená'): ((163, 45, 45), 'Neověřené vlastnictví'),
+    ('neověřeno', 'bez kotvy'): ((163, 45, 45), 'Neověřené vlastnictví'),
 }
-BARVA_JINA = ((136, 135, 128), "Ostatní")
+# Dřív šedá (136, 135, 128) — na ortofotu a v územním plánu zanikala.
+# Purpurová v přírodě ani v legendách ÚP SÚ hl. m. Prahy a Metropolitního
+# plánu skoro není (pokyn znalce 28. 10. 2026).
+BARVA_JINA = ((214, 0, 120), "Ostatní — mimo uvedené kategorie")
+
+# Obrys parcel se kreslí ve třech vrstvách: tmavý lem, světlý lem a uprostřed
+# barva role. Jediná barva čáry nemůže být vidět na všech podkladech —
+# na tmavém ortofotu potřebuje světlé okolí, na světlém katastru a na pestrém
+# územním plánu tmavé. Dvojí lem zajistí kontrast vždy a barva role zůstane
+# zachovaná. Šířky v pixelech při SIRKA_PX = 1700 (17 cm), tj. 1 px ≈ 0,1 mm.
+OBRYS_TMAVY = ((20, 20, 20, 215), 9)
+OBRYS_SVETLY = ((255, 255, 255, 255), 6)
+OBRYS_BARVA_PX = 3
 
 SESSION = requests.Session()
 SESSION.headers["User-Agent"] = "znalec-karta-vkladu/1.0"
@@ -618,11 +636,23 @@ def vykresli(podklad, geometrie, bbox, px, popisky="vse"):
     def bod(p):
         return ((p[0] - x0) * sx, (y1 - p[1]) * sy)
 
+    # výplň zvlášť, obrysy až nad všemi výplněmi — jinak by výplň sousední
+    # parcely přemalovala lem té předchozí
     for p, prsteny in geometrie:
         rgb, _ = barva(p["vlastnictvi"], p["prostorova_role"])
         for r in prsteny:
-            kr.polygon([bod(q) for q in r], fill=rgb + (70,),
-                       outline=rgb + (255,), width=3)
+            kr.polygon([bod(q) for q in r], fill=rgb + (70,))
+    for barva_cary, sirka in (OBRYS_TMAVY, OBRYS_SVETLY):
+        for _p, prsteny in geometrie:
+            for r in prsteny:
+                b = [bod(q) for q in r]
+                kr.line(b + [b[0]], fill=barva_cary, width=sirka, joint="curve")
+    for p, prsteny in geometrie:
+        rgb, _ = barva(p["vlastnictvi"], p["prostorova_role"])
+        for r in prsteny:
+            b = [bod(q) for q in r]
+            kr.line(b + [b[0]], fill=rgb + (255,), width=OBRYS_BARVA_PX,
+                    joint="curve")
 
     if popisky == "zadne":
         img.alpha_composite(vrstva)
@@ -1433,12 +1463,279 @@ def stin_bunky(bunka, rgb):
 
 def legenda_do_dokumentu(doc):
     odstavec(doc, "Vysvětlivky k vyznačení parcel v mapách", "ZP text", tucne=True)
-    t = tabulka(doc, [["", popis] for _, popis in BARVY.values()], [1.4, 15.6])
-    for radek, (rgb, _) in zip(t.rows, BARVY.values()):
+    polozky = list(dict((lab, (rgb, lab)) for rgb, lab in BARVY.values()).values())
+    t = tabulka(doc, [["", popis] for _, popis in polozky], [1.4, 15.6])
+    for radek, (rgb, _) in zip(t.rows, polozky):
         stin_bunky(radek.cells[0], rgb)
     odstavec(doc, "Vlastnictví je odhad dopočtený z dat, nikoli údaj z katastru. "
                   "Za podílovou se bere parcela, která se v datech prodávala "
-                  "společně s několika různými hlavními nemovitostmi.", "ZP popisek")
+                  "společně s několika různými hlavními nemovitostmi. "
+                  "Hranice parcel jsou vedeny barvou role s tmavým a bílým lemem, "
+                  "aby byly čitelné na ortofotomapě, katastrální mapě i územním plánu.",
+                  "ZP popisek")
+
+
+# =============================================================================
+# 5b. Přehledová mapa srovnávacího souboru (28. 10. 2026)
+# =============================================================================
+# Na začátek dokumentu jedna mapa se všemi vzorky: tečka v místě značky
+# z mapové aplikace (Valuo_mapa.lat/lon — stejný bod, jaký znalec viděl při
+# výběru), barva podle jednotkové ceny UVNITŘ vzorku (zelená nejlevnější,
+# červená nejdražší, lineárně mezi minimem a maximem) a popisek s číslem
+# vkladu a Kč/m². Orientační ceny se ukazují šedě a do škály se nepočítají,
+# stejně jako v aplikaci.
+
+SQL_PREHLED = sqlalchemy.text("""
+SELECT m.cislo_vkladu, m.lat, m.lon, m.cena_m2, m.jc_orientacni, m.kat_uzemi,
+       m.datum_zplatneni, m.cena_Kc, m.plocha, m.zaklad_ceny,
+       k.vymera_pozemku_vse
+FROM dbo.Valuo_mapa m
+LEFT JOIN dbo.v_Valuo_karta_vkladu k ON k.cislo_vkladu = m.cislo_vkladu
+WHERE m.cislo_vkladu IN :v AND m.lat IS NOT NULL AND m.lon IS NOT NULL
+""").bindparams(sqlalchemy.bindparam("v", expanding=True))
+
+PREHLED_MIN_SIRKA_M = 1500.0     # jeden vzorek nebo vzorky v jedné ulici
+PREHLED_OKRAJ = 0.30             # rezerva kolem bodů na popisky
+PREHLED_ZTM_DO_M = 25000.0       # do této šířky ZTM, nad ní Přehledová mapa
+PREHLED_SKALA = [(26, 150, 65), (242, 197, 0), (215, 25, 28)]
+PREHLED_ORIENT = (150, 150, 150)
+
+
+def _skala(t):
+    t = max(0.0, min(1.0, t))
+    if t <= 0.5:
+        a, b, u = PREHLED_SKALA[0], PREHLED_SKALA[1], t / 0.5
+    else:
+        a, b, u = PREHLED_SKALA[1], PREHLED_SKALA[2], (t - 0.5) / 0.5
+    return tuple(int(round(a[i] + (b[i] - a[i]) * u)) for i in range(3))
+
+
+def nacti_prehled(conn, vklady):
+    """Body vzorků v pořadí srovnávacího souboru, souřadnice v S-JTSK."""
+    radky = {r.cislo_vkladu: r for r in
+             conn.execute(SQL_PREHLED, {"v": list(vklady)})}
+    body = []
+    for poradi, cislo in enumerate(vklady, 1):
+        r = radky.get(cislo)
+        if r is None:
+            continue
+        x, y = T_WGS_SJTSK.transform(float(r.lon), float(r.lat))
+        cena = float(r.cena_m2) if r.cena_m2 is not None else None
+        body.append({"poradi": poradi, "cislo": cislo, "x": x, "y": y,
+                     "cena": cena, "orient": bool(r.jc_orientacni),
+                     "ku": r.kat_uzemi, "datum": r.datum_zplatneni,
+                     "cena_kc": float(r.cena_Kc) if r.cena_Kc is not None else None,
+                     "vymera": (float(r.vymera_pozemku_vse)
+                                if r.vymera_pozemku_vse is not None else None),
+                     "zaklad_plocha": float(r.plocha) if r.plocha is not None else None,
+                     "zaklad": r.zaklad_ceny})
+    return body
+
+
+def _vyrez_bodu(body):
+    xs = [b["x"] for b in body]; ys = [b["y"] for b in body]
+    cx, cy = (min(xs) + max(xs)) / 2, (min(ys) + max(ys)) / 2
+    sx, sy = max(xs) - min(xs), max(ys) - min(ys)
+    sirka = max(sx * (1 + 2 * PREHLED_OKRAJ),
+                sy * (1 + 2 * PREHLED_OKRAJ) * POMER, PREHLED_MIN_SIRKA_M)
+    vyska = sirka / POMER
+    return (cx - sirka / 2, cy - vyska / 2, cx + sirka / 2, cy + vyska / 2)
+
+
+def prehledova_mapa(body, bez_podkladu=False):
+    """Vrátí (obrázek, zdroj) nebo None, nejsou-li žádné body."""
+    if not body:
+        return None
+    px = (SIRKA_PX, int(SIRKA_PX / POMER))
+    bbox = _vyrez_bodu(body)
+    sirka_m = bbox[2] - bbox[0]
+
+    img = Image.new("RGBA", px, (255, 255, 255, 255))
+    zdroj = "bez mapového podkladu"
+    if not bez_podkladu:
+        if sirka_m <= PREHLED_ZTM_DO_M:
+            podklad = ags_export(f"{CUZK}/ZTM", bbox, px, pruhledne=False,
+                                 format="png")
+            zdroj = "Základní topografická mapa, ČÚZK"
+        else:
+            podklad = ags_export(f"{CUZK}/PrehledovaMapa", bbox, px,
+                                 pruhledne=False, format="png")
+            zdroj = "Přehledová mapa ČR, ČÚZK"
+        if podklad is not None:
+            img.alpha_composite(podklad.resize(px, Image.LANCZOS))
+            # podklad mírně zesvětlit, aby barevné tečky vystoupily
+            img = Image.blend(img, Image.new("RGBA", px, (255, 255, 255, 255)), 0.25)
+        else:
+            zdroj = "mapový podklad se nepodařilo stáhnout"
+
+    # barvy
+    ceny = [b["cena"] for b in body if b["cena"] and not b["orient"]]
+    lo, hi = (min(ceny), max(ceny)) if ceny else (None, None)
+    for b in body:
+        if b["cena"] and not b["orient"]:
+            t = 0.5 if hi == lo else (b["cena"] - lo) / (hi - lo)
+            b["rgb"] = _skala(t)
+        else:
+            b["rgb"] = PREHLED_ORIENT
+
+    x0, y0, x1, y1 = bbox
+    sx, sy = px[0] / (x1 - x0), px[1] / (y1 - y0)
+    for b in body:
+        b["px"] = ((b["x"] - x0) * sx, (y1 - b["y"]) * sy)
+
+    vrstva = Image.new("RGBA", px, (0, 0, 0, 0))
+    kr = ImageDraw.Draw(vrstva)
+    na_bod = (px[0] / SIRKA_SAZBY_CM) * 0.03528      # pixelů na typografický bod
+    R = max(15, int(px[0] * 0.0105))                  # poloměr tečky ≈ 1,8 mm
+    f1 = pismo(int(8.5 * na_bod))
+    f2 = pismo(int(8.0 * na_bod))
+    mer = ImageDraw.Draw(Image.new("RGB", (1, 1)))
+
+    def box_textu(txt, f):
+        l, t, r_, b_ = mer.textbbox((0, 0), txt, font=f)
+        return r_ - l, b_ - t, l, t
+
+    # zakázané plochy: všechny tečky, měřítko vlevo dole, legenda vpravo dole
+    obsazene = [(b["px"][0] - R - 4, b["px"][1] - R - 4,
+                 b["px"][0] + R + 4, b["px"][1] + R + 4) for b in body]
+    obsazene.append((0, px[1] * 0.88, px[0] * 0.30, px[1]))
+    obsazene.append((px[0] * 0.62, px[1] * 0.84, px[0], px[1]))
+
+    smery = [(1, -1), (1, 1), (-1, -1), (-1, 1), (0, -1), (0, 1), (1, 0), (-1, 0)]
+    popisky = []
+    # nejdřív body v nejhustším okolí — mají nejméně volných míst
+    def hustota(b):
+        return sum(1 for c in body if c is not b and
+                   abs(c["px"][0] - b["px"][0]) < 300 and
+                   abs(c["px"][1] - b["px"][1]) < 150)
+    for b in sorted(body, key=hustota, reverse=True):
+        r1 = b["cislo"]
+        r2 = (f"{b['cena']:,.0f}".replace(",", " ") + " Kč/m²"
+              + (" (orient.)" if b["orient"] else "")) if b["cena"] else "bez Kč/m²"
+        w1, h1, _, _ = box_textu(r1, f1)
+        w2, h2, _, _ = box_textu(r2, f2)
+        w, h = max(w1, w2), h1 + h2 + 8
+        cx, cy = b["px"]
+        umisteni = None
+        for vzd in (1.0, 2.2, 3.6, 5.2):
+            for dx, dy in smery:
+                ox = cx + dx * (R + 6) * vzd
+                oy = cy + dy * (R + 6) * vzd
+                lx = ox if dx > 0 else (ox - w if dx < 0 else ox - w / 2)
+                ly = oy if dy > 0 else (oy - h if dy < 0 else oy - h / 2)
+                ram = (lx - 4, ly - 4, lx + w + 4, ly + h + 4)
+                if ram[0] < 6 or ram[1] < 6 or ram[2] > px[0] - 6 or ram[3] > px[1] - 6:
+                    continue
+                if any(_protina(ram, o, 2) for o in obsazene):
+                    continue
+                umisteni = (lx, ly, ram, vzd > 1.0, (ox, oy))
+                break
+            if umisteni:
+                break
+        if not umisteni:                       # nouzově vpravo nahoru přes cokoli
+            lx, ly = cx + R + 6, cy - R - 6 - h
+            lx = min(max(6, lx), px[0] - 6 - w); ly = min(max(6, ly), px[1] - 6 - h)
+            umisteni = (lx, ly, (lx - 4, ly - 4, lx + w + 4, ly + h + 4), False, None)
+        lx, ly, ram, s_carou, kotva = umisteni
+        obsazene.append(ram)
+        popisky.append((b, r1, r2, lx, ly, h1, ram, s_carou))
+
+    # odkazové čáry pod tečkami
+    for b, _r1, _r2, lx, ly, _h1, ram, s_carou in popisky:
+        if s_carou:
+            cx, cy = b["px"]
+            tx = min(max(cx, ram[0]), ram[2]); ty = min(max(cy, ram[1]), ram[3])
+            kr.line([(cx, cy), (tx, ty)], fill=(40, 40, 40, 220), width=3)
+    # tečky: tmavý okraj, bílý lem, barva
+    for b in body:
+        cx, cy = b["px"]
+        kr.ellipse([cx - R - 4, cy - R - 4, cx + R + 4, cy + R + 4], fill=(20, 20, 20, 230))
+        kr.ellipse([cx - R - 1, cy - R - 1, cx + R + 1, cy + R + 1], fill=(255, 255, 255, 255))
+        kr.ellipse([cx - R + 3, cy - R + 3, cx + R - 3, cy + R - 3], fill=b["rgb"] + (255,))
+    # popisky s bílou září
+    for b, r1, r2, lx, ly, h1, _ram, _s in popisky:
+        kr.text((lx, ly), r1, font=f1, fill=(20, 20, 20, 255),
+                stroke_width=4, stroke_fill=(255, 255, 255, 245))
+        kr.text((lx, ly + h1 + 8), r2, font=f2, fill=_tmavsi(b["rgb"], 0.75) + (255,),
+                stroke_width=4, stroke_fill=(255, 255, 255, 245))
+
+    # legenda škály vpravo dole
+    if ceny:
+        lw, lh = int(px[0] * 0.26), int(px[1] * 0.025)
+        lx0 = px[0] - lw - int(px[0] * 0.03); ly0 = px[1] - int(px[1] * 0.075)
+        fl = pismo(int(7.5 * na_bod))
+        t_lo = f"{lo:,.0f}".replace(",", " ")
+        t_hi = f"{hi:,.0f}".replace(",", " ") + " Kč/m²"
+        _, ht, _, _ = box_textu(t_lo, fl)
+        kr.rectangle([lx0 - 14, ly0 - ht - 22, lx0 + lw + 14, ly0 + lh + 12],
+                     fill=(255, 255, 255, 235))
+        for i in range(lw):
+            kr.line([(lx0 + i, ly0), (lx0 + i, ly0 + lh)], fill=_skala(i / max(lw - 1, 1)) + (255,))
+        kr.rectangle([lx0, ly0, lx0 + lw, ly0 + lh], outline=(40, 40, 40, 255), width=2)
+        kr.text((lx0, ly0 - ht - 12), t_lo, font=fl, fill=(20, 20, 20, 255))
+        wt, _, _, _ = box_textu(t_hi, fl)
+        kr.text((lx0 + lw - wt, ly0 - ht - 12), t_hi, font=fl, fill=(20, 20, 20, 255))
+
+    img.alpha_composite(vrstva)
+    img = meritko(img.convert("RGB"), bbox)
+    return img, zdroj, lo, hi
+
+
+def prehled_do_dokumentu(doc, conn, vklady, bez_podkladu=False):
+    """Přehledová mapa a soupis vzorků na začátek dokumentu."""
+    body = nacti_prehled(conn, vklady)
+    vysledek = prehledova_mapa(body, bez_podkladu)
+    if not vysledek:
+        return
+    img, zdroj, lo, hi = vysledek
+
+    # --- souhrnná tabulka vzorků (pokyn znalce 28. 10. 2026) ---------------
+    # Kč/m² je táž jednotková cena jako v mapové aplikaci. Počítá-li se
+    # k jiné ploše než k celkové výměře pozemků (nosná výměra, podlahová
+    # plocha), označí se odkazem, aby tabulka nesváděla k dělení cena/výměra.
+    odstavec(doc, "Souhrn srovnávacích vzorků", "ZP text", tucne=True)
+    radky, jiny_zaklad = [], []
+    for b in body:
+        jc = (kc(b["cena"]) if b["cena"] else "—")
+        if b["cena"] and b["orient"]:
+            jc += " orient."
+        if (b["cena"] and b["zaklad_plocha"] and b["vymera"]
+                and abs(b["zaklad_plocha"] - b["vymera"]) > 0.5):
+            jiny_zaklad.append(b)
+            jc += f" ({len(jiny_zaklad)})"
+        radky.append([str(b["poradi"]), b["cislo"], b["ku"] or "",
+                      f"{b['datum']:%d. %m. %Y}" if b["datum"] else "—",
+                      kc(b["vymera"], 0) if b["vymera"] else "—",
+                      kc(b["cena_kc"]) if b["cena_kc"] else "—", jc])
+    tabulka(doc, radky, [0.8, 3.5, 3.0, 2.2, 2.2, 2.9, 2.4],
+            hlavicka=["č.", "Číslo vkladu", "Katastrální území", "Zplatněno",
+                      "Výměra pozemků m²", "Kupní cena Kč", "Kč/m²"])
+    poznamky = ["Výměra pozemků = součet výměr všech parcel předmětu vkladu. "
+                "Kč/m² = jednotková cena vzorku shodná s mapovou aplikací."]
+    for i, b in enumerate(jiny_zaklad, 1):
+        poznamky.append(f"({i}) {b['cislo']}: jednotková cena počítána k ploše "
+                        f"{kc(b['zaklad_plocha'], 0)} m² — {b['zaklad'] or 'jiný základ'}.")
+    odstavec(doc, " ".join(poznamky), "ZP popisek")
+
+    # --- přehledová mapa ----------------------------------------------------
+    odstavec(doc, "Přehledová mapa srovnávacích vzorků", "ZP text", tucne=True)
+    buf = io.BytesIO()
+    img.save(buf, format="PNG")
+    buf.seek(0)
+    p = doc.add_paragraph()
+    p.style = styl(doc, "ZP obrázek", "Normal")
+    p.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    p.add_run().add_picture(buf, width=Cm(SIRKA_SAZBY_CM))
+    skala = (f" Barva tečky vyjadřuje jednotkovou cenu v rámci souboru: zelená "
+             f"{kc(lo)} Kč/m² (nejnižší), červená {kc(hi)} Kč/m² (nejvyšší), "
+             f"mezi nimi lineárně." if lo is not None and hi != lo else "")
+    odstavec(doc, f"Zdroj: {zdroj}. Vzorky vyznačeny v místě hlavní nemovitosti."
+                  f"{skala} Šedě vzorky s orientační cenou nebo bez jednotkové ceny, "
+                  f"do škály se nezapočítávají.", "ZP popisek")
+    chybi = [c for c in vklady if c not in {b["cislo"] for b in body}]
+    if chybi:
+        odstavec(doc, "V mapě chybí (vklad nemá bod v mapové vrstvě): "
+                      + ", ".join(chybi) + ".", "ZP popisek")
 
 
 # =============================================================================
@@ -1492,6 +1789,7 @@ def main():
                       f"{'kartu' if len(vklady) == 1 else 'karet'} vkladu. "
                       f"Sestaveno {datetime.date.today():%d. %m. %Y} z databáze "
                       f"cenových údajů ze sbírky listin katastru nemovitostí.")
+        prehled_do_dokumentu(doc, conn, vklady, bez_podkladu=a.bez_map)
         legenda_do_dokumentu(doc)
 
         for i, cislo in enumerate(vklady):

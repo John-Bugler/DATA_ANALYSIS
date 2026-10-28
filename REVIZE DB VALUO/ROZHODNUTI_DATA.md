@@ -1917,6 +1917,26 @@ sám — což je právě ten soupis, u kterého dnešní den začal.
 
 ## Záznam změn
 
+- **2026-10-28 — `--dopocty` z importu spadlo na `NameError: os`.** Při
+  prvním skutečném importu nových dat po změnách z 25. října proběhly etapy
+  1 až 6 v pořádku (přepočty 1 min, vzorek 25 663 bez výhrad), ale
+  `python 30_import_valuo.py --dopocty` okamžitě spadlo:
+  `nacti_dopocty()` volala `os.path.join`, a **tenhle modul `os` vůbec
+  neimportuje** — používá `pathlib`. Chyba tam ležela od zavedení té funkce
+  a nikdy se neprojevila, protože dopočty se vždy pouštěly přímo přes
+  `38_prepocty.py`. Opraveno na `Path(__file__).resolve().parent`, tedy
+  v duchu toho modulu, bez nového importu. Ověřeno na disku.
+  **Statická kontrola z 27. října to nenašla**, protože ověřovala jen
+  syntaxi (`ast.parse`), a `NameError` je chyba za běhu. Doplněno:
+  na všechny skripty řetězce se pouští `pyflakes`, který nedefinovaná
+  jména najde staticky. Nálezy: ta jedna skutečná chyba v importu
+  a tři planá hlášení v `37_karta_html.py` (`FVU` a `STAVBY` se nastavují
+  dynamicky přes `globals()` na řádcích 1113-1114, takže za běhu
+  existují — křehký styl, ne chyba; předat je parametrem je otevřený bod).
+  **Poučení:** `ast.parse` ověří, že se skript přeloží, ne že poběží.
+  Nedefinované jméno v cestě, kterou nikdo nikdy nespustil, projde
+  překladem i revizí kódu. Na řetězec skriptů patří pyflakes.
+
 - **2026-10-25 — rodinný dům + vedlejší stavba; dávka kroku mapa.**
   Zadání znalce prověřeno měřením: **první dvě podmínky už plní krok 46
   sám**, takže se nic nezavádělo. Podmínka 3 je zjistitelná u 76 vkladů ze
@@ -2499,6 +2519,10 @@ sám — což je právě ten soupis, u kterého dnešní den začal.
   z 25. 10. 2026: karta měla řadu rozlišení správně, aplikace ne, a nikdo
   to nespároval. Dokud jsou dvě kopie, stane se to znovu. Nabízí se jeden
   modul s definicí mapy, který si oba skripty vloží.
+- **`FVU` a `STAVBY` v `37_karta_html.py` předat parametrem** místo
+  `globals()`. Za běhu to funguje (nastavují se před vykreslením karty),
+  ale staticky to vypadá jako nedefinované jméno a pyflakes to hlásí.
+  Spoléhá to na to, že se karta nikdy nevykreslí jinou cestou.
 - **projít 1 287 vkladů s nálezem „více nosných nemovitostí"** — jednotková
   cena je u nich průměr za všechny nosné nemovitosti, ne cena jedné.
   Filtr v aplikaci „více nosných nemovitostí (cena je průměr)".

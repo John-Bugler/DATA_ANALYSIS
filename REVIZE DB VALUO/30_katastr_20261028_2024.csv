@@ -1,0 +1,459 @@
+﻿id_valuo;uzemi;parcela;vysledek;vymera_valuo;vymera_katastr;detail
+125472;Petrov u Prahy;st. 741;ok;177.0;177.0;
+125473;Petrov u Prahy;278/11;ok;2050.0;2050.0;vymera_sedi
+125474;Okrouhlo;st. 749;ok;131.3;233.0;
+125475;Okrouhlo;46/4;ok;108.0;108.0;vymera_sedi
+125476;Okrouhlo;796/17;nenalezeno;224.0;;kod_ku=709719
+125477;Okrouhlo;st. 105;ok;275.0;275.0;
+125478;Okrouhlo;st. 772;ok;49.0;49.0;
+125479;Okrouhlo;780/14;ok;207.0;207.0;vymera_sedi
+125480;Okrouhlo;st. 15;ok;509.0;509.0;
+125481;Okrouhlo;29;ok;227.0;227.0;vymera_sedi
+125482;Zvole u Prahy;115;ok;5481.0;5481.0;vymera_sedi
+125483;Okrouhlo;308;ok;3125.0;3125.0;vymera_sedi
+125484;Zvole u Prahy;345;ok;10654.0;10654.0;vymera_sedi
+125485;Zvole u Prahy;117;ok;1539.0;1539.0;vymera_sedi
+125486;Bratřínov;372/2;ok;6805.0;6805.0;vymera_sedi
+125487;Okrouhlo;183;ok;6812.0;6812.0;vymera_sedi
+125488;Okrouhlo;266/50;ok;5600.0;5600.0;vymera_sedi
+125489;Okrouhlo;501/5;ok;2628.0;2628.0;vymera_sedi
+125490;Petrov u Prahy;st. 54;ok;1211.0;1211.0;
+125491;Petrov u Prahy;39/3;ok;22.0;22.0;vymera_sedi
+125492;Petrov u Prahy;40/1;ok;1582.0;1582.0;vymera_sedi
+125493;Petrov u Prahy;114/51;ok;46.0;46.0;vymera_sedi
+125494;Petrov u Prahy;st. 905;ok;16.0;16.0;vymera_sedi
+125495;Petrov u Prahy;st. 525;ok;24.0;24.0;
+125496;Petrov u Prahy;483/16;ok;371.0;371.0;vymera_sedi
+125497;Okrouhlo;503/59;ok;17.0;17.0;vymera_sedi
+125498;Zlatníky u Prahy;320/1;ok;5275.0;798.0;vymera_nesedi
+125499;Zlatníky u Prahy;791/4;ok;354.0;273.0;vymera_nesedi
+125500;Zlatníky u Prahy;377/10;ok;571.0;571.0;vymera_sedi
+125501;Libeř;st. 339;ok;41.0;41.0;
+125502;Libeř;605/6;ok;611.0;611.0;vymera_sedi
+125503;Zlatníky u Prahy;1031;ok;1063.0;1063.0;vymera_sedi
+125504;Zlatníky u Prahy;974;ok;820.0;820.0;vymera_sedi
+125505;Zlatníky u Prahy;975;ok;6425.0;6425.0;vymera_sedi
+125506;Zlatníky u Prahy;982;ok;1331.0;1331.0;vymera_sedi
+125507;Zlatníky u Prahy;974;ok;820.0;820.0;vymera_sedi
+125508;Zlatníky u Prahy;1031;ok;1063.0;1063.0;vymera_sedi
+125509;Zlatníky u Prahy;975;ok;6425.0;6425.0;vymera_sedi
+125510;Zlatníky u Prahy;975;ok;6425.0;6425.0;vymera_sedi
+125511;Zlatníky u Prahy;1031;ok;1063.0;1063.0;vymera_sedi
+125512;Zlatníky u Prahy;974;ok;820.0;820.0;vymera_sedi
+125513;Petrov u Prahy;204/9;ok;12.0;12.0;vymera_sedi
+125514;Petrov u Prahy;st. 681;ok;41.0;41.0;
+125515;Petrov u Prahy;205/3;ok;15.0;15.0;
+125516;Petrov u Prahy;st. 571;ok;37.0;37.0;vymera_sedi
+125517;Petrov u Prahy;st. 115;ok;148.0;148.0;
+125518;Petrov u Prahy;134/15;ok;389.0;351.0;vymera_nesedi
+125519;Petrov u Prahy;st. 690;ok;35.0;35.0;
+125520;Petrov u Prahy;st. 450;ok;42.0;42.0;
+125521;Petrov u Prahy;st. 665;ok;22.0;22.0;
+125522;Petrov u Prahy;st. 837;ok;29.0;29.0;
+125523;Petrov u Prahy;st. 451;ok;45.0;45.0;
+125524;Petrov u Prahy;st. 679;ok;37.0;37.0;
+125525;Petrov u Prahy;st. 838;ok;35.0;39.0;vymera_nesedi
+125526;Petrov u Prahy;st. 680;ok;60.0;60.0;
+125527;Petrov u Prahy;st. 737;ok;36.0;36.0;
+125528;Petrov u Prahy;392/5;ok;27.0;27.0;vymera_sedi
+125529;Petrov u Prahy;st. 767;ok;22.0;22.0;
+125530;Petrov u Prahy;st. 677;ok;37.0;37.0;
+125531;Petrov u Prahy;204/21;ok;19.0;19.0;vymera_sedi
+125532;Petrov u Prahy;st. 836;ok;33.0;47.0;vymera_nesedi
+125533;Zlatníky u Prahy;1023;ok;1758.0;1758.0;vymera_sedi
+125534;Zlatníky u Prahy;320/1;ok;5275.0;798.0;vymera_nesedi
+125535;Zlatníky u Prahy;16/3;ok;303.0;303.0;vymera_sedi
+125536;Zlatníky u Prahy;st. 49;ok;438.0;438.0;
+125537;Petrov u Prahy;483/20;ok;772.0;772.0;vymera_sedi
+125538;Petrov u Prahy;st. 530;ok;55.0;55.0;
+125539;Petrov u Prahy;61/64;ok;335.0;335.0;vymera_sedi
+125540;Petrov u Prahy;st. 350;ok;62.0;62.0;
+125541;Petrov u Prahy;560/96;ok;40.0;40.0;
+125542;Okrouhlo;499/6;ok;419.0;419.0;vymera_sedi
+125543;Okrouhlo;st. 437;ok;63.0;63.0;
+125544;Okrouhlo;11/1;ok;2364.0;2364.0;vymera_sedi
+125545;Libeř;687/35;ok;422.0;422.0;vymera_sedi
+125546;Libeř;687/2;ok;981.0;981.0;vymera_sedi
+125547;Libeř;631/8;ok;70.0;70.0;vymera_sedi
+125548;Libeř;461/7;ok;500.0;500.0;vymera_sedi
+125549;Libeř;115/18;ok;1000.0;1000.0;vymera_sedi
+125550;Petrov u Prahy;st. 658;ok;23.0;31.0;
+125551;Petrov u Prahy;st. 792;ok;37.0;37.0;
+125552;Petrov u Prahy;st. 696;ok;60.0;60.0;
+125553;Petrov u Prahy;st. 842;ok;24.0;32.0;vymera_nesedi
+125554;Petrov u Prahy;st. 420;ok;37.0;37.0;
+125555;Petrov u Prahy;157/76;ok;43.0;43.0;
+125556;Petrov u Prahy;st. 699;ok;59.0;59.0;
+125557;Petrov u Prahy;st. 726;ok;89.0;89.0;
+125558;Petrov u Prahy;st. 657;ok;53.0;53.0;
+125559;Petrov u Prahy;st. 732;ok;21.0;21.0;
+125560;Petrov u Prahy;st. 780;ok;58.0;58.0;
+125561;Petrov u Prahy;st. 576;ok;28.0;28.0;
+125562;Petrov u Prahy;st. 517;ok;41.0;41.0;
+125563;Petrov u Prahy;483/4;ok;572.0;572.0;vymera_sedi
+125564;Petrov u Prahy;st. 864;ok;13.0;18.0;vymera_nesedi
+125565;Petrov u Prahy;st. 419;ok;30.0;34.0;
+125566;Petrov u Prahy;492/4;ok;954.0;954.0;vymera_sedi
+125567;Petrov u Prahy;516/119;ok;73894.0;73894.0;vymera_sedi
+125568;Petrov u Prahy;st. 366;ok;112.0;112.0;
+125569;Petrov u Prahy;st. 735;ok;26.0;26.0;
+125570;Petrov u Prahy;464/16;ok;736.0;736.0;vymera_sedi
+125571;Petrov u Prahy;464/18;ok;163.0;163.0;vymera_sedi
+125572;Petrov u Prahy;st. 85;ok;349.0;349.0;
+125573;Petrov u Prahy;134/2;ok;425.0;390.0;vymera_nesedi
+125574;Petrov u Prahy;630/3;nenalezeno;11.0;;kod_ku=719757
+125575;Petrov u Prahy;134/24;ok;2700.0;2700.0;vymera_sedi
+125576;Petrov u Prahy;133;ok;294.0;294.0;vymera_sedi
+125577;Okrouhlo;st. 658;ok;70.0;70.0;
+125578;Okrouhlo;787/11;ok;967.0;967.0;vymera_sedi
+125579;Okrouhlo;st. 659;ok;21.0;21.0;vymera_sedi
+125580;Okrouhlo;st. 663;ok;110.0;110.0;
+125581;Okrouhlo;st. 664;ok;41.0;41.0;
+125582;Okrouhlo;103/2;ok;1049.0;1049.0;vymera_sedi
+125583;Okrouhlo;103/1;ok;3328.0;3328.0;vymera_sedi
+125584;Okrouhlo;565/9;ok;808.0;808.0;vymera_sedi
+125585;Okrouhlo;516;ok;11495.0;11495.0;vymera_sedi
+125586;Okrouhlo;506;ok;6147.0;6147.0;vymera_sedi
+125587;Okrouhlo;st. 26/5;ok;49.0;49.0;vymera_sedi
+125588;Okrouhlo;90/2;ok;187.0;187.0;vymera_sedi
+125589;Petrov u Prahy;st. 522;ok;31.0;31.0;
+125590;Petrov u Prahy;483/12;ok;335.0;335.0;vymera_sedi
+125591;Petrov u Prahy;162/42;ok;50.0;50.0;
+125592;Petrov u Prahy;560/4;ok;3313.0;3313.0;vymera_sedi
+125593;Petrov u Prahy;566/1;ok;266.0;266.0;vymera_sedi
+125594;Oleško u Zvole;100/35;ok;226.0;226.0;vymera_sedi
+125595;Petrov u Prahy;560/113;ok;34.0;34.0;
+125596;Okrouhlo;615/13;ok;442.0;442.0;vymera_sedi
+125597;Okrouhlo;615/1;ok;1426.0;1426.0;vymera_sedi
+125598;Okrouhlo;615/16;ok;1014.0;1014.0;vymera_sedi
+125599;Okrouhlo;615/6;ok;457.0;457.0;vymera_sedi
+125600;Okrouhlo;615/10;ok;301.0;301.0;vymera_sedi
+125601;Okrouhlo;615/9;ok;442.0;442.0;vymera_sedi
+125602;Okrouhlo;615/14;ok;447.0;447.0;vymera_sedi
+125603;Okrouhlo;615/7;ok;440.0;440.0;vymera_sedi
+125604;Okrouhlo;615/12;ok;409.0;409.0;vymera_sedi
+125605;Okrouhlo;615/8;ok;444.0;444.0;vymera_sedi
+125606;Okrouhlo;615/11;ok;452.0;452.0;vymera_sedi
+125607;Okrouhlo;615/18;ok;463.0;463.0;vymera_sedi
+125608;Okrouhlo;615/15;ok;232.0;232.0;vymera_sedi
+125609;Okrouhlo;615/19;ok;102.0;102.0;vymera_sedi
+125610;Okrouhlo;356/7;ok;27.0;27.0;vymera_sedi
+125611;Petrov u Prahy;560/28;ok;54.0;54.0;
+125612;Libeř;311/2;ok;465.0;465.0;vymera_sedi
+125613;Libeř;594/3;ok;407.0;407.0;vymera_sedi
+125614;Petrov u Prahy;50/11;ok;25419.0;25419.0;vymera_sedi
+125615;Petrov u Prahy;566/16;ok;181.0;181.0;vymera_sedi
+125616;Petrov u Prahy;st. 629;ok;51.0;51.0;
+125617;Petrov u Prahy;141/2;ok;2460.0;2460.0;vymera_sedi
+125618;Petrov u Prahy;676;ok;363.0;363.0;vymera_sedi
+125619;Petrov u Prahy;st. 942;ok;153.0;153.0;vymera_sedi
+125620;Petrov u Prahy;140/2;ok;8884.0;8884.0;vymera_sedi
+125621;Petrov u Prahy;140/1;ok;2312.0;2312.0;vymera_sedi
+125622;Petrov u Prahy;307/2;ok;1458.0;1458.0;vymera_sedi
+125623;Petrov u Prahy;304/4;ok;10600.0;10600.0;vymera_sedi
+125624;Petrov u Prahy;st. 473/1;ok;36.0;36.0;
+125625;Petrov u Prahy;572/8;ok;269.0;269.0;vymera_sedi
+125626;Okrouhlo;795/20;ok;91.0;91.0;vymera_sedi
+125627;Petrov u Prahy;st. 419;ok;34.0;34.0;
+125628;Petrov u Prahy;st. 416;ok;34.0;34.0;
+125629;Petrov u Prahy;47/13;ok;631.0;631.0;vymera_sedi
+125630;Petrov u Prahy;st. 475;ok;42.0;42.0;
+125631;Zlatníky u Prahy;5/2;ok;418.0;418.0;vymera_sedi
+125632;Zlatníky u Prahy;791/6;ok;769.0;769.0;vymera_sedi
+125633;Zlatníky u Prahy;791/3;ok;622.0;622.0;vymera_sedi
+125634;Zlatníky u Prahy;306;nenalezeno;183.0;;kod_ku=793221
+125635;Zlatníky u Prahy;305;ok;191.0;531.0;vymera_nesedi
+125636;Zlatníky u Prahy;307;ok;1406.0;2187.0;vymera_nesedi
+125637;Zlatníky u Prahy;304;nenalezeno;9876.0;;kod_ku=793221
+125638;Zlatníky u Prahy;st. 65;ok;111.0;111.0;
+125639;Zlatníky u Prahy;635;ok;247.0;247.0;vymera_sedi
+125640;Zlatníky u Prahy;633;ok;465.0;465.0;vymera_sedi
+125641;Zlatníky u Prahy;304;nenalezeno;9876.0;;kod_ku=793221
+125642;Zlatníky u Prahy;305;ok;191.0;531.0;vymera_nesedi
+125643;Zlatníky u Prahy;306;nenalezeno;183.0;;kod_ku=793221
+125644;Zlatníky u Prahy;307;ok;1406.0;2187.0;vymera_nesedi
+125645;Libeř;st. 706;ok;177.0;177.0;
+125646;Libeř;482/36;ok;1023.0;1023.0;vymera_sedi
+125647;Libeř;482/38;ok;3134.0;3134.0;vymera_sedi
+125648;Libeř;473/23;ok;464.0;425.0;vymera_nesedi
+125649;Libeř;752;nenalezeno;62.0;;kod_ku=682560
+125650;Petrov u Prahy;st. 514;ok;73.0;73.0;
+125651;Petrov u Prahy;480/15;ok;382.0;382.0;vymera_sedi
+125652;Petrov u Prahy;480/21;ok;696.0;696.0;vymera_sedi
+125653;Petrov u Prahy;st. 472;ok;47.0;47.0;
+125654;Petrov u Prahy;572/7;ok;368.0;368.0;vymera_sedi
+125655;Petrov u Prahy;566/13;ok;314.0;314.0;vymera_sedi
+125656;Petrov u Prahy;314/1;ok;647.0;647.0;vymera_sedi
+125657;Petrov u Prahy;314/2;ok;401.0;401.0;vymera_sedi
+125658;Petrov u Prahy;316;ok;9106.0;9106.0;vymera_sedi
+125659;Petrov u Prahy;315;ok;611.0;611.0;vymera_sedi
+125660;Petrov u Prahy;566/15;ok;203.0;203.0;vymera_sedi
+125661;Petrov u Prahy;560/126;ok;nan;28.0;
+125662;Petrov u Prahy;st. 364;ok;47.0;47.0;
+125663;Petrov u Prahy;216/10;ok;564.0;564.0;vymera_sedi
+125664;Petrov u Prahy;457/2;ok;874.0;874.0;vymera_sedi
+125665;Petrov u Prahy;st. 470;ok;46.0;46.0;
+125666;Petrov u Prahy;572/5;ok;232.0;232.0;vymera_sedi
+125667;Petrov u Prahy;566/14;ok;189.0;189.0;vymera_sedi
+125668;Petrov u Prahy;157/31;ok;41.0;41.0;
+125669;Petrov u Prahy;st. 282;ok;155.0;155.0;
+125670;Petrov u Prahy;114/14;ok;1126.0;1126.0;vymera_sedi
+125671;Petrov u Prahy;st. 264;ok;52.0;52.0;
+125672;Petrov u Prahy;88/6;ok;764.0;764.0;vymera_sedi
+125673;Libeř;st. 739;ok;23.0;23.0;vymera_sedi
+125674;Libeř;st. 742;ok;40.0;40.0;
+125675;Libeř;390/26;ok;350.0;350.0;vymera_sedi
+125676;Libeř;296/197;ok;1044.0;874.0;vymera_nesedi
+125677;Libeř;st. 814;nenalezeno;nan;;kod_ku=682560
+125678;Libeř;175;ok;5252.0;5252.0;vymera_sedi
+125679;Petrov u Prahy;516/3;ok;4340.0;4340.0;vymera_sedi
+125680;Petrov u Prahy;308/9;ok;17.0;17.0;
+125681;Petrov u Prahy;154/42;ok;30.0;30.0;
+125682;Petrov u Prahy;157/19;ok;32.0;32.0;
+125683;Petrov u Prahy;st. 476;ok;49.0;49.0;
+125684;Petrov u Prahy;570/9;ok;130.0;130.0;vymera_sedi
+125685;Petrov u Prahy;157/19;ok;32.0;32.0;
+125686;Petrov u Prahy;304/2;ok;9675.0;9675.0;vymera_sedi
+125687;Okrouhlo;490/1;ok;10607.0;10607.0;vymera_sedi
+125688;Okrouhlo;196/4;ok;12180.0;12180.0;vymera_sedi
+125689;Okrouhlo;33/7;ok;64.0;64.0;vymera_sedi
+125690;Okrouhlo;850/3;ok;31.0;31.0;vymera_sedi
+125691;Okrouhlo;11/13;ok;1074.0;1074.0;vymera_sedi
+125692;Okrouhlo;st. 387;ok;43.0;43.0;
+125693;Okrouhlo;st. 388;ok;14.0;14.0;
+125694;Okrouhlo;500/21;ok;498.0;498.0;vymera_sedi
+125695;Okrouhlo;500/22;ok;82.0;82.0;vymera_sedi
+125696;Okrouhlo;st. 670;ok;73.0;73.0;
+125697;Okrouhlo;st. 671;ok;28.0;28.0;
+125698;Okrouhlo;199/2;ok;670.0;670.0;vymera_sedi
+125699;Okrouhlo;615/18;ok;463.0;463.0;vymera_sedi
+125700;Okrouhlo;615/19;ok;102.0;102.0;vymera_sedi
+125701;Petrov u Prahy;449/60;ok;1915.0;1915.0;vymera_sedi
+125702;Petrov u Prahy;st. 476;ok;49.0;49.0;
+125703;Petrov u Prahy;st. 158;ok;28.0;28.0;
+125704;Petrov u Prahy;223/8;ok;680.0;680.0;vymera_sedi
+125705;Petrov u Prahy;st. 521;ok;54.0;54.0;
+125706;Petrov u Prahy;483/9;ok;537.0;537.0;vymera_sedi
+125707;Petrov u Prahy;st. 600;ok;28.0;28.0;
+125708;Libeř;165/1;ok;6503.0;2710.0;vymera_nesedi
+125709;Libeř;330;ok;1198.0;1198.0;vymera_sedi
+125710;Libeř;550/1;ok;348.0;348.0;vymera_sedi
+125711;Libeř;575/2;ok;8408.0;8408.0;vymera_sedi
+125712;Libeř;164/1;ok;10981.0;10981.0;vymera_sedi
+125713;Libeř;115/100;ok;3870.0;3870.0;vymera_sedi
+125714;Libeř;133;ok;9444.0;9444.0;vymera_sedi
+125715;Libeř;237/3;ok;1974.0;1974.0;vymera_sedi
+125716;Psáry;913/4;ok;3606.0;3606.0;vymera_sedi
+125717;Libeř;547/4;ok;74.0;74.0;vymera_sedi
+125718;Libeř;198/18;ok;1484.0;1484.0;vymera_sedi
+125719;Libeř;230/63;ok;4550.0;4550.0;vymera_sedi
+125720;Libeř;329;ok;3536.0;3536.0;vymera_sedi
+125721;Libeř;542/1;ok;208.0;208.0;vymera_sedi
+125722;Libeř;547/2;ok;864.0;864.0;vymera_sedi
+125723;Libeř;541;ok;1147.0;1147.0;vymera_sedi
+125724;Libeř;549/1;ok;37.0;37.0;vymera_sedi
+125725;Libeř;549/3;ok;245.0;245.0;vymera_sedi
+125726;Libeř;230/44;ok;10908.0;10908.0;vymera_sedi
+125727;Libeř;516/15;ok;4550.0;4550.0;vymera_sedi
+125728;Libeř;516/4;ok;10990.0;10990.0;vymera_sedi
+125729;Libeř;550/4;ok;779.0;779.0;vymera_sedi
+125730;Libeř;222/1;ok;6234.0;6234.0;vymera_sedi
+125731;Libeř;547/12;ok;4924.0;4924.0;vymera_sedi
+125732;Libeř;697/14;ok;153.0;153.0;vymera_sedi
+125733;Libeř;115/63;ok;1133.0;1133.0;vymera_sedi
+125734;Libeř;st. 163;ok;113.0;113.0;
+125735;Libeř;461/5;ok;672.0;672.0;vymera_sedi
+125736;Libeř;461/13;ok;290.0;290.0;vymera_sedi
+125737;Libeř;st. 817;ok;4.0;4.0;vymera_sedi
+125738;Petrov u Prahy;106/2;ok;12.0;12.0;vymera_sedi
+125739;Petrov u Prahy;st. 626;ok;55.0;55.0;
+125740;Petrov u Prahy;st. 627;ok;47.0;47.0;
+125741;Petrov u Prahy;568/1;ok;2958.0;2958.0;vymera_sedi
+125742;Petrov u Prahy;st. 831;ok;27.0;27.0;
+125743;Petrov u Prahy;567;ok;1592.0;1592.0;vymera_sedi
+125744;Petrov u Prahy;st. 897;ok;10.0;10.0;vymera_sedi
+125745;Petrov u Prahy;st. 860;ok;27.0;27.0;
+125746;Petrov u Prahy;st. 206;ok;94.0;94.0;
+125747;Petrov u Prahy;300/31;ok;672.0;672.0;vymera_sedi
+125748;Petrov u Prahy;462/2;ok;126.0;126.0;vymera_sedi
+125749;Okrouhlo;507;ok;6197.0;6197.0;vymera_sedi
+125750;Okrouhlo;st. 349;ok;26.0;26.0;
+125751;Okrouhlo;183;ok;6812.0;6812.0;vymera_sedi
+125752;Okrouhlo;st. 31/2;ok;238.0;238.0;
+125753;Okrouhlo;st. 31/9;ok;52.0;52.0;
+125754;Okrouhlo;75/3;ok;60.0;60.0;vymera_sedi
+125755;Okrouhlo;76/2;ok;120.0;120.0;vymera_sedi
+125756;Okrouhlo;860/18;ok;365.0;365.0;vymera_sedi
+125757;Okrouhlo;921;ok;423.0;423.0;vymera_sedi
+125758;Okrouhlo;st. 774;ok;11.0;11.0;vymera_sedi
+125759;Okrouhlo;875;ok;100.0;100.0;vymera_sedi
+125760;Okrouhlo;910;ok;29.0;29.0;vymera_sedi
+125761;Okrouhlo;911;ok;3.0;3.0;vymera_sedi
+125762;Okrouhlo;4/22;ok;1020.0;1020.0;vymera_sedi
+125763;Okrouhlo;406/9;ok;2785.0;2785.0;vymera_sedi
+125764;Petrov u Prahy;st. 132;ok;48.0;48.0;
+125765;Petrov u Prahy;st. 937;ok;22.0;22.0;
+125766;Petrov u Prahy;104/5;ok;485.0;485.0;vymera_sedi
+125767;Petrov u Prahy;104/3;ok;459.0;459.0;vymera_sedi
+125768;Petrov u Prahy;104/6;ok;462.0;462.0;vymera_sedi
+125769;Petrov u Prahy;st. 714;ok;169.0;169.0;
+125770;Petrov u Prahy;454/12;ok;871.0;871.0;vymera_sedi
+125771;Petrov u Prahy;454/27;ok;74.0;74.0;vymera_sedi
+125772;Petrov u Prahy;454/28;ok;36.0;36.0;vymera_sedi
+125773;Petrov u Prahy;454/24;ok;2399.0;2399.0;vymera_sedi
+125774;Petrov u Prahy;454/11;ok;1018.0;1018.0;vymera_sedi
+125775;Petrov u Prahy;266;ok;9567.0;9567.0;vymera_sedi
+125776;Petrov u Prahy;265/1;ok;4615.0;4615.0;vymera_sedi
+125777;Petrov u Prahy;st. 761;ok;150.0;150.0;
+125778;Petrov u Prahy;st. 763;ok;46.0;46.0;
+125779;Petrov u Prahy;st. 906;ok;38.0;38.0;
+125780;Petrov u Prahy;449/27;ok;815.0;815.0;vymera_sedi
+125781;Petrov u Prahy;560/40;ok;39.0;39.0;
+125782;Petrov u Prahy;58/13;ok;1000.0;1000.0;vymera_sedi
+125783;Petrov u Prahy;st. 599;ok;32.0;32.0;
+125784;Petrov u Prahy;st. 399;ok;39.0;39.0;
+125785;Zlatníky u Prahy;428/15;ok;144.0;144.0;vymera_sedi
+125786;Zlatníky u Prahy;632;ok;680.0;680.0;vymera_sedi
+125787;Zlatníky u Prahy;198/1;ok;6312.0;4973.0;vymera_nesedi
+125788;Zlatníky u Prahy;170/1;ok;20008.0;4349.0;vymera_nesedi
+125789;Zlatníky u Prahy;382/3;ok;30719.0;30719.0;vymera_sedi
+125790;Zlatníky u Prahy;200;nenalezeno;1647.0;;kod_ku=793221
+125791;Zlatníky u Prahy;201/1;ok;6264.0;4980.0;vymera_nesedi
+125792;Zlatníky u Prahy;199;nenalezeno;1158.0;;kod_ku=793221
+125793;Zlatníky u Prahy;1036;ok;315.0;315.0;vymera_sedi
+125794;Zlatníky u Prahy;419/18;ok;188.0;188.0;vymera_sedi
+125795;Libeř;328/37;ok;511.0;511.0;vymera_sedi
+125796;Libeř;328/103;ok;887.0;887.0;vymera_sedi
+125797;Libeř;328/20;ok;616.0;616.0;vymera_sedi
+125798;Libeř;st. 715;ok;320.0;320.0;
+125799;Libeř;145/2;ok;962.0;962.0;vymera_sedi
+125800;Libeř;482/38;ok;3134.0;3134.0;vymera_sedi
+125801;Libeř;296/123;ok;239.0;239.0;vymera_sedi
+125802;Libeř;st. 251;ok;64.0;64.0;
+125803;Petrov u Prahy;st. 672;ok;27.0;27.0;
+125804;Petrov u Prahy;st. 704;ok;36.0;36.0;
+125805;Petrov u Prahy;130/3;ok;33.0;33.0;
+125806;Petrov u Prahy;st. 433;ok;31.0;31.0;
+125807;Petrov u Prahy;332/2;ok;3652.0;3652.0;vymera_sedi
+125808;Petrov u Prahy;st. 839;ok;45.0;45.0;
+125809;Petrov u Prahy;625/2;ok;86.0;86.0;vymera_sedi
+125810;Petrov u Prahy;624/21;ok;2.0;2.0;vymera_sedi
+125811;Petrov u Prahy;st. 931;nenalezeno;29.0;;kod_ku=719757
+125812;Petrov u Prahy;st. 390;ok;39.0;39.0;
+125813;Petrov u Prahy;272/1;ok;8636.0;8636.0;vymera_sedi
+125814;Petrov u Prahy;st. 676;ok;45.0;45.0;
+125815;Oleško u Zvole;st. 754;ok;49.0;49.0;
+125816;Petrov u Prahy;566/12;ok;206.0;206.0;vymera_sedi
+125817;Oleško u Zvole;77/31;ok;472.0;472.0;vymera_sedi
+125818;Petrov u Prahy;st. 856;ok;44.0;44.0;
+125819;Petrov u Prahy;st. 206;ok;94.0;94.0;
+125820;Petrov u Prahy;300/31;ok;672.0;672.0;vymera_sedi
+125821;Petrov u Prahy;509/12;ok;24.0;24.0;
+125822;Okrouhlo;507;ok;6197.0;6197.0;vymera_sedi
+125823;Okrouhlo;177;ok;10736.0;10736.0;vymera_sedi
+125824;Petrov u Prahy;502/5;ok;155.0;155.0;vymera_sedi
+125825;Zlatníky u Prahy;st. 213;ok;91.0;91.0;
+125826;Zlatníky u Prahy;421/31;ok;209.0;209.0;vymera_sedi
+125827;Zlatníky u Prahy;100/33;ok;436.0;436.0;vymera_sedi
+125828;Zlatníky u Prahy;100/30;ok;189.0;189.0;vymera_sedi
+125829;Zlatníky u Prahy;st. 263;ok;206.0;206.0;
+125830;Zlatníky u Prahy;100/16;ok;237.0;237.0;vymera_sedi
+125831;Zlatníky u Prahy;113/8;ok;312.0;312.0;vymera_sedi
+125832;Zlatníky u Prahy;103/3;ok;81.0;81.0;vymera_sedi
+125833;Libeř;574;ok;8323.0;8323.0;vymera_sedi
+125834;Libeř;575/1;ok;8258.0;8258.0;vymera_sedi
+125835;Petrov u Prahy;st. 676;ok;45.0;45.0;
+125836;Petrov u Prahy;331/2;ok;3926.0;3926.0;vymera_sedi
+125837;Petrov u Prahy;st. 348;ok;29.0;29.0;
+125838;Petrov u Prahy;50/6;ok;411.0;411.0;vymera_sedi
+125839;Petrov u Prahy;337/14;ok;13070.0;13070.0;vymera_sedi
+125840;Petrov u Prahy;332/2;ok;3652.0;3652.0;vymera_sedi
+125841;Petrov u Prahy;331/2;ok;3926.0;3926.0;vymera_sedi
+125842;Petrov u Prahy;st. 632;ok;42.0;42.0;
+125843;Petrov u Prahy;st. 597;ok;32.0;32.0;
+125844;Petrov u Prahy;480/16;ok;425.0;425.0;vymera_sedi
+125845;Libeř;st. 484;ok;32.0;32.0;
+125846;Libeř;438/2;ok;201.0;201.0;vymera_sedi
+125847;Petrov u Prahy;st. 599;ok;32.0;32.0;
+125848;Zlatníky u Prahy;863;ok;9209.0;9209.0;vymera_sedi
+125849;Zlatníky u Prahy;382/3;ok;30719.0;30719.0;vymera_sedi
+125850;Zlatníky u Prahy;799;ok;3202.0;3202.0;vymera_sedi
+125851;Zlatníky u Prahy;796;ok;1068.0;1068.0;vymera_sedi
+125852;Libeř;115/48;ok;147.0;147.0;vymera_sedi
+125853;Libeř;115/39;ok;871.0;871.0;vymera_sedi
+125854;Okrouhlo;11/12;ok;1042.0;1042.0;vymera_sedi
+125855;Okrouhlo;11/1;ok;2364.0;2364.0;vymera_sedi
+125856;Okrouhlo;33/7;ok;64.0;64.0;vymera_sedi
+125857;Okrouhlo;850/3;ok;31.0;31.0;vymera_sedi
+125858;Petrov u Prahy;130/3;ok;33.0;33.0;
+125859;Petrov u Prahy;st. 890;ok;49.0;49.0;
+125860;Petrov u Prahy;st. 552;ok;36.0;36.0;
+125861;Petrov u Prahy;136/3;ok;273.0;273.0;vymera_sedi
+125862;Petrov u Prahy;332/2;ok;3652.0;3652.0;vymera_sedi
+125863;Petrov u Prahy;st. 39/2;ok;715.0;715.0;
+125864;Petrov u Prahy;679;ok;32.0;32.0;vymera_sedi
+125865;Petrov u Prahy;276/9;ok;1115.0;1115.0;vymera_sedi
+125866;Petrov u Prahy;342/2;ok;8733.0;8733.0;vymera_sedi
+125867;Petrov u Prahy;342/3;ok;157.0;157.0;vymera_sedi
+125868;Petrov u Prahy;st. 628;ok;44.0;44.0;
+125869;Petrov u Prahy;st. 635;ok;42.0;42.0;
+125870;Petrov u Prahy;516/116;ok;1787.0;1787.0;vymera_sedi
+125871;Petrov u Prahy;516/117;ok;3004.0;3004.0;vymera_sedi
+125872;Petrov u Prahy;342/3;ok;157.0;157.0;vymera_sedi
+125873;Petrov u Prahy;342/2;ok;8733.0;8733.0;vymera_sedi
+125874;Libeř;177/108;ok;6646.0;6646.0;vymera_sedi
+125875;Libeř;516/25;ok;1416.0;1416.0;vymera_sedi
+125876;Libeř;493/8;ok;830.0;830.0;vymera_sedi
+125877;Libeř;165/6;ok;1526.0;1526.0;vymera_sedi
+125878;Libeř;177/75;ok;8171.0;8171.0;vymera_sedi
+125879;Libeř;177/108;ok;6646.0;6646.0;vymera_sedi
+125880;Libeř;165/4;ok;3793.0;3793.0;vymera_sedi
+125881;Libeř;35/5;ok;110.0;110.0;vymera_sedi
+125882;Libeř;344/1;ok;710.0;710.0;vymera_sedi
+125883;Libeř;343/10;ok;33.0;33.0;vymera_sedi
+125884;Libeř;165/6;ok;1526.0;1526.0;vymera_sedi
+125885;Libeř;177/108;ok;6646.0;6646.0;vymera_sedi
+125886;Libeř;155/2;ok;434.0;434.0;vymera_sedi
+125887;Libeř;141/4;ok;3202.0;3202.0;vymera_sedi
+125888;Libeř;166/6;ok;6622.0;6622.0;vymera_sedi
+125889;Libeř;502/2;ok;8119.0;8119.0;vymera_sedi
+125890;Libeř;149/37;ok;115.0;115.0;vymera_sedi
+125891;Libeř;149/38;ok;542.0;542.0;vymera_sedi
+125892;Libeř;177/108;ok;6646.0;6646.0;vymera_sedi
+125893;Libeř;150/5;ok;3812.0;3812.0;vymera_sedi
+125894;Libeř;177/82;ok;14937.0;14937.0;vymera_sedi
+125895;Libeř;498/2;ok;1934.0;1934.0;vymera_sedi
+125896;Libeř;152/2;ok;2003.0;2003.0;vymera_sedi
+125897;Libeř;150/5;ok;3812.0;3812.0;vymera_sedi
+125898;Libeř;505/3;ok;8080.0;8080.0;vymera_sedi
+125899;Libeř;177/95;ok;4659.0;4659.0;vymera_sedi
+125900;Libeř;177/95;ok;4659.0;4659.0;vymera_sedi
+125901;Libeř;st. 416;ok;98.0;98.0;
+125902;Libeř;475/25;ok;527.0;527.0;vymera_sedi
+125903;Libeř;115/41;ok;1158.0;1158.0;vymera_sedi
+125904;Libeř;505/3;ok;8080.0;8080.0;vymera_sedi
+125905;Libeř;177/108;ok;6646.0;6646.0;vymera_sedi
+125906;Libeř;177/108;ok;6646.0;6646.0;vymera_sedi
+125907;Libeř;271/16;ok;10.0;10.0;vymera_sedi
+125908;Libeř;177/108;ok;6646.0;6646.0;vymera_sedi
+125909;Libeř;177/107;ok;4226.0;4226.0;vymera_sedi
+125910;Libeř;516/25;ok;1416.0;1416.0;vymera_sedi
+125911;Libeř;493/8;ok;830.0;830.0;vymera_sedi
+125912;Libeř;177/108;ok;6646.0;6646.0;vymera_sedi
+125913;Libeř;165/4;ok;3793.0;3793.0;vymera_sedi
+125914;Libeř;482/24;ok;1000.0;1000.0;vymera_sedi
+125915;Libeř;482/38;ok;3134.0;3134.0;vymera_sedi
+125916;Libeř;508/3;ok;14258.0;14258.0;vymera_sedi
+125917;Libeř;516/26;ok;807.0;807.0;vymera_sedi
+125918;Libeř;170/4;ok;4973.0;4973.0;vymera_sedi
+125919;Libeř;619/2;ok;20.0;20.0;vymera_sedi
+125920;Libeř;493/6;ok;265.0;265.0;vymera_sedi
+125921;Libeř;508/4;ok;66.0;66.0;vymera_sedi
+125922;Libeř;516/26;ok;807.0;807.0;vymera_sedi
+125923;Libeř;493/6;ok;265.0;265.0;vymera_sedi
+125924;Libeř;508/3;ok;14258.0;14258.0;vymera_sedi
+125925;Libeř;170/4;ok;4973.0;4973.0;vymera_sedi
+125926;Libeř;619/2;ok;20.0;20.0;vymera_sedi
+125927;Libeř;508/4;ok;66.0;66.0;vymera_sedi
+125928;Libeř;177/82;ok;14937.0;14937.0;vymera_sedi
+125929;Libeř;177/108;ok;6646.0;6646.0;vymera_sedi

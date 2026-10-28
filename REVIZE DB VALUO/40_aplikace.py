@@ -538,6 +538,9 @@ def export_do_wordu(vklady, bez_map=False):
                      f"{EX.pocet(len(vklady), 'kartu vkladu', 'karty vkladu', 'karet vkladu')}. "
                      f"Sestaveno {datetime.date.today():%d. %m. %Y} z databáze cenových "
                      f"údajů ze sbírky listin katastru nemovitostí.")
+    # souhrnná tabulka a přehledová mapa vzorku na začátek (28. 10. 2026)
+    with stroj().connect() as conn:
+        EX.prehled_do_dokumentu(doc, conn, vklady, bez_podkladu=bez_map)
     EX.legenda_do_dokumentu(doc)
 
     hotovo, chyby = 0, []
@@ -1055,6 +1058,7 @@ button:disabled { opacity:.45; cursor:default }
       <label class="radek"><input type="checkbox" id="bez-map"> bez mapových podkladů (rychlé)</label>
       <div style="display:flex; gap:7px; margin-top:9px">
         <button class="hlavni" id="btn-export" disabled>Export do Wordu</button>
+        <button id="btn-soubor-vlozit" title="Vložit čísla vkladů, každé na řádek nebo oddělená čárkou">Vložit seznam</button>
         <button id="btn-soubor-smazat" disabled>Vyprázdnit</button>
       </div>
       <div class="zprava" id="export-stav" style="margin-top:7px"></div>
@@ -1218,6 +1222,14 @@ var vrstvaObrysu = L.layerGroup().addTo(mapa);
 var OBRYSY_OD = 11;       // zoom 11 = 2,6 m/px, výřez kolem 2,5 km;
                           // ve staré řadě to byl index 8, totéž rozlišení
 var soubor = [];              // vzorky vybrané do srovnávacího souboru
+// Soubor se pamatuje v prohlížeči — přežije refresh i restart serveru
+// (28. 10. 2026). Při chybě úložiště se jede jen v paměti.
+var KLIC_SOUBORU = "valuo_srovnavaci_soubor";
+try {
+  var _ulozeny = JSON.parse(localStorage.getItem(KLIC_SOUBORU) || "[]");
+  if (Array.isArray(_ulozeny)) soubor = _ulozeny.filter(function (v) {
+    return typeof v === "string" && v; });
+} catch (e) { soubor = []; }
 var vybranyVklad = null;
 var posledniShluk = null;     // ze kterého domu se přišlo na jednotku
 var casovac = null;
@@ -1875,6 +1887,7 @@ el("btn-do-souboru").onclick = function () {
 };
 
 function prekresliSoubor() {
+  try { localStorage.setItem(KLIC_SOUBORU, JSON.stringify(soubor)); } catch (e) {}
   el("soubor-pocet").textContent = soubor.length;
   el("btn-export").disabled = !soubor.length;
   el("btn-soubor-smazat").disabled = !soubor.length;
@@ -1895,7 +1908,23 @@ function prekresliSoubor() {
   });
 }
 
-el("btn-soubor-smazat").onclick = function () { soubor = []; prekresliSoubor(); nacti(); };
+el("btn-soubor-smazat").onclick = function () {
+  if (!confirm("Vyprázdnit srovnávací soubor (" + soubor.length + " vzorků)?")) return;
+  soubor = []; prekresliSoubor(); nacti();
+};
+
+el("btn-soubor-vlozit").onclick = function () {
+  var txt = prompt("Vlož čísla vkladů (V-…/rok-…) — v jakémkoli textu, oddělená čímkoli:");
+  if (!txt) return;
+  // Bere jen čísla vkladů (V-číslo/rok-pracoviště), takže jde vložit i text
+  // označený myší ze seznamu souboru nebo z Wordu — pořadí a křížky se ignorují.
+  var nove = (txt.match(/V-\d+\/\d{4}-\d+/g) || [])
+                .filter(function (v, i, a) { return a.indexOf(v) === i && soubor.indexOf(v) < 0; });
+  nove.forEach(function (v) { if (soubor.indexOf(v) < 0) soubor.push(v); });
+  prekresliSoubor(); nacti();
+  el("export-stav").textContent = "Přidáno " + nove.length + " vkladů.";
+};
+prekresliSoubor();
 
 el("btn-export").onclick = function () {
   var bezMap = el("bez-map").checked;
